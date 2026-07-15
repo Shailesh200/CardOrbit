@@ -1,0 +1,10 @@
+{
+  "name": "CardOrbit Admin",
+  "short_name": "CO Admin",
+  "description": "CardOrbit operations and catalog admin portal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050816",
+  "theme_color": "#050816",
+  "icons": []
+}

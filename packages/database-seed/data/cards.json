@@ -1,0 +1,168 @@
+{
+  "rewardPrograms": [
+    {
+      "name": "HDFC Bank Rewards",
+      "slug": "hdfc-rewards",
+      "issuerBankSlug": "hdfc",
+      "pointValueInr": 0.25
+    },
+    {
+      "name": "ICICI Bank Rewards",
+      "slug": "icici-rewards",
+      "issuerBankSlug": "icici",
+      "pointValueInr": 0.3
+    },
+    {
+      "name": "State Bank of India Rewards",
+      "slug": "sbi-rewards",
+      "issuerBankSlug": "sbi",
+      "pointValueInr": 0.35
+    },
+    {
+      "name": "Axis Bank Rewards",
+      "slug": "axis-rewards",
+      "issuerBankSlug": "axis",
+      "pointValueInr": 0.4
+    },
+    {
+      "name": "Kotak Mahindra Bank Rewards",
+      "slug": "kotak-rewards",
+      "issuerBankSlug": "kotak",
+      "pointValueInr": 0.25
+    },
+    {
+      "name": "Yes Bank Rewards",
+      "slug": "yes-bank-rewards",
+      "issuerBankSlug": "yes-bank",
+      "pointValueInr": 0.3
+    },
+    {
+      "name": "IndusInd Bank Rewards",
+      "slug": "indusind-rewards",
+      "issuerBankSlug": "indusind",
+      "pointValueInr": 0.35
+    },
+    {
+      "name": "IDFC FIRST Bank Rewards",
+      "slug": "idfc-first-rewards",
+      "issuerBankSlug": "idfc-first",
+      "pointValueInr": 0.4
+    },
+    {
+      "name": "Bank of Baroda Rewards",
+      "slug": "bob-rewards",
+      "issuerBankSlug": "bob",
+      "pointValueInr": 0.25
+    },
+    {
+      "name": "Punjab National Bank Rewards",
+      "slug": "pnb-rewards",
+      "issuerBankSlug": "pnb",
+      "pointValueInr": 0.3
+    },
+    {
+      "name": "Standard Chartered Rewards",
+      "slug": "standard-chartered-rewards",
+      "issuerBankSlug": "standard-chartered",
+      "pointValueInr": 0.35
+    },
+    {
+      "name": "Citibank Rewards",
+      "slug": "citi-rewards",
+      "issuerBankSlug": "citi",
+      "pointValueInr": 0.4
+    },
+    {
+      "name": "RBL Bank Rewards",
+      "slug": "rbl-rewards",
+      "issuerBankSlug": "rbl",
+      "pointValueInr": 0.25
+    },
+    {
+      "name": "AU Small Finance Bank Rewards",
+      "slug": "au-rewards",
+      "issuerBankSlug": "au",
+      "pointValueInr": 0.3
+    },
+    {
+      "name": "HSBC Rewards",
+      "slug": "hsbc-rewards",
+      "issuerBankSlug": "hsbc",
+      "pointValueInr": 0.35
+    }
+  ],
+  "spendCategories": [
+    {
+      "code": "TRAVEL",
+      "name": "Travel",
+      "slug": "travel"
+    },
+    {
+      "code": "DINING",
+      "name": "Dining",
+      "slug": "dining"
+    },
+    {
+      "code": "SHOPPING",
+      "name": "Shopping",
+      "slug": "shopping"
+    },
+    {
+      "code": "FUEL",
+      "name": "Fuel",
+      "slug": "fuel"
+    },
+    {
+      "code": "GROCERIES",
+      "name": "Groceries",
+      "slug": "groceries"
+    },
+    {
+      "code": "ONLINE",
+      "name": "Online",
+      "slug": "online"
+    },
+    {
+      "code": "UTILITIES",
+      "name": "Utilities",
+      "slug": "utilities"
+    },
+    {
+      "code": "ENTERTAINMENT",
+      "name": "Entertainment",
+      "slug": "entertainment"
+    }
+  ],
+  "cards": [
+    {
+      "name": "HDFC Regalia Gold",
+      "slug": "hdfc-regalia-gold",
+      "bankSlug": "hdfc",
+      "networkCode": "VISA",
+      "rewardProgramSlug": "hdfc-rewards",
+      "tier": "PREMIUM",
+      "active": true,
+      "annualFeeInr": 2500
+    },
+    {
+      "name": "ICICI Amazon Pay",
+      "slug": "icici-amazon-pay",
+      "bankSlug": "icici",
+      "networkCode": "VISA",
+      "rewardProgramSlug": "icici-rewards",
+      "tier": "STANDARD",
+      "active": true,
+      "annualFeeInr": 0
+    },
+    {
+      "name": "Axis Flipkart",
+      "slug": "axis-flipkart",
+      "bankSlug": "axis",
+      "networkCode": "MASTERCARD",
+      "rewardProgramSlug": "axis-rewards",
+      "tier": "STANDARD",
+      "active": true,
+      "annualFeeInr": 500
+    }
+  ]
+}

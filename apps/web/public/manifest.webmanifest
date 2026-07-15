@@ -1,0 +1,19 @@
+{
+  "name": "CardOrbit",
+  "short_name": "CardOrbit",
+  "description": "Your AI-powered financial orbit — optimize every payment.",
+  "start_url": "/account",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050816",
+  "theme_color": "#050816",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

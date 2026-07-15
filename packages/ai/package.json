@@ -1,0 +1,43 @@
+{
+  "name": "@cardwise/ai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CardWise AI platform — Gemini client, prompts, structured tasks",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "eval": "bun run src/eval/cli.ts",
+    "eval:live": "bun run src/eval/cli.ts --live"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.0",
+    "@ai-sdk/openai": "^2.0.0",
+    "@cardwise/validation": "workspace:*",
+    "@google/genai": "^2.11.0",
+    "ai": "^5.0.0",
+    "zod": "^3.25.67",
+    "zod-to-json-schema": "^3.25.2"
+  },
+  "devDependencies": {
+    "@cardwise/tsconfig": "workspace:*",
+    "@types/node": "^22.15.30",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  }
+}

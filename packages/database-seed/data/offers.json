@@ -1,0 +1,68 @@
+{
+  "offers": [
+    {
+      "code": "amazon_icici_5",
+      "slug": "amazon-icici-5-cashback",
+      "title": "5% cashback on Amazon",
+      "description": "Extra cashback on Amazon India spends with ICICI Amazon Pay credit card.",
+      "type": "MERCHANT",
+      "issuerBankSlug": "icici",
+      "cashbackPercent": 5,
+      "capInr": 250,
+      "termsSummary": "Valid on Amazon.in. Cap ₹250 per billing cycle.",
+      "validFrom": "2026-01-01T00:00:00.000Z",
+      "validUntil": "2026-12-31T23:59:59.000Z",
+      "status": "ACTIVE",
+      "cardSlugs": ["icici-amazon-pay"],
+      "merchantSlugs": ["amazon"]
+    },
+    {
+      "code": "flipkart_axis_10",
+      "slug": "flipkart-axis-10-off",
+      "title": "10% instant discount on Flipkart",
+      "description": "Instant discount on Flipkart with Axis Flipkart credit card.",
+      "type": "MERCHANT",
+      "issuerBankSlug": "axis",
+      "cashbackPercent": 10,
+      "capInr": 500,
+      "termsSummary": "Min transaction ₹2,500. Max discount ₹500 per month.",
+      "validFrom": "2026-01-01T00:00:00.000Z",
+      "validUntil": "2026-12-31T23:59:59.000Z",
+      "status": "ACTIVE",
+      "cardSlugs": ["axis-flipkart"],
+      "merchantSlugs": ["flipkart"]
+    },
+    {
+      "code": "swiggy_hdfc_15",
+      "slug": "swiggy-hdfc-15-cashback",
+      "title": "15% Swiggy cashback",
+      "description": "Cashback on Swiggy food orders with HDFC Regalia Gold.",
+      "type": "MERCHANT",
+      "issuerBankSlug": "hdfc",
+      "cashbackPercent": 15,
+      "capInr": 150,
+      "termsSummary": "Valid on Swiggy app. Cap ₹150 per statement cycle.",
+      "validFrom": "2026-01-01T00:00:00.000Z",
+      "validUntil": "2026-12-31T23:59:59.000Z",
+      "status": "ACTIVE",
+      "cardSlugs": ["hdfc-regalia-gold"],
+      "merchantSlugs": ["swiggy"]
+    },
+    {
+      "code": "hdfc_shopping_bankwide",
+      "slug": "hdfc-shopping-bankwide",
+      "title": "HDFC Bank shopping festival",
+      "description": "Bank-wide offer on select shopping merchants for HDFC cardholders.",
+      "type": "BANK",
+      "issuerBankSlug": "hdfc",
+      "cashbackPercent": 3,
+      "capInr": 1000,
+      "termsSummary": "Participating merchants. Cap ₹1,000 per offer period.",
+      "validFrom": "2026-01-01T00:00:00.000Z",
+      "validUntil": "2026-12-31T23:59:59.000Z",
+      "status": "ACTIVE",
+      "cardSlugs": ["hdfc-regalia-gold"],
+      "merchantSlugs": ["amazon", "flipkart", "myntra"]
+    }
+  ]
+}

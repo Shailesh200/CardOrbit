@@ -1,0 +1,21 @@
+# Git hooks — https://github.com/evilmartians/lefthook
+# Install: runs automatically via `bun install` (prepare script)
+
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: '*.{js,ts,jsx,tsx,mjs,cjs}'
+      run: bunx oxlint --fix --config .oxlintrc.json {staged_files}
+      stage_fixed: true
+    format:
+      glob: '{packages/**/*.{js,ts,tsx},package.json,turbo.json,lefthook.yml,.oxlintrc.json,.oxfmtrc.json}'
+      run: bun run format
+      stage_fixed: true
+    typecheck:
+      run: bun run typecheck
+
+commit-msg:
+  commands:
+    message-length:
+      run: test $(head -1 {1} | wc -c | tr -d ' ') -le 101 || (echo "Commit subject exceeds 100 characters" && exit 1)

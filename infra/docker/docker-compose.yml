@@ -1,0 +1,59 @@
+# Local development infrastructure — PostgreSQL 16, Redis 7, Mailpit
+# Usage: docker compose -f infra/docker/docker-compose.yml up -d --wait
+
+name: cardwise
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: cardwise-postgres
+    restart: unless-stopped
+    ports:
+      # Default 5433 avoids clashing with a local Homebrew/Postgres install on 5432
+      - '${POSTGRES_PORT:-5433}:5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cardwise}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cardwise}
+      POSTGRES_DB: ${POSTGRES_DB:-cardwise_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cardwise} -d ${POSTGRES_DB:-cardwise_dev}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: cardwise-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: cardwise-mailpit
+    restart: unless-stopped
+    ports:
+      - '${MAILPIT_SMTP_PORT:-1025}:1025'
+      - '${MAILPIT_UI_PORT:-8025}:8025'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8025']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,71 @@
+{
+  "routes": [
+    { "path": "/", "label": "Home", "tier": "critical", "auth": false },
+    { "path": "/login", "label": "Login", "auth": false, "tier": "public" },
+    { "path": "/signup", "label": "Signup", "auth": false, "tier": "public" },
+    { "path": "/verify-email", "label": "Verify email", "auth": false, "tier": "public" },
+    { "path": "/forgot-password", "label": "Forgot password", "auth": false, "tier": "public" },
+    { "path": "/reset-password", "label": "Reset password", "auth": false, "tier": "public" },
+    { "path": "/privacy", "label": "Privacy policy", "auth": false, "tier": "public" },
+    { "path": "/terms", "label": "Terms", "auth": false, "tier": "public" },
+    { "path": "/cookies", "label": "Cookie policy", "auth": false, "tier": "public" },
+    { "path": "/onboarding", "label": "Onboarding", "auth": true, "tier": "app" },
+    { "path": "/account", "label": "Dashboard", "auth": true, "tier": "dashboard" },
+    { "path": "/account/cards", "label": "Portfolio", "auth": true, "tier": "app" },
+    { "path": "/account/cards/add", "label": "Add card", "auth": true, "tier": "app" },
+    { "path": "/account/cards/lighthouse-sample", "label": "Card detail", "auth": true, "tier": "app" },
+    { "path": "/account/merchants", "label": "Merchants", "auth": true, "tier": "app" },
+    { "path": "/account/merchants/amazon", "label": "Merchant detail", "auth": true, "tier": "app" },
+    { "path": "/account/profile", "label": "Profile", "auth": true, "tier": "app" },
+    { "path": "/account/settings", "label": "Settings", "auth": true, "tier": "app" },
+    { "path": "/account/notifications", "label": "Notifications", "auth": true, "tier": "app" }
+  ],
+  "tiers": {
+    "critical": {
+      "minPerformance": 85,
+      "maxLcpMs": 3200,
+      "maxFcpMs": 2700,
+      "maxTbtMs": 200,
+      "maxSiMs": 3400,
+      "maxTtiMs": 3800,
+      "maxTtfbMs": 800,
+      "maxMpfidMs": 100,
+      "maxCls": 0.1
+    },
+    "public": {
+      "minPerformance": 80,
+      "maxLcpMs": 3500,
+      "maxFcpMs": 2800,
+      "maxTbtMs": 250,
+      "maxSiMs": 4000,
+      "maxTtiMs": 4500,
+      "maxTtfbMs": 800,
+      "maxMpfidMs": 150,
+      "maxCls": 0.1
+    },
+    "app": {
+      "minPerformance": 75,
+      "minSeo": 60,
+      "maxLcpMs": 5000,
+      "maxFcpMs": 3500,
+      "maxTbtMs": 350,
+      "maxSiMs": 5000,
+      "maxTtiMs": 5500,
+      "maxTtfbMs": 800,
+      "maxMpfidMs": 200,
+      "maxCls": 0.12
+    },
+    "dashboard": {
+      "minPerformance": 90,
+      "minSeo": 60,
+      "maxLcpMs": 4000,
+      "maxFcpMs": 3000,
+      "maxTbtMs": 300,
+      "maxSiMs": 4500,
+      "maxTtiMs": 5000,
+      "maxTtfbMs": 800,
+      "maxMpfidMs": 200,
+      "maxCls": 0.1
+    }
+  }
+}

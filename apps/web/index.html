@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en-IN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050816" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="description"
+      content="CardOrbit — your AI-powered financial orbit. Optimize credit cards, rewards, offers, travel, and payments with intelligent recommendations."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CardOrbit · Your AI-powered financial orbit" />
+    <meta
+      property="og:description"
+      content="An AI-powered financial operating system for India — optimize every payment across cards, rewards, offers, and travel."
+    />
+    <meta property="og:locale" content="en_IN" />
+    <title>CardOrbit · Your AI-powered financial orbit</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <style>
+      /* Layout stability + hero colors before full stylesheet (cuts CLS/LCP jitter) */
+      body {
+        margin: 0;
+        background: #050816;
+        color: #f9fafb;
+      }
+      .site-header {
+        min-height: 3.5rem;
+      }
+      .home-hero {
+        min-height: calc(100dvh - 3.5rem);
+        background: #050816;
+      }
+      .home-ambient {
+        background: #050816;
+      }
+      .home-headline {
+        color: #f9fafb;
+      }
+      .home-headline-accent {
+        color: #8eb6ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function loadFontsDeferred() {
+        var href =
+          'https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.css';
+        var inter =
+          'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+        function inject(url) {
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = url;
+          document.head.appendChild(link);
+        }
+        function schedule() {
+          window.setTimeout(function () {
+            inject(href);
+            inject(inter);
+          }, 10000);
+        }
+        if (document.readyState === 'complete') {
+          schedule();
+        } else {
+          window.addEventListener('load', schedule, { once: true });
+        }
+      })();
+    </script>
+  </body>
+</html>

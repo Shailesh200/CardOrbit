@@ -1,0 +1,32 @@
+{
+  "name": "@cardwise/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Generic background job contracts and registry for CardWise workers",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@cardwise/validation": "workspace:*",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@cardwise/tsconfig": "workspace:*",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.2"
+  }
+}

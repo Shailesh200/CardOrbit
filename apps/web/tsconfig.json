@@ -1,0 +1,18 @@
+{
+  "extends": "../../packages/tsconfig/react.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@brand/*": ["./src/components/brand/*"],
+      "@motion/*": ["./src/components/motion/*"],
+      "@marketing/*": ["./src/components/marketing/*"],
+      "@layout/*": ["./src/components/layout/*"],
+      "@features/*": ["./src/features/*"],
+      "@lib/*": ["./src/lib/*"]
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+# Lockfile — always committed for reproducible installs
+bun.lock merge=binary
+
+# Shell scripts
+*.sh text eol=lf

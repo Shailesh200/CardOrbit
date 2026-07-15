@@ -1,0 +1,25 @@
+{
+  "name": "@cardwise/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CardWise design tokens, themes, and global styles",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./globals.css": "./src/globals.css",
+    "./themes/light.css": "./src/themes/light.css",
+    "./themes/dark.css": "./src/themes/dark.css",
+    "./tokens": "./src/tokens/index.ts"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "lint": "echo '@cardwise/design-system: lint via root oxlint'",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  }
+}

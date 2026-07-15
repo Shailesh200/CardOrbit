@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.bun/
+
+# Bun
+bun-debug.log*
+
+# Build outputs
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+services/api/uploads/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production
+!.env.example
+!.env.production.example
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test coverage
+coverage/
+
+# Prisma
+services/api/prisma/*.db
+services/api/prisma/*.db-journal
+
+# Misc
+*.pem
+.cache/

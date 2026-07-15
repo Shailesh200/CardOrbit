@@ -1,0 +1,1405 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "cards", "merchants", "rewards", "offers", "admin"]
+}
+
+// ─── Phase 0 (public) ───────────────────────────────────────────────────────
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+
+  @@schema("public")
+}
+
+enum ConsumerRole {
+  USER
+
+  @@schema("public")
+}
+
+enum NotificationType {
+  WELCOME
+  REWARD_EXPIRY
+  MILESTONE_PROGRESS
+  BILL_DUE
+  OFFER_MATCH
+  TRAVEL_TIP
+  PURCHASE_TIMING
+
+  @@schema("public")
+}
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+
+  @@schema("public")
+}
+
+enum OnboardingStep {
+  WELCOME
+  SPENDING
+  CATEGORIES
+  CARDS
+  DONE
+
+  @@schema("public")
+}
+
+enum RecommendationFeedbackType {
+  USEFUL
+  NOT_USEFUL
+  WRONG_RECOMMENDATION
+  MISSING_CARD
+  INCORRECT_REWARD
+
+  @@schema("public")
+}
+
+enum RecommendationSource {
+  WEB
+  EXTENSION
+  DASHBOARD
+
+  @@schema("public")
+}
+
+enum TransactionStatus {
+  POSTED
+  PENDING
+  FAILED
+  REFUND
+
+  @@schema("public")
+}
+
+enum TransactionSource {
+  MANUAL
+  CSV_IMPORT
+  GMAIL_SYNC
+
+  @@schema("public")
+}
+
+enum MailSyncMailboxStatus {
+  ACTIVE
+  NEEDS_REAUTH
+  DISCONNECTED
+
+  @@schema("public")
+}
+
+enum StatementStatus {
+  OPEN
+  PAID
+  OVERDUE
+  PARTIAL
+
+  @@schema("public")
+}
+
+enum StatementSource {
+  MANUAL
+
+  @@schema("public")
+}
+
+enum BillPaymentStatus {
+  COMPLETED
+  PROCESSING
+  FAILED
+
+  @@schema("public")
+}
+
+/// Consumer user account (auth M-012 + profile M-013 + onboarding M-014)
+model User {
+  id                        String            @id @default(cuid())
+  email                     String            @unique
+  fullName                  String?           @map("full_name")
+  passwordHash              String?           @map("password_hash")
+  emailVerifiedAt           DateTime?         @map("email_verified_at")
+  googleSub                 String?           @unique @map("google_sub")
+  role                      ConsumerRole      @default(USER)
+  accountStatus             AccountStatus     @default(ACTIVE) @map("account_status")
+  locale                    String            @default("en-IN")
+  timezone                  String            @default("Asia/Kolkata")
+  country                   String            @default("IN")
+  currency                  String            @default("INR")
+  avatarUrl                 String?           @map("avatar_url")
+  notificationPreferences   Json              @default("{}") @map("notification_preferences")
+  privacyPreferences        Json              @default("{}") @map("privacy_preferences")
+  onboardingStatus          OnboardingStatus  @default(NOT_STARTED) @map("onboarding_status")
+  onboardingStep            OnboardingStep    @default(WELCOME) @map("onboarding_step")
+  onboardingAnswers         Json              @default("{}") @map("onboarding_answers")
+  onboardingCompletedAt     DateTime?         @map("onboarding_completed_at")
+  personalizationProfile    Json              @default("{}") @map("personalization_profile")
+  dashboardPreferences      Json              @default("{}") @map("dashboard_preferences")
+  createdAt                 DateTime          @default(now()) @map("created_at")
+  updatedAt                 DateTime          @updatedAt @map("updated_at")
+
+  sessions                Session[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  userCards               UserCard[]
+  notifications           Notification[]
+  calendarReminders       CalendarReminder[]
+  assistantConversations  AssistantConversation[]
+  favoriteMerchants       FavoriteMerchant[]
+  savedSearches           SavedSearch[]
+  recommendationHistory   RecommendationHistory[]
+  recommendationFeedback  RecommendationFeedback[]
+  rewardAccounts          RewardAccount[]
+  transactions            Transaction[]
+  creditCardStatements    CreditCardStatement[]
+  billPayments            BillPayment[]
+  rewardRedemptions       RewardRedemption[]
+  mailSyncMailboxes       MailSyncMailbox[]
+
+  @@map("users")
+  @@schema("public")
+}
+
+/// Google mailbox linked for Gmail statement sync (primary = sign-in email)
+model MailSyncMailbox {
+  id                     String                 @id @default(cuid())
+  userId                 String                 @map("user_id")
+  email                  String
+  googleSub              String                 @map("google_sub")
+  encryptedRefreshToken  String                 @map("encrypted_refresh_token")
+  scopes                 String[]               @default([])
+  isPrimary              Boolean                @default(false) @map("is_primary")
+  status                 MailSyncMailboxStatus  @default(ACTIVE)
+  lastSyncAt             DateTime?              @map("last_sync_at")
+  lastSyncError          String?                @map("last_sync_error")
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, email])
+  @@unique([googleSub])
+  @@index([userId, status])
+  @@map("mail_sync_mailboxes")
+  @@schema("public")
+}
+
+model RecommendationHistory {
+  id                      String               @id @db.Uuid
+  userId                  String               @map("user_id")
+  amountInr               Decimal              @map("amount_inr") @db.Decimal(12, 2)
+  merchantId              String?              @map("merchant_id") @db.Uuid
+  merchantSlug            String?              @map("merchant_slug")
+  merchantName            String?              @map("merchant_name")
+  categorySlug            String?              @map("category_slug")
+  recommendedUserCardId   String?              @map("recommended_user_card_id")
+  recommendedCreditCardId String?              @map("recommended_credit_card_id") @db.Uuid
+  recommendedCardName     String?              @map("recommended_card_name")
+  expectedRewardInr       Decimal?             @map("expected_reward_inr") @db.Decimal(12, 2)
+  effectiveRatePercent    Decimal?             @map("effective_rate_percent") @db.Decimal(6, 3)
+  confidenceScore         Decimal?             @map("confidence_score") @db.Decimal(5, 4)
+  rankingVersion          String               @map("ranking_version")
+  explanationSource       String               @map("explanation_source")
+  explanation             String?
+  alternatives            Json                 @default("[]")
+  cardsEvaluated          Int                  @map("cards_evaluated")
+  source                  RecommendationSource @default(WEB)
+  createdAt               DateTime             @default(now()) @map("created_at")
+
+  user     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback RecommendationFeedback?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("recommendation_history")
+  @@schema("public")
+}
+
+model RecommendationFeedback {
+  id               String                     @id @default(cuid())
+  recommendationId String                     @unique @map("recommendation_id") @db.Uuid
+  userId           String                     @map("user_id")
+  type             RecommendationFeedbackType
+  comment          String?
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+
+  recommendation RecommendationHistory @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("recommendation_feedback")
+  @@schema("public")
+}
+
+model FavoriteMerchant {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  merchantId String   @map("merchant_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, merchantId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("favorite_merchants")
+  @@schema("public")
+}
+
+model SavedSearch {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  name         String
+  query        String   @default("")
+  categorySlug String?  @map("category_slug")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId, updatedAt(sort: Desc)])
+  @@map("saved_searches")
+  @@schema("public")
+}
+
+model Transaction {
+  id           String            @id @default(cuid())
+  userId       String            @map("user_id")
+  userCardId   String            @map("user_card_id")
+  amountInr    Decimal           @map("amount_inr") @db.Decimal(12, 2)
+  currency     String            @default("INR")
+  merchantName String            @map("merchant_name")
+  merchantId   String?           @map("merchant_id") @db.Uuid
+  merchantSlug String?           @map("merchant_slug")
+  categorySlug String            @map("category_slug")
+  status       TransactionStatus @default(POSTED)
+  source       TransactionSource @default(MANUAL)
+  externalRef  String?           @map("external_ref")
+  notes        String?
+  tags         Json              @default("[]")
+  transactedAt DateTime          @map("transacted_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userCard UserCard @relation(fields: [userCardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, externalRef])
+  @@index([userId, transactedAt(sort: Desc)])
+  @@index([userId, userCardId])
+  @@index([userId, categorySlug])
+  @@index([userId, status])
+  @@map("transactions")
+  @@schema("public")
+}
+
+model CreditCardStatement {
+  id                String          @id @default(cuid())
+  userId            String          @map("user_id")
+  userCardId        String          @map("user_card_id")
+  periodStart       DateTime        @map("period_start")
+  periodEnd         DateTime        @map("period_end")
+  statementDate     DateTime        @map("statement_date")
+  dueDate           DateTime        @map("due_date")
+  totalAmountInr    Decimal         @map("total_amount_inr") @db.Decimal(12, 2)
+  minimumDueInr     Decimal         @map("minimum_due_inr") @db.Decimal(12, 2)
+  previousBalanceInr Decimal?       @map("previous_balance_inr") @db.Decimal(12, 2)
+  creditsInr        Decimal?        @map("credits_inr") @db.Decimal(12, 2)
+  paymentsInr       Decimal?        @map("payments_inr") @db.Decimal(12, 2)
+  status            StatementStatus @default(OPEN)
+  source            StatementSource @default(MANUAL)
+  notes             String?
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userCard UserCard      @relation(fields: [userCardId], references: [id], onDelete: Cascade)
+  payments BillPayment[]
+
+  @@unique([userId, userCardId, periodStart])
+  @@index([userId, dueDate(sort: Asc)])
+  @@index([userId, statementDate(sort: Desc)])
+  @@map("credit_card_statements")
+  @@schema("public")
+}
+
+model BillPayment {
+  id          String            @id @default(cuid())
+  userId      String            @map("user_id")
+  statementId String            @map("statement_id")
+  amountInr   Decimal           @map("amount_inr") @db.Decimal(12, 2)
+  paidAt      DateTime          @map("paid_at")
+  status      BillPaymentStatus @default(COMPLETED)
+  notes       String?
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  statement CreditCardStatement @relation(fields: [statementId], references: [id], onDelete: Cascade)
+
+  @@index([userId, paidAt(sort: Desc)])
+  @@index([statementId, paidAt(sort: Desc)])
+  @@map("bill_payments")
+  @@schema("public")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  linkUrl   String?          @map("link_url")
+  dedupeKey String?          @map("dedupe_key")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, readAt])
+  @@map("notifications")
+  @@schema("public")
+}
+
+model CalendarReminder {
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  title              String
+  description        String?
+  eventDate          DateTime @map("event_date")
+  reminderOffsetDays Int      @default(0) @map("reminder_offset_days")
+  priority           String   @default("medium")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventDate])
+  @@map("calendar_reminders")
+  @@schema("public")
+}
+
+model AssistantConversation {
+  id        String   @id @db.Uuid
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages AssistantChatMessage[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@map("assistant_conversations")
+  @@schema("public")
+}
+
+model AssistantChatMessage {
+  id             String   @id @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  role           String
+  content        String   @db.Text
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("assistant_chat_messages")
+  @@schema("public")
+}
+
+/// Refresh-token sessions (tokenHash = SHA-256 of raw refresh token)
+model Session {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("sessions")
+  @@schema("public")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+  @@schema("public")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+  @@schema("public")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  action     String
+  resource   String
+  resourceId String?  @map("resource_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+  @@schema("public")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+  @@schema("public")
+}
+
+model FeatureFlagDefinition {
+  id                String   @id @default(uuid()) @db.Uuid
+  key               String   @unique
+  description       String?
+  enabled           Boolean  @default(false)
+  rolloutPercentage Int      @default(0) @map("rollout_percentage")
+  updatedBy         String?  @map("updated_by") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("feature_flag_definitions")
+  @@schema("public")
+}
+
+model ExperimentDefinition {
+  id                String   @id @default(uuid()) @db.Uuid
+  key               String   @unique
+  name              String
+  description       String?
+  variants          Json
+  defaultVariant    String   @map("default_variant")
+  enabled           Boolean  @default(false)
+  rolloutPercentage Int      @default(0) @map("rollout_percentage")
+  updatedBy         String?  @map("updated_by") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("experiment_definitions")
+  @@schema("public")
+}
+
+// ─── Phase 0.5 admin identities (admin schema) — M-011 ──────────────────────
+
+enum AdminRole {
+  ADMIN
+
+  @@schema("admin")
+}
+
+model AdminUser {
+  id           String    @id @db.Uuid
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         AdminRole @default(ADMIN)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at")
+  metadata     Json?
+
+  catalogImportReviews CatalogImportItem[] @relation("CatalogImportReviewer")
+
+  @@index([active])
+  @@index([deletedAt])
+  @@map("admin_users")
+  @@schema("admin")
+}
+
+enum CatalogImportEntityType {
+  CARD_BUNDLE
+  MERCHANT_UPSERT
+  MERCHANT_REMOVE
+
+  @@schema("admin")
+}
+
+enum CatalogImportReviewStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  PUBLISHED
+
+  @@schema("admin")
+}
+
+/// Batch of catalog items loaded from ingest pipeline (official sources, curated JSON).
+model CatalogImportBatch {
+  id        String   @id @db.Uuid
+  label     String
+  source    String
+  createdAt DateTime @default(now()) @map("created_at")
+  metadata  Json?
+
+  items CatalogImportItem[]
+
+  @@index([createdAt(sort: Desc)])
+  @@map("catalog_import_batches")
+  @@schema("admin")
+}
+
+/// Staged catalog change awaiting admin review before publish.
+model CatalogImportItem {
+  id                  String                    @id @db.Uuid
+  batchId             String                    @map("batch_id") @db.Uuid
+  entityType          CatalogImportEntityType   @map("entity_type")
+  entityKey           String                    @map("entity_key")
+  sourceUrl           String?                   @map("source_url")
+  payload             Json
+  summary             String?
+  reviewStatus        CatalogImportReviewStatus @default(PENDING_REVIEW) @map("review_status")
+  reviewedByAdminId   String?                   @map("reviewed_by_admin_id") @db.Uuid
+  reviewedAt          DateTime?                 @map("reviewed_at")
+  reviewNotes         String?                   @map("review_notes")
+  publishedAt         DateTime?                 @map("published_at")
+  publishedEntityId   String?                   @map("published_entity_id") @db.Uuid
+  createdAt           DateTime                  @default(now()) @map("created_at")
+  updatedAt           DateTime                  @updatedAt @map("updated_at")
+
+  batch      CatalogImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  reviewedBy AdminUser?         @relation("CatalogImportReviewer", fields: [reviewedByAdminId], references: [id])
+
+  @@unique([batchId, entityType, entityKey])
+  @@index([reviewStatus])
+  @@index([entityType])
+  @@index([entityKey])
+  @@map("catalog_import_items")
+  @@schema("admin")
+}
+
+enum AiRunStatus {
+  SUCCESS
+  FAILURE
+
+  @@schema("admin")
+}
+
+/// Audit log for every LLM call (feature, model, tokens, latency).
+model AiRun {
+  id            String       @id @db.Uuid
+  feature       String
+  promptVersion String?      @map("prompt_version")
+  model         String
+  provider      String
+  tier          String?
+  inputTokens   Int?         @map("input_tokens")
+  outputTokens  Int?         @map("output_tokens")
+  totalTokens   Int?         @map("total_tokens")
+  latencyMs     Int          @map("latency_ms")
+  status        AiRunStatus
+  errorCode     String?      @map("error_code")
+  errorMessage  String?      @map("error_message")
+  metadata      Json?
+  triggeredBy   String?      @map("triggered_by")
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  @@index([feature, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("ai_runs")
+  @@schema("admin")
+}
+
+/// Versioned prompt templates for AI tasks (admin-managed from AI-002).
+model AiPromptVersion {
+  id           String   @id @db.Uuid
+  feature      String
+  version      String
+  systemPrompt String   @map("system_prompt")
+  userTemplate String?  @map("user_template")
+  modelTier    String?  @map("model_tier")
+  modelOverride String? @map("model_override")
+  isActive     Boolean  @default(false) @map("is_active")
+  metadata     Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([feature, version])
+  @@index([feature, isActive])
+  @@map("ai_prompt_versions")
+  @@schema("admin")
+}
+
+enum JobRunStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+
+  @@schema("admin")
+}
+
+/// Generic background job audit + progress (BullMQ execution).
+model JobRun {
+  id           String       @id @db.Uuid
+  type         String
+  status       JobRunStatus @default(QUEUED)
+  payload      Json
+  progress     Json?
+  result       Json?
+  errorCode    String?      @map("error_code")
+  errorMessage String?      @map("error_message")
+  bullJobId    String?      @map("bull_job_id")
+  triggeredBy  String?      @map("triggered_by")
+  startedAt    DateTime?    @map("started_at")
+  completedAt  DateTime?    @map("completed_at")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@index([type, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("job_runs")
+  @@schema("admin")
+}
+
+enum SearchEmbeddingEntityType {
+  CARD
+  MERCHANT
+
+  @@schema("admin")
+}
+
+/// Vector index metadata for semantic catalog/merchant search (AI-008).
+/// Embedding vectors are stored via pgvector and accessed with raw SQL.
+model SearchEmbedding {
+  id          String                    @id @db.Uuid
+  entityType  SearchEmbeddingEntityType @map("entity_type")
+  entityId    String                    @map("entity_id") @db.Uuid
+  model       String
+  contentHash String                    @map("content_hash")
+  textContent String                    @map("text_content")
+  createdAt   DateTime                  @default(now()) @map("created_at")
+  updatedAt   DateTime                  @updatedAt @map("updated_at")
+
+  @@unique([entityType, entityId, model])
+  @@index([entityType])
+  @@map("search_embeddings")
+  @@schema("admin")
+}
+
+// ─── Phase 0.5 card master (cards schema) — M-006 ───────────────────────────
+
+enum CardFeeType {
+  JOINING
+  ANNUAL
+  OTHER
+
+  @@schema("cards")
+}
+
+enum CardTier {
+  ENTRY
+  STANDARD
+  PREMIUM
+  SUPER_PREMIUM
+  ULTRA_PREMIUM
+
+  @@schema("cards")
+}
+
+model CardNetwork {
+  id        String    @id @db.Uuid
+  code      String    @unique
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at")
+  metadata  Json?
+
+  creditCards CreditCard[]
+
+  @@map("card_networks")
+  @@schema("cards")
+}
+
+model Bank {
+  id        String    @id @db.Uuid
+  name      String
+  slug      String    @unique
+  country   String    @default("IN")
+  logoUrl   String?   @map("logo_url")
+  sourceUrl String?   @map("source_url")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  version   Int       @default(1)
+  deletedAt DateTime? @map("deleted_at")
+  metadata  Json?
+
+  creditCards     CreditCard[]
+  rewardPrograms  RewardProgram[]
+  offers          Offer[]
+
+  @@map("banks")
+  @@schema("cards")
+}
+
+model RewardProgram {
+  id             String    @id @db.Uuid
+  name           String
+  slug           String    @unique
+  issuerBankId   String?   @map("issuer_bank_id") @db.Uuid
+  pointValueInr  Decimal?  @map("point_value_inr") @db.Decimal(12, 4)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  version        Int       @default(1)
+  deletedAt      DateTime? @map("deleted_at")
+  metadata       Json?
+
+  issuerBank  Bank?         @relation(fields: [issuerBankId], references: [id])
+  creditCards CreditCard[]
+  rewardRules RewardRule[]
+
+  @@index([issuerBankId])
+  @@map("reward_programs")
+  @@schema("cards")
+}
+
+model SpendCategory {
+  id          String    @id @db.Uuid
+  code        String    @unique
+  name        String
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at")
+  metadata    Json?
+
+  exclusions           CardCategoryExclusion[]
+  rewardRuleVersions   RewardRuleVersion[]
+
+  @@map("spend_categories")
+  @@schema("cards")
+}
+
+model BenefitType {
+  id          String    @id @db.Uuid
+  code        String    @unique
+  name        String
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at")
+  metadata    Json?
+
+  benefits CardBenefit[]
+
+  @@map("benefit_types")
+  @@schema("cards")
+}
+
+model CreditCard {
+  id              String    @id @db.Uuid
+  name            String
+  slug            String    @unique
+  bankId          String    @map("bank_id") @db.Uuid
+  networkId       String    @map("network_id") @db.Uuid
+  rewardProgramId String?   @map("reward_program_id") @db.Uuid
+  tier            CardTier  @default(STANDARD)
+  active          Boolean   @default(true)
+  imageUrl        String?   @map("image_url")
+  annualFeeInr    Decimal?  @map("annual_fee_inr") @db.Decimal(12, 2)
+  joiningFeeInr   Decimal?  @map("joining_fee_inr") @db.Decimal(12, 2)
+  sourceUrl       String?   @map("source_url")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  version         Int       @default(1)
+  deletedAt       DateTime? @map("deleted_at")
+  effectiveFrom   DateTime? @map("effective_from")
+  effectiveTo     DateTime? @map("effective_to")
+  metadata        Json?
+
+  bank          Bank           @relation(fields: [bankId], references: [id])
+  network       CardNetwork    @relation(fields: [networkId], references: [id])
+  rewardProgram RewardProgram? @relation(fields: [rewardProgramId], references: [id])
+  fees                   CardFee[]
+  benefits               CardBenefit[]
+  eligibility            CardEligibility[]
+  exclusions             CardCategoryExclusion[]
+  rewardRules            RewardRule[]
+  offerCardAssignments   OfferCardAssignment[]
+  userCards              UserCard[]
+
+  @@index([bankId])
+  @@index([networkId])
+  @@index([active])
+  @@index([deletedAt])
+  @@map("credit_cards")
+  @@schema("cards")
+}
+
+enum UserCardStatus {
+  ACTIVE
+  INACTIVE
+  REMOVED
+
+  @@schema("cards")
+}
+
+/// Consumer portfolio entry (M-015)
+model UserCard {
+  id           String         @id @default(cuid())
+  userId       String         @map("user_id")
+  creditCardId String         @map("credit_card_id") @db.Uuid
+  nickname     String?
+  isFavorite   Boolean        @default(false) @map("is_favorite")
+  status       UserCardStatus @default(ACTIVE)
+  statementDay Int?           @map("statement_day")
+  dueDay       Int?           @map("due_day")
+  addedAt      DateTime       @default(now()) @map("added_at")
+  removedAt    DateTime?      @map("removed_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creditCard CreditCard @relation(fields: [creditCardId], references: [id])
+  rewardAccount RewardAccount?
+  transactions  Transaction[]
+  statements    CreditCardStatement[]
+  rewardRedemptions RewardRedemption[]
+
+  @@unique([userId, creditCardId])
+  @@index([userId, status])
+  @@map("user_cards")
+  @@schema("cards")
+}
+
+model CardFee {
+  id               String      @id @db.Uuid
+  creditCardId     String      @map("credit_card_id") @db.Uuid
+  feeType          CardFeeType @map("fee_type")
+  amountInr        Decimal     @map("amount_inr") @db.Decimal(12, 2)
+  waiverConditions Json?       @map("waiver_conditions")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  version          Int         @default(1)
+  deletedAt        DateTime?   @map("deleted_at")
+  effectiveFrom    DateTime?   @map("effective_from")
+  effectiveTo      DateTime?   @map("effective_to")
+  metadata         Json?
+
+  creditCard CreditCard @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+
+  @@index([creditCardId])
+  @@index([deletedAt])
+  @@map("card_fees")
+  @@schema("cards")
+}
+
+model CardBenefit {
+  id            String    @id @db.Uuid
+  creditCardId  String    @map("credit_card_id") @db.Uuid
+  benefitTypeId String    @map("benefit_type_id") @db.Uuid
+  title         String
+  description   String?
+  sourceUrl     String?   @map("source_url")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at")
+  effectiveFrom DateTime? @map("effective_from")
+  effectiveTo   DateTime? @map("effective_to")
+  metadata      Json?
+
+  creditCard  CreditCard  @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+  benefitType BenefitType @relation(fields: [benefitTypeId], references: [id])
+
+  @@index([creditCardId])
+  @@index([benefitTypeId])
+  @@index([deletedAt])
+  @@map("card_benefits")
+  @@schema("cards")
+}
+
+model CardEligibility {
+  id            String    @id @db.Uuid
+  creditCardId  String    @map("credit_card_id") @db.Uuid
+  criteria      Json
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  version       Int       @default(1)
+  deletedAt     DateTime? @map("deleted_at")
+  effectiveFrom DateTime? @map("effective_from")
+  effectiveTo   DateTime? @map("effective_to")
+  metadata      Json?
+
+  creditCard CreditCard @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+
+  @@index([creditCardId])
+  @@index([deletedAt])
+  @@map("card_eligibility")
+  @@schema("cards")
+}
+
+model CardCategoryExclusion {
+  id              String    @id @db.Uuid
+  creditCardId    String    @map("credit_card_id") @db.Uuid
+  spendCategoryId String    @map("spend_category_id") @db.Uuid
+  reason          String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  version         Int       @default(1)
+  deletedAt       DateTime? @map("deleted_at")
+  effectiveFrom   DateTime? @map("effective_from")
+  effectiveTo     DateTime? @map("effective_to")
+  metadata        Json?
+
+  creditCard    CreditCard    @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+  spendCategory SpendCategory @relation(fields: [spendCategoryId], references: [id])
+
+  @@unique([creditCardId, spendCategoryId])
+  @@index([creditCardId])
+  @@index([spendCategoryId])
+  @@index([deletedAt])
+  @@map("card_category_exclusions")
+  @@schema("cards")
+}
+
+// ─── Phase 0.5 merchant master (merchants schema) — M-007 ───────────────────
+
+enum MerchantOfferRefStatus {
+  ACTIVE
+  HISTORICAL
+
+  @@schema("merchants")
+}
+
+model MerchantCategory {
+  id          String    @id @db.Uuid
+  code        String    @unique
+  name        String
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  version     Int       @default(1)
+  deletedAt   DateTime? @map("deleted_at")
+  metadata    Json?
+
+  merchants    Merchant[]
+  mccMappings  MccMapping[]
+
+  @@map("merchant_categories")
+  @@schema("merchants")
+}
+
+model Merchant {
+  id                String    @id @db.Uuid
+  name              String
+  slug              String    @unique
+  logoUrl           String?   @map("logo_url")
+  website           String?
+  sourceUrl         String?   @map("source_url")
+  brandName         String?   @map("brand_name")
+  parentBrand       String?   @map("parent_brand")
+  popularityScore   Int       @default(0) @map("popularity_score")
+  tags              Json      @default("[]")
+  primaryCategoryId String?   @map("primary_category_id") @db.Uuid
+  paymentMethods    Json      @default("[\"CARD\"]") @map("payment_methods")
+  active            Boolean   @default(true)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  version           Int       @default(1)
+  deletedAt         DateTime? @map("deleted_at")
+  metadata          Json?
+
+  primaryCategory    MerchantCategory?    @relation(fields: [primaryCategoryId], references: [id])
+  aliases            MerchantAlias[]
+  mccMappings        MccMapping[]
+  offerRefs          MerchantOfferRef[]
+  rewardRuleVersions RewardRuleVersion[]
+  offerMerchants     OfferMerchant[]
+  favoriteUsers      FavoriteMerchant[]
+
+  @@index([primaryCategoryId])
+  @@index([active])
+  @@index([deletedAt])
+  @@index([popularityScore(sort: Desc)])
+  @@map("merchants")
+  @@schema("merchants")
+}
+
+model MerchantAlias {
+  id              String    @id @db.Uuid
+  merchantId      String    @map("merchant_id") @db.Uuid
+  alias           String
+  normalizedAlias String    @map("normalized_alias")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  version         Int       @default(1)
+  deletedAt       DateTime? @map("deleted_at")
+  metadata        Json?
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, normalizedAlias])
+  @@index([normalizedAlias])
+  @@index([merchantId])
+  @@index([deletedAt])
+  @@map("merchant_aliases")
+  @@schema("merchants")
+}
+
+/// Global MCC→category when merchantId is null; optional per-merchant override when set.
+model MccMapping {
+  id           String    @id @db.Uuid
+  mccCode      String    @map("mcc_code")
+  categoryId   String    @map("category_id") @db.Uuid
+  merchantId   String?   @map("merchant_id") @db.Uuid
+  description  String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at")
+  metadata     Json?
+
+  category MerchantCategory @relation(fields: [categoryId], references: [id])
+  merchant Merchant?        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  // Uniqueness enforced in migration via partial indexes:
+  // global: unique mcc_code WHERE merchant_id IS NULL
+  // override: unique (mcc_code, merchant_id) WHERE merchant_id IS NOT NULL
+  @@index([mccCode])
+  @@index([categoryId])
+  @@index([merchantId])
+  @@index([deletedAt])
+  @@map("mcc_mappings")
+  @@schema("merchants")
+}
+
+/// Offer reference stub — backlink to full offers model (M-009).
+model MerchantOfferRef {
+  id          String                 @id @db.Uuid
+  merchantId  String                 @map("merchant_id") @db.Uuid
+  externalKey String                 @map("external_key")
+  offerId     String?                @map("offer_id") @db.Uuid
+  status      MerchantOfferRefStatus @default(ACTIVE)
+  validFrom   DateTime?              @map("valid_from")
+  validTo     DateTime?              @map("valid_to")
+  createdAt   DateTime               @default(now()) @map("created_at")
+  updatedAt   DateTime               @updatedAt @map("updated_at")
+  version     Int                    @default(1)
+  deletedAt   DateTime?              @map("deleted_at")
+  metadata    Json?
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  offer    Offer?   @relation(fields: [offerId], references: [id], onDelete: SetNull)
+
+  @@unique([merchantId, externalKey])
+  @@index([merchantId])
+  @@index([offerId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("merchant_offer_refs")
+  @@schema("merchants")
+}
+
+// ─── Phase 0.5 reward rules (rewards schema) — M-008 ────────────────────────
+
+enum RewardRuleVersionStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+
+  @@schema("rewards")
+}
+
+/// Stable reward rule identity — versions live in reward_rule_versions.
+model RewardRule {
+  id              String    @id @db.Uuid
+  ruleKey         String    @unique @map("rule_key")
+  name            String
+  creditCardId    String    @map("credit_card_id") @db.Uuid
+  rewardProgramId String?   @map("reward_program_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  version         Int       @default(1)
+  deletedAt       DateTime? @map("deleted_at")
+  metadata        Json?
+
+  creditCard    CreditCard     @relation(fields: [creditCardId], references: [id])
+  rewardProgram RewardProgram? @relation(fields: [rewardProgramId], references: [id])
+  versions      RewardRuleVersion[]
+
+  @@index([creditCardId])
+  @@index([rewardProgramId])
+  @@index([deletedAt])
+  @@map("reward_rules")
+  @@schema("rewards")
+}
+
+/// Immutable rule versions — activate/deactivate; at most one ACTIVE per rule (partial unique).
+model RewardRuleVersion {
+  id               String                   @id @db.Uuid
+  ruleId           String                   @map("rule_id") @db.Uuid
+  versionNumber    Int                      @map("version_number")
+  status           RewardRuleVersionStatus  @default(DRAFT)
+  spendCategoryId  String?                  @map("spend_category_id") @db.Uuid
+  merchantId       String?                  @map("merchant_id") @db.Uuid
+  payload          Json
+  validFrom        DateTime?                @map("valid_from")
+  validUntil       DateTime?                @map("valid_until")
+  activatedAt      DateTime?                @map("activated_at")
+  deactivatedAt    DateTime?                @map("deactivated_at")
+  sourceUrl        String?                  @map("source_url")
+  createdAt        DateTime                 @default(now()) @map("created_at")
+  updatedAt        DateTime                 @updatedAt @map("updated_at")
+  version          Int                      @default(1)
+  deletedAt        DateTime?                @map("deleted_at")
+  metadata         Json?
+
+  rule          RewardRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  spendCategory SpendCategory? @relation(fields: [spendCategoryId], references: [id])
+  merchant      Merchant?      @relation(fields: [merchantId], references: [id])
+
+  @@unique([ruleId, versionNumber])
+  @@index([ruleId])
+  @@index([status])
+  @@index([spendCategoryId])
+  @@index([merchantId])
+  @@index([deletedAt])
+  @@map("reward_rule_versions")
+  @@schema("rewards")
+}
+
+// ─── Reward wallet (rewards schema) — M-035 ─────────────────────────────────
+
+enum RewardBalanceKind {
+  POINTS
+  CASHBACK
+  MILES
+  HOTEL_POINTS
+
+  @@schema("rewards")
+}
+
+enum RedemptionOptionType {
+  STATEMENT_CREDIT
+  GIFT_CARD
+  FLIGHTS
+  HOTELS
+  MERCHANDISE
+  CASHBACK
+  PARTNER_TRANSFER
+
+  @@schema("rewards")
+}
+
+enum RedemptionRecordStatus {
+  COMPLETED
+  PENDING
+  CANCELLED
+
+  @@schema("rewards")
+}
+
+model RewardAccount {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id")
+  userCardId   String    @unique @map("user_card_id")
+  lastSyncedAt DateTime? @map("last_synced_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userCard UserCard        @relation(fields: [userCardId], references: [id], onDelete: Cascade)
+  balances RewardBalance[]
+
+  @@index([userId])
+  @@map("reward_accounts")
+  @@schema("rewards")
+}
+
+model RewardBalance {
+  id                String            @id @default(uuid()) @db.Uuid
+  rewardAccountId   String            @map("reward_account_id") @db.Uuid
+  kind              RewardBalanceKind
+  availableAmount   Decimal           @default(0) @map("available_amount") @db.Decimal(14, 2)
+  pendingAmount     Decimal           @default(0) @map("pending_amount") @db.Decimal(14, 2)
+  expiredAmount     Decimal           @default(0) @map("expired_amount") @db.Decimal(14, 2)
+  expiringAmount    Decimal           @default(0) @map("expiring_amount") @db.Decimal(14, 2)
+  expiringAt        DateTime?         @map("expiring_at")
+  estimatedValueInr Decimal?          @map("estimated_value_inr") @db.Decimal(12, 2)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  account RewardAccount @relation(fields: [rewardAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([rewardAccountId, kind])
+  @@index([expiringAt])
+  @@map("reward_balances")
+  @@schema("rewards")
+}
+
+model RewardRedemption {
+  id                   String                 @id @default(cuid())
+  userId               String                 @map("user_id")
+  userCardId           String                 @map("user_card_id")
+  balanceKind          RewardBalanceKind      @map("balance_kind")
+  optionType           RedemptionOptionType   @map("option_type")
+  pointsRedeemed       Decimal                @map("points_redeemed") @db.Decimal(14, 2)
+  estimatedValueInr    Decimal                @map("estimated_value_inr") @db.Decimal(12, 2)
+  effectiveRatePercent Decimal                @map("effective_rate_percent") @db.Decimal(7, 4)
+  status               RedemptionRecordStatus @default(COMPLETED)
+  notes                String?
+  redeemedAt           DateTime               @map("redeemed_at")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userCard UserCard @relation(fields: [userCardId], references: [id], onDelete: Cascade)
+
+  @@index([userId, redeemedAt(sort: Desc)])
+  @@index([userId, userCardId])
+  @@map("reward_redemptions")
+  @@schema("rewards")
+}
+
+// ─── Phase 0.5 offer database (offers schema) — M-009 ───────────────────────
+
+enum OfferType {
+  MERCHANT
+  BANK
+  CARD
+
+  @@schema("offers")
+}
+
+enum OfferStatus {
+  ACTIVE
+  SCHEDULED
+  EXPIRED
+  HISTORICAL
+
+  @@schema("offers")
+}
+
+model Offer {
+  id               String      @id @db.Uuid
+  code             String      @unique
+  slug             String      @unique
+  title            String
+  description      String?
+  type             OfferType
+  issuerBankId     String?     @map("issuer_bank_id") @db.Uuid
+  cashbackPercent  Decimal?    @map("cashback_percent") @db.Decimal(7, 4)
+  capInr           Decimal?    @map("cap_inr") @db.Decimal(12, 2)
+  termsSummary     String?     @map("terms_summary")
+  terms            Json?
+  validFrom        DateTime    @map("valid_from")
+  validUntil       DateTime?   @map("valid_until")
+  status           OfferStatus @default(ACTIVE)
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  version          Int         @default(1)
+  deletedAt        DateTime?   @map("deleted_at")
+  metadata         Json?
+
+  issuerBank       Bank?                  @relation(fields: [issuerBankId], references: [id])
+  cardAssignments  OfferCardAssignment[]
+  merchants        OfferMerchant[]
+  merchantOfferRefs MerchantOfferRef[]
+
+  @@index([issuerBankId])
+  @@index([type])
+  @@index([status])
+  @@index([validFrom])
+  @@index([validUntil])
+  @@index([deletedAt])
+  @@map("offers")
+  @@schema("offers")
+}
+
+model OfferCardAssignment {
+  id           String    @id @db.Uuid
+  offerId      String    @map("offer_id") @db.Uuid
+  creditCardId String    @map("credit_card_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at")
+  metadata     Json?
+
+  offer      Offer      @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  creditCard CreditCard @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, creditCardId])
+  @@index([offerId])
+  @@index([creditCardId])
+  @@index([deletedAt])
+  @@map("offer_card_assignments")
+  @@schema("offers")
+}
+
+model OfferMerchant {
+  id         String    @id @db.Uuid
+  offerId    String    @map("offer_id") @db.Uuid
+  merchantId String    @map("merchant_id") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  version    Int       @default(1)
+  deletedAt  DateTime? @map("deleted_at")
+  metadata   Json?
+
+  offer    Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, merchantId])
+  @@index([offerId])
+  @@index([merchantId])
+  @@index([deletedAt])
+  @@map("offer_merchants")
+  @@schema("offers")
+}

@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "bankSlug": "idfc-first",
+  "cards": [
+    {
+      "id": "idfc-first-wow",
+      "description": "IDFC FIRST WoW — lifetime free entry card",
+      "bundle": {
+        "bankSlug": "idfc-first",
+        "bankSourceUrl": "https://www.idfcfirst.bank.in/credit-cards",
+        "name": "FIRST WoW! Credit Card",
+        "slug": "idfc-first-wow",
+        "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/wow-credit-card",
+        "networkCode": "VISA",
+        "tier": "ENTRY",
+        "annualFeeInr": 0,
+        "joiningFeeInr": 0,
+        "rewardProgramSlug": null,
+        "pointValueInr": null,
+        "tags": ["Lifetime free", "Rewards"],
+        "structuredFees": [
+          { "feeKind": "ANNUAL", "label": "Annual fee", "value": "Nil" },
+          { "feeKind": "JOINING", "label": "Joining fee", "value": "Nil" }
+        ],
+        "highlights": [
+          {
+            "category": "REWARDS",
+            "title": "4 reward points per ₹150 spent",
+            "description": "On eligible retail spends",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/wow-credit-card"
+          },
+          {
+            "category": "FEES",
+            "title": "Lifetime free card",
+            "description": "No annual or joining fee",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/wow-credit-card"
+          }
+        ],
+        "benefits": [],
+        "rewardRules": []
+      },
+      "expect": { "minHighlights": 2, "minStructuredFees": 1, "requiredTags": ["Lifetime free"] }
+    },
+    {
+      "id": "idfc-first-classic",
+      "description": "IDFC FIRST Classic — standard tier",
+      "bundle": {
+        "bankSlug": "idfc-first",
+        "name": "FIRST Classic Credit Card",
+        "slug": "idfc-first-classic",
+        "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/classic-credit-card",
+        "networkCode": "VISA",
+        "tier": "STANDARD",
+        "annualFeeInr": 499,
+        "joiningFeeInr": 0,
+        "tags": ["Cashback"],
+        "structuredFees": [
+          { "feeKind": "ANNUAL", "label": "Annual fee", "value": "₹499 plus taxes" }
+        ],
+        "highlights": [
+          {
+            "category": "CASHBACK",
+            "title": "Up to 1% cashback",
+            "description": "On eligible spends",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/classic-credit-card"
+          }
+        ],
+        "benefits": [],
+        "rewardRules": []
+      },
+      "expect": { "minHighlights": 1, "minStructuredFees": 1, "requiredTags": [] }
+    },
+    {
+      "id": "idfc-first-millennia",
+      "description": "IDFC FIRST Millennia — dining and online rewards",
+      "bundle": {
+        "bankSlug": "idfc-first",
+        "name": "FIRST Millennia Credit Card",
+        "slug": "idfc-first-millennia",
+        "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/millennia-credit-card",
+        "networkCode": "VISA",
+        "tier": "STANDARD",
+        "annualFeeInr": 999,
+        "joiningFeeInr": 0,
+        "tags": ["Dining", "Online shopping"],
+        "structuredFees": [
+          { "feeKind": "ANNUAL", "label": "Annual fee", "value": "₹999 plus taxes" }
+        ],
+        "highlights": [
+          {
+            "category": "DINING",
+            "title": "5% cashback on dining",
+            "description": "Up to monthly cap",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/millennia-credit-card"
+          },
+          {
+            "category": "SHOPPING",
+            "title": "2.5% on online spends",
+            "description": "Select merchants",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/millennia-credit-card"
+          }
+        ],
+        "benefits": [],
+        "rewardRules": []
+      },
+      "expect": { "minHighlights": 2, "minStructuredFees": 1, "requiredTags": ["Dining"] }
+    },
+    {
+      "id": "idfc-first-wealth",
+      "description": "IDFC FIRST Wealth — premium lounge card",
+      "bundle": {
+        "bankSlug": "idfc-first",
+        "name": "FIRST Wealth Credit Card",
+        "slug": "idfc-first-wealth",
+        "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/wealth-credit-card",
+        "networkCode": "VISA",
+        "tier": "PREMIUM",
+        "annualFeeInr": 4999,
+        "joiningFeeInr": 0,
+        "tags": ["Lounge access", "Travel"],
+        "structuredFees": [
+          { "feeKind": "ANNUAL", "label": "Annual fee", "value": "₹4,999 plus taxes" }
+        ],
+        "highlights": [
+          {
+            "category": "LOUNGE",
+            "title": "Domestic lounge access",
+            "description": "Limited visits per quarter",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/wealth-credit-card"
+          },
+          {
+            "category": "TRAVEL",
+            "title": "Accelerated travel rewards",
+            "description": "On flight and hotel spends",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/wealth-credit-card"
+          }
+        ],
+        "benefits": [],
+        "rewardRules": []
+      },
+      "expect": { "minHighlights": 2, "minStructuredFees": 1, "requiredTags": ["Travel"] }
+    },
+    {
+      "id": "idfc-first-select",
+      "description": "IDFC FIRST Select — super premium metal card",
+      "bundle": {
+        "bankSlug": "idfc-first",
+        "name": "FIRST Select Credit Card",
+        "slug": "idfc-first-select",
+        "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/select-credit-card",
+        "networkCode": "VISA",
+        "tier": "SUPER_PREMIUM",
+        "annualFeeInr": 10000,
+        "joiningFeeInr": 0,
+        "tags": ["Metal card", "Premium"],
+        "structuredFees": [
+          { "feeKind": "ANNUAL", "label": "Annual fee", "value": "₹10,000 plus taxes" }
+        ],
+        "highlights": [
+          {
+            "category": "REWARDS",
+            "title": "Premium reward earn rate",
+            "description": "On all eligible spends",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/select-credit-card"
+          },
+          {
+            "category": "INSURANCE",
+            "title": "Travel insurance cover",
+            "description": "International travel protection",
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/select-credit-card"
+          }
+        ],
+        "benefits": [],
+        "rewardRules": []
+      },
+      "expect": { "minHighlights": 2, "minStructuredFees": 1, "requiredTags": ["Premium"] }
+    }
+  ]
+}

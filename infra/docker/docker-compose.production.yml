@@ -1,0 +1,182 @@
+# Production Docker Compose — Coolify / Hetzner VPS
+# Usage (from repo root, with .env.production loaded):
+#   docker compose -f infra/docker/docker-compose.production.yml --env-file .env.production up -d
+#
+# Images are normally built/pushed by GitHub Actions and pulled here.
+# Set IMAGE_REGISTRY (e.g. ghcr.io/org/cardorbit) and IMAGE_TAG (git sha or latest).
+
+name: cardorbit-prod
+
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: ${DATABASE_URL}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+  JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+  JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-15m}
+  JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
+  TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+  ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+  GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+  GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+  APP_URL: ${APP_URL}
+  ADMIN_APP_URL: ${ADMIN_APP_URL}
+  API_URL: ${API_URL}
+  ASSET_PUBLIC_BASE_URL: ${ASSET_PUBLIC_BASE_URL}
+  SMTP_HOST: ${SMTP_HOST}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER}
+  SMTP_PASS: ${SMTP_PASS}
+  EMAIL_FROM: ${EMAIL_FROM}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  AI_PROVIDER: ${AI_PROVIDER:-gemini}
+  GEMINI_API_KEY: ${GEMINI_API_KEY}
+  GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
+  AI_DEFAULT_EMBEDDING_MODEL: ${AI_DEFAULT_EMBEDDING_MODEL:-text-embedding-004}
+  AI_MONTHLY_BUDGET_USD: ${AI_MONTHLY_BUDGET_USD:-50}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  POSTHOG_API_KEY: ${POSTHOG_API_KEY:-}
+  POSTHOG_HOST: ${POSTHOG_HOST:-https://app.posthog.com}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  # S3-compatible (Cloudflare R2) — wire AssetStorageService before relying on these
+  S3_BUCKET: ${S3_BUCKET:-}
+  S3_REGION: ${S3_REGION:-auto}
+  S3_ENDPOINT: ${S3_ENDPOINT:-}
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cardorbit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cardorbit}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cardorbit} -d ${POSTGRES_DB:-cardorbit}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  migrate:
+    image: ${IMAGE_REGISTRY:-ghcr.io/cardorbit/cardorbit}-api:${IMAGE_TAG:-latest}
+    profiles: ['migrate']
+    environment:
+      <<: *app-env
+    working_dir: /app/services/api
+    command: ['bun', 'x', 'prisma', 'migrate', 'deploy']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: 'no'
+
+  api:
+    image: ${IMAGE_REGISTRY:-ghcr.io/cardorbit/cardorbit}-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      PORT: 3000
+    ports:
+      - '${API_HOST_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - internal
+
+  worker:
+    image: ${IMAGE_REGISTRY:-ghcr.io/cardorbit/cardorbit}-worker:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    networks:
+      - internal
+
+  scheduler:
+    image: ${IMAGE_REGISTRY:-ghcr.io/cardorbit/cardorbit}-scheduler:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    networks:
+      - internal
+
+  # Optional: backup sidecar (nightly pg_dump → R2). Enable when AWS CLI + R2 creds set.
+  db-backup:
+    image: postgres:16-alpine
+    profiles: ['backup']
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${S3_REGION:-auto}
+      S3_BUCKET: ${BACKUP_S3_BUCKET:-${S3_BUCKET}}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      BACKUP_PREFIX: ${BACKUP_PREFIX:-postgres}
+    volumes:
+      - ./scripts/pg-backup.sh:/backup.sh:ro
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        apk add --no-cache aws-cli curl >/dev/null
+        while true; do
+          /backup.sh || true
+          sleep 86400
+        done
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  internal:
+    driver: bridge

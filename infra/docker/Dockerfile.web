@@ -1,0 +1,22 @@
+# Optional local/preview image for consumer web static assets.
+# Production frontends deploy to Vercel; this image is for Docker Compose previews.
+
+FROM oven/bun:1.3.11-alpine AS build
+WORKDIR /app
+COPY package.json bun.lock turbo.json ./
+COPY apps ./apps
+COPY packages ./packages
+COPY services/api/package.json services/api/
+COPY services/worker/package.json services/worker/
+RUN bun install --frozen-lockfile
+ARG VITE_API_URL
+ARG VITE_SENTRY_DSN=
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
+RUN bunx turbo run build --filter=@cardwise/web
+
+FROM nginx:1.27-alpine AS runner
+COPY infra/docker/nginx-spa.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/apps/web/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

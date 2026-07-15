@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "domain": "travel",
+  "scenarios": [
+    {
+      "id": "travel-flight-15000",
+      "description": "₹15,000 domestic flight — travel accelerator card",
+      "input": {
+        "spendContext": { "amount": 15000, "merchantSlug": "makemytrip", "categorySlug": "travel" },
+        "recommendedCard": {
+          "cardName": "Axis Atlas",
+          "cardSlug": "axis-atlas",
+          "expectedRewardInr": 750,
+          "effectiveRatePercent": 5,
+          "explanation": "5 EDGE Miles per ₹100 on travel"
+        },
+        "alternativeNames": ["HDFC Infinia"],
+        "breakdown": { "amountInr": 15000, "expectedRewardInr": 750, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "axis-atlas", "expectedRewardInr": 750, "rewardRatePercent": 5, "multiplier": 5 },
+          { "cardSlug": "hdfc-infinia", "expectedRewardInr": 450, "rewardRatePercent": 3, "multiplier": 3 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "Axis Atlas is recommended for this flight booking with ₹750 expected value at a 5% effective rate and 5x travel multiplier from the audit. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Axis Atlas earns ₹750 on travel",
+        "bulletReasons": ["5x travel multiplier in audit", "₹750 highest reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 3], "allowedMultipliers": [5, 3] }
+    },
+    {
+      "id": "travel-hotel-22000",
+      "description": "₹22,000 hotel — premium travel card",
+      "input": {
+        "spendContext": { "amount": 22000, "merchantSlug": "booking-com", "categorySlug": "travel" },
+        "recommendedCard": {
+          "cardName": "HDFC Infinia",
+          "cardSlug": "hdfc-infinia",
+          "expectedRewardInr": 1100,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["Amex Platinum Travel"],
+        "breakdown": { "amountInr": 22000, "expectedRewardInr": 1100, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "hdfc-infinia", "expectedRewardInr": 1100, "rewardRatePercent": 5, "multiplier": 5 },
+          { "cardSlug": "amex-platinum-travel", "expectedRewardInr": 660, "rewardRatePercent": 3, "multiplier": 3 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "HDFC Infinia earns ₹1100 on this hotel booking with 5x multiplier reflected in the audit — the top travel pick. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Infinia earns ₹1100 on hotels",
+        "bulletReasons": ["5x multiplier in audit", "₹1100 expected reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 3], "allowedMultipliers": [5, 3] }
+    },
+    {
+      "id": "travel-metro-120",
+      "description": "₹120 metro — low value transit",
+      "input": {
+        "spendContext": { "amount": 120, "merchantSlug": "metro", "categorySlug": "travel" },
+        "recommendedCard": {
+          "cardName": "SBI Cashback",
+          "cardSlug": "sbi-cashback",
+          "expectedRewardInr": 6,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["HDFC MoneyBack"],
+        "breakdown": { "amountInr": 120, "expectedRewardInr": 6, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "sbi-cashback", "expectedRewardInr": 6, "rewardRatePercent": 5 },
+          { "cardSlug": "hdfc-moneyback", "expectedRewardInr": 2.4, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "SBI Cashback returns ₹6 on this metro recharge with 5% effective rate. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "SBI Cashback earns ₹6 transit",
+        "bulletReasons": ["5% effective rate", "₹6 reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [] }
+    },
+    {
+      "id": "travel-rail-2800",
+      "description": "₹2,800 IRCTC — rail booking",
+      "input": {
+        "spendContext": { "amount": 2800, "merchantSlug": "irctc", "categorySlug": "travel" },
+        "recommendedCard": {
+          "cardName": "HDFC Regalia Gold",
+          "cardSlug": "hdfc-regalia-gold",
+          "expectedRewardInr": 140,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["ICICI Coral"],
+        "breakdown": { "amountInr": 2800, "expectedRewardInr": 140, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "hdfc-regalia-gold", "expectedRewardInr": 140, "rewardRatePercent": 5, "multiplier": 4 },
+          { "cardSlug": "icici-coral", "expectedRewardInr": 56, "rewardRatePercent": 2, "multiplier": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "HDFC Regalia Gold is best for IRCTC with ₹140 reward and 4x multiplier in the audit. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Regalia Gold earns ₹140 on rail",
+        "bulletReasons": ["4x multiplier in audit", "₹140 expected reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [4, 2] }
+    },
+    {
+      "id": "travel-intl-85000",
+      "description": "₹85,000 international flight — no hallucinated 10x",
+      "input": {
+        "spendContext": { "amount": 85000, "merchantSlug": "emirates", "categorySlug": "travel" },
+        "recommendedCard": {
+          "cardName": "Amex Platinum Travel",
+          "cardSlug": "amex-platinum-travel",
+          "expectedRewardInr": 4250,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["Axis Magnus"],
+        "breakdown": { "amountInr": 85000, "expectedRewardInr": 4250, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "amex-platinum-travel", "expectedRewardInr": 4250, "rewardRatePercent": 5, "multiplier": 5 },
+          { "cardSlug": "axis-magnus", "expectedRewardInr": 2550, "rewardRatePercent": 3, "multiplier": 3 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "Amex Platinum Travel earns ₹4250 on this international flight with 5x multiplier from the audit — do not assume higher multipliers. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Amex Platinum earns ₹4250 intl",
+        "bulletReasons": ["5x multiplier only (from audit)", "₹4250 expected reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 3], "allowedMultipliers": [5, 3] }
+    }
+  ]
+}

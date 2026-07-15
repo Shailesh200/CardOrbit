@@ -1,0 +1,170 @@
+@keyframes ai-sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ai-orb-ring-spin {
+  from {
+    transform: rotate(0deg);
+    transform-origin: 160px 128px;
+  }
+  to {
+    transform: rotate(360deg);
+    transform-origin: 160px 128px;
+  }
+}
+
+@keyframes ai-orb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes ai-search-node-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes ai-assist-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes ai-explained-bar-grow {
+  from {
+    width: 48px;
+  }
+  to {
+    width: 72px;
+  }
+}
+
+.ai-sparkle-mark__star {
+  transform-origin: 12px 12px;
+  animation: ai-sparkle-twinkle 2.4s ease-in-out infinite;
+}
+
+.ai-sparkle-mark__dot {
+  animation: ai-sparkle-twinkle 2.4s ease-in-out infinite;
+}
+
+.ai-sparkle-mark__dot--a {
+  animation-delay: 0.35s;
+}
+
+.ai-sparkle-mark__dot--b {
+  animation-delay: 0.7s;
+}
+
+.ai-orb__ring {
+  animation: ai-orb-ring-spin 18s linear infinite;
+}
+
+.ai-orb__spark--1,
+.ai-orb__spark--2,
+.ai-orb__spark--3 {
+  animation: ai-sparkle-twinkle 2.8s ease-in-out infinite;
+}
+
+.ai-orb__spark--2 {
+  animation-delay: 0.5s;
+}
+
+.ai-orb__spark--3 {
+  animation-delay: 1s;
+}
+
+.ai-orb__node--a,
+.ai-orb__node--b {
+  animation: ai-sparkle-twinkle 3s ease-in-out infinite;
+}
+
+.ai-orb__node--b {
+  animation-delay: 0.6s;
+}
+
+.ai-visual__illus {
+  animation: ai-orb-float 5s ease-in-out infinite;
+}
+
+.ai-search__node--1,
+.ai-search__node--2,
+.ai-search__node--3 {
+  animation: ai-search-node-float 3.2s ease-in-out infinite;
+}
+
+.ai-search__node--2 {
+  animation-delay: 0.45s;
+}
+
+.ai-search__node--3 {
+  animation-delay: 0.9s;
+}
+
+.ai-search__spark,
+.ai-assist__spark,
+.ai-explained__spark {
+  animation: ai-sparkle-twinkle 2.2s ease-in-out infinite;
+}
+
+.ai-assist__bubble--user,
+.ai-assist__bubble--reply {
+  animation: ai-assist-bob 4s ease-in-out infinite;
+}
+
+.ai-assist__bubble--reply {
+  animation-delay: 0.8s;
+}
+
+.ai-explained__bar-fill {
+  animation: ai-explained-bar-grow 2.8s ease-in-out infinite alternate;
+}
+
+.ai-explained__panel {
+  animation: ai-assist-bob 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-sparkle-mark__star,
+  .ai-sparkle-mark__dot,
+  .ai-orb__ring,
+  .ai-orb__spark--1,
+  .ai-orb__spark--2,
+  .ai-orb__spark--3,
+  .ai-orb__node--a,
+  .ai-orb__node--b,
+  .ai-visual__illus,
+  .ai-search__node--1,
+  .ai-search__node--2,
+  .ai-search__node--3,
+  .ai-search__spark,
+  .ai-assist__spark,
+  .ai-explained__spark,
+  .ai-assist__bubble--user,
+  .ai-assist__bubble--reply,
+  .ai-explained__bar-fill,
+  .ai-explained__panel {
+    animation: none !important;
+  }
+}

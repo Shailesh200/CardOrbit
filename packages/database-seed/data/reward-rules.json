@@ -1,0 +1,66 @@
+{
+  "rules": [
+    {
+      "ruleKey": "hdfc-regalia-dining-quarterly-cap",
+      "name": "Regalia Gold — dining 5% (quarterly cap)",
+      "cardSlug": "hdfc-regalia-gold",
+      "rewardProgramSlug": "hdfc-rewards",
+      "spendCategoryCode": "DINING",
+      "payload": {
+        "cashbackPercent": 5,
+        "capPeriod": "quarterly",
+        "periodCapInr": 1500,
+        "exclusions": [
+          "fuel",
+          "rent",
+          "wallet"
+        ]
+      },
+      "validFrom": "2026-01-01",
+      "validUntil": "2026-12-31"
+    },
+    {
+      "ruleKey": "icici-amazon-q2-campaign",
+      "name": "Amazon Pay — Amazon Q2 2x boost",
+      "cardSlug": "icici-amazon-pay",
+      "rewardProgramSlug": "icici-rewards",
+      "merchantSlug": "amazon",
+      "payload": {
+        "rewardMultiplier": 5,
+        "quarterlyCampaign": {
+          "multiplierBoost": 2,
+          "activeQuarters": [
+            2
+          ]
+        },
+        "capPeriod": "monthly",
+        "periodCapInr": 2000,
+        "exclusions": [
+          "fuel",
+          "rent"
+        ]
+      },
+      "validFrom": "2026-01-01",
+      "validUntil": "2026-12-31"
+    },
+    {
+      "ruleKey": "axis-flipkart-cumulative-milestone",
+      "name": "Flipkart — cumulative ₹25k milestone",
+      "cardSlug": "axis-flipkart",
+      "rewardProgramSlug": "axis-rewards",
+      "merchantSlug": "flipkart",
+      "payload": {
+        "cashbackPercent": 5,
+        "spendThreshold": 25000,
+        "milestoneBonus": 500,
+        "milestoneMode": "cumulative",
+        "milestonePeriod": "quarterly",
+        "exclusions": [
+          "fuel"
+        ]
+      },
+      "validFrom": "2026-01-01",
+      "validUntil": "2026-12-31"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "card": "hdfc_infinia",
+    "category": "travel",
+    "ruleKey": "hdfc_infinia_travel",
+    "name": "HDFC Infinia Travel 5X",
+    "payload": {
+      "rewardMultiplier": 5,
+      "cap": 15000,
+      "exclusions": ["fuel", "rent"]
+    },
+    "validFrom": "2026-01-01",
+    "validUntil": null
+  },
+  {
+    "card": "sbi_cashback",
+    "category": "online",
+    "ruleKey": "sbi_cashback_online",
+    "name": "SBI Cashback Online 5%",
+    "payload": {
+      "cashbackPercent": 5,
+      "monthlyLimit": 5000,
+      "exclusions": ["fuel", "wallet"]
+    },
+    "validFrom": "2026-01-01",
+    "validUntil": null
+  },
+  {
+    "card": "axis_ace",
+    "category": "utilities",
+    "ruleKey": "axis_ace_utilities_milestone",
+    "name": "Axis ACE utilities milestone",
+    "payload": {
+      "cashbackPercent": 2,
+      "spendThreshold": 10000,
+      "milestoneBonus": 250,
+      "exclusions": []
+    },
+    "validFrom": "2026-01-01",
+    "validUntil": null
+  }
+]

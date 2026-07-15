@@ -1,0 +1,41 @@
+{
+  "name": "@cardwise/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CardOrbit consumer web application",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build && vite build --ssr src/prerender/entry-server.tsx --outDir dist/server && node scripts/prerender-home.mjs",
+    "preview": "vite preview",
+    "lint": "echo '@cardwise/web: lint via root oxlint'",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cardwise/ai-assistant-widget": "workspace:*",
+    "@cardwise/auth": "workspace:*",
+    "@cardwise/design-system": "workspace:*",
+    "@cardwise/feature-flags": "workspace:*",
+    "@cardwise/ui": "workspace:*",
+    "@sentry/react": "^9.30.0",
+    "lottie-react": "^2.4.1",
+    "lucide-react": "^0.525.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.6.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.11",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.7.2",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
+  }
+}

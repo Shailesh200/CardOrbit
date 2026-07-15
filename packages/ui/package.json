@@ -1,0 +1,44 @@
+{
+  "name": "@cardwise/ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared React UI components (shadcn/ui) for CardWise",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsup",
+    "lint": "echo '@cardwise/ui: lint via root oxlint'",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cardwise/design-system": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.525.0",
+    "radix-ui": "^1.6.2",
+    "sonner": "^2.0.6",
+    "tailwind-merge": "^3.3.1"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "jsdom": "^26.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.11",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  }
+}

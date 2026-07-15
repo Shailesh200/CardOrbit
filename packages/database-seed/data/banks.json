@@ -1,0 +1,101 @@
+{
+  "networks": [
+    {
+      "code": "VISA",
+      "name": "Visa",
+      "slug": "visa"
+    },
+    {
+      "code": "MASTERCARD",
+      "name": "Mastercard",
+      "slug": "mastercard"
+    },
+    {
+      "code": "RUPAY",
+      "name": "RuPay",
+      "slug": "rupay"
+    },
+    {
+      "code": "AMEX",
+      "name": "American Express",
+      "slug": "amex"
+    }
+  ],
+  "banks": [
+    {
+      "name": "HDFC Bank",
+      "slug": "hdfc",
+      "country": "IN"
+    },
+    {
+      "name": "ICICI Bank",
+      "slug": "icici",
+      "country": "IN"
+    },
+    {
+      "name": "State Bank of India",
+      "slug": "sbi",
+      "country": "IN"
+    },
+    {
+      "name": "Axis Bank",
+      "slug": "axis",
+      "country": "IN"
+    },
+    {
+      "name": "Kotak Mahindra Bank",
+      "slug": "kotak",
+      "country": "IN"
+    },
+    {
+      "name": "Yes Bank",
+      "slug": "yes-bank",
+      "country": "IN"
+    },
+    {
+      "name": "IndusInd Bank",
+      "slug": "indusind",
+      "country": "IN"
+    },
+    {
+      "name": "IDFC FIRST Bank",
+      "slug": "idfc-first",
+      "country": "IN"
+    },
+    {
+      "name": "Bank of Baroda",
+      "slug": "bob",
+      "country": "IN"
+    },
+    {
+      "name": "Punjab National Bank",
+      "slug": "pnb",
+      "country": "IN"
+    },
+    {
+      "name": "Standard Chartered",
+      "slug": "standard-chartered",
+      "country": "IN"
+    },
+    {
+      "name": "Citibank",
+      "slug": "citi",
+      "country": "IN"
+    },
+    {
+      "name": "RBL Bank",
+      "slug": "rbl",
+      "country": "IN"
+    },
+    {
+      "name": "AU Small Finance Bank",
+      "slug": "au",
+      "country": "IN"
+    },
+    {
+      "name": "HSBC",
+      "slug": "hsbc",
+      "country": "IN"
+    }
+  ]
+}

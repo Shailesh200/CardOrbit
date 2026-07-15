@@ -1,0 +1,67 @@
+@import 'tailwindcss';
+
+@source "./**/*.{ts,tsx}";
+
+@keyframes ai-widget-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ai-widget-fab-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 24px oklch(0.42 0.12 185 / 0.35),
+      0 0 0 0 oklch(0.48 0.12 185 / 0.35);
+  }
+  50% {
+    box-shadow:
+      0 10px 28px oklch(0.42 0.12 185 / 0.42),
+      0 0 0 8px oklch(0.48 0.12 185 / 0);
+  }
+}
+
+@keyframes ai-widget-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ai-assistant-widget__backdrop {
+  animation: ai-widget-backdrop-in 0.18s ease-out;
+}
+
+.ai-assistant-widget__panel {
+  animation: ai-widget-panel-in 0.22s ease-out;
+}
+
+.ai-assistant-widget__fab {
+  animation: ai-widget-fab-pulse 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-assistant-widget__backdrop,
+  .ai-assistant-widget__panel,
+  .ai-assistant-widget__fab {
+    animation: none !important;
+  }
+}
+
+.ai-assistant-widget--mobile-nav-offset {
+  bottom: 1.25rem;
+}
+
+@media (max-width: 1023px) {
+  .ai-assistant-widget--mobile-nav-offset {
+    bottom: calc(var(--consumer-bottom-nav-height, 4.25rem) + var(--safe-bottom, 0px) + 0.75rem);
+  }
+}

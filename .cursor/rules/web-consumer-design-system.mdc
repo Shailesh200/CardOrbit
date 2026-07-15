@@ -1,0 +1,49 @@
+---
+description: CardOrbit consumer web design system, theme, and quality gates for apps/web
+globs: apps/web/**
+alwaysApply: false
+---
+
+# CardOrbit Web Consumer Design System (active)
+
+Authority: `docs/design/WEB_CONSUMER_DESIGN_SYSTEM.md`
+
+## Theme & vibe
+
+- **Fonts:** Geist (display + body) via `consumer-theme.css` / deferred CDN; Inter fallback
+- **Chrome:** Deep Space dark glass (`.site-header`, `.consumer-footer`, `.consumer-surface--glass`)
+- **Hero / auth rail:** dark ambient panels; light text; blue→purple gradient CTAs
+- **Brand:** `HeroLogo` only (`@brand/HeroLogo`); favicon uses orbital `HeroLogoMark`
+- **User-facing name:** CardOrbit (do not rename `@cardwise/*` packages, APIs, folders, env vars)
+
+## Palette (locked)
+
+- Deep Space `#050816`, Secondary `#0B1023`, Surface `#111827`, Elevated `#161D33`
+- Primary `#4F8CFF`, Orbit Purple `#7C5CFF`
+- Border `rgba(255,255,255,0.08)`
+
+## Components
+
+- Reuse `@brand`, `@marketing`, `@layout`, `@motion` — no duplicate logo or card components
+- **Auth:** generic `AnimatedCardStack` (no issuer photos)
+- **Landing:** `variant="showcase"` + `RecommendationPreview`
+- Links: `consumerLink` from `@lib/consumer-link`
+- Route scroll: `ScrollToTop` already in `App.tsx`
+
+## New pages
+
+- Wrap in `AppShell` patterns; use `.consumer-surface` for panels
+- Set `document.title` to `CardOrbit · …` per route
+- One `h1` per page; semantic heading order
+
+## Milestone verification (web changes)
+
+When editing `apps/web`, run before final review:
+
+```bash
+bun run verify:web
+```
+
+Lighthouse: Accessibility/Best Practices/SEO ≥90 enforced; Performance target ≥85 (advisory until M-085).
+
+Do not introduce alternate color systems or fonts without plan/ADR update.

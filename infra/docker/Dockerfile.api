@@ -1,0 +1,41 @@
+# Production API image — NestJS + Fastify (@cardwise/api)
+# Build from monorepo root:
+#   docker build -f infra/docker/Dockerfile.api -t cardorbit-api .
+
+FROM oven/bun:1.3.11-alpine AS deps
+WORKDIR /app
+COPY package.json bun.lock turbo.json ./
+COPY apps/web/package.json apps/web/
+COPY apps/admin/package.json apps/admin/
+COPY apps/extension/package.json apps/extension/
+COPY services/api/package.json services/api/
+COPY services/worker/package.json services/worker/
+COPY packages ./packages
+RUN bun install --frozen-lockfile
+
+FROM deps AS build
+WORKDIR /app
+COPY . .
+RUN bun run --filter @cardwise/api db:generate \
+  && bunx turbo run build --filter=@cardwise/api...
+
+FROM oven/bun:1.3.11-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+
+RUN addgroup -S cardorbit && adduser -S cardorbit -G cardorbit
+
+COPY --from=build --chown=cardorbit:cardorbit /app/package.json /app/bun.lock /app/turbo.json ./
+COPY --from=build --chown=cardorbit:cardorbit /app/node_modules ./node_modules
+COPY --from=build --chown=cardorbit:cardorbit /app/packages ./packages
+COPY --from=build --chown=cardorbit:cardorbit /app/services/api ./services/api
+
+USER cardorbit
+WORKDIR /app/services/api
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/health || exit 1
+
+CMD ["bun", "run", "dist/main.js"]

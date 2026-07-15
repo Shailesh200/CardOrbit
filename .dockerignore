@@ -1,0 +1,26 @@
+# Docker build context ignore — keep images lean
+.git
+.github
+.cursor
+.turbo
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!.env.production.example
+apps/extension/dist
+apps/mobile
+docs
+plans
+agent-transcripts
+*.md
+!README.md
+infra/terraform
+infra/kubernetes
+**/*.test.ts
+**/*.spec.ts
+**/__tests__
+apps/web/dist
+apps/admin/dist
+services/api/uploads

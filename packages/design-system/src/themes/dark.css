@@ -1,0 +1,32 @@
+/**
+ * CardOrbit dark theme — same Deep Space palette (app is dark-first).
+ */
+.dark {
+  --background: #050816;
+  --foreground: #f9fafb;
+  --card: #111827;
+  --card-foreground: #f9fafb;
+  --popover: #161d33;
+  --popover-foreground: #f9fafb;
+  --primary: #4f8cff;
+  --primary-foreground: #f9fafb;
+  --secondary: #0b1023;
+  --secondary-foreground: #f9fafb;
+  --muted: #161d33;
+  --muted-foreground: #94a3b8;
+  --accent: #161d33;
+  --accent-foreground: #f9fafb;
+  --destructive: #ef4444;
+  --destructive-foreground: #f9fafb;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.1);
+  --ring: #4f8cff;
+  --chart-1: #4f8cff;
+  --chart-2: #7c5cff;
+  --chart-3: #6366f1;
+  --chart-4: #22c55e;
+  --chart-5: #f59e0b;
+  --mesh-teal: rgb(79 140 255 / 0.18);
+  --mesh-gold: rgb(124 92 255 / 0.14);
+  --mesh-ink: rgb(99 102 241 / 0.08);
+}

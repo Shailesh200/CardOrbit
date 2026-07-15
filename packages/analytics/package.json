@@ -1,0 +1,35 @@
+{
+  "name": "@cardwise/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Centralized PostHog event tracking for CardWise",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "lint": "echo '@cardwise/analytics: lint via root oxlint'",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "sync-dashboards": "bun ./posthog/sync-dashboards.mts"
+  },
+  "dependencies": {
+    "posthog-node": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  }
+}

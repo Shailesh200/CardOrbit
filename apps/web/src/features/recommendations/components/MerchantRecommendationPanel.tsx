@@ -1,0 +1,378 @@
+import { FormEvent, useEffect, useId, useRef, useState } from 'react';
+import { Link } from 'react-router';
+import { Button, Input, Label } from '@cardwise/ui';
+import { AlertTriangle, CreditCard } from 'lucide-react';
+
+import { MiniCreditCard } from '@brand/MiniCreditCard';
+import { MerchantMark } from '@brand/MerchantMark';
+import { AiBadge } from '@features/ai/components/AiBadge';
+import { EmptyState } from '../../../components/feedback/EmptyState';
+import { RecommendationPanelSkeleton } from '../../../components/feedback/PageSkeletons';
+
+import { useRecommendation } from '../../../hooks/useRecommendation';
+import type { MerchantDetail } from '../../merchants/merchants-api';
+import { formatInr, type RecommendationCard } from '../recommendations-api';
+import {
+  trackRecommendationClickedClient,
+  trackRecommendationViewedClient,
+} from '../recommendation-analytics';
+import { trackAlternativeCardSelectedClient } from '../../../lib/product-analytics';
+import { RecommendationFeedbackBar } from './RecommendationFeedbackBar';
+
+const DEFAULT_AMOUNT = 1000;
+
+type Props = {
+  merchant: MerchantDetail;
+};
+
+function AlternativeCardRow({
+  card,
+  rank,
+  onSelect,
+}: {
+  card: RecommendationCard;
+  rank: number;
+  onSelect: (card: RecommendationCard, rank: number) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(card, rank)}
+      className="reco-alt-row flex w-full items-center gap-3 rounded-xl border border-border/60 bg-background/40 p-3 text-left transition hover:border-primary/25 hover:bg-primary/5"
+    >
+      <span className="text-xs font-semibold tabular-nums text-muted-foreground">#{rank}</span>
+      <MiniCreditCard
+        bankSlug={card.bankSlug}
+        cardSlug={card.cardSlug}
+        cardName={card.cardName}
+        className="w-[3.25rem] shrink-0"
+      />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium">{card.cardName}</p>
+        <p className="truncate text-xs text-muted-foreground">{card.bankName}</p>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-sm font-semibold text-primary">{formatInr(card.expectedReward)}</p>
+        <p className="text-xs text-muted-foreground">
+          {card.effectiveRatePercent.toFixed(1)}% back
+        </p>
+      </div>
+    </button>
+  );
+}
+
+export function MerchantRecommendationPanel({ merchant }: Props) {
+  const amountInputId = useId();
+  const viewedRecommendationId = useRef<string | null>(null);
+  const [amountInput, setAmountInput] = useState(String(DEFAULT_AMOUNT));
+  const [amount, setAmount] = useState(DEFAULT_AMOUNT);
+  const recommendation = useRecommendation({
+    merchantSlug: merchant.slug,
+    categorySlug: merchant.category?.slug ?? null,
+    amount,
+  });
+
+  const ready = recommendation.status === 'ready' ? recommendation.data : null;
+  const best = ready?.recommendedCard ?? null;
+  const recommendationId = ready?.recommendationId ?? null;
+
+  useEffect(() => {
+    if (!best || !recommendationId || !ready) return;
+    if (viewedRecommendationId.current === recommendationId) return;
+
+    viewedRecommendationId.current = recommendationId;
+    trackRecommendationViewedClient({
+      merchantId: merchant.id,
+      merchantName: merchant.name,
+      category: merchant.category?.name,
+      amount: ready.amount,
+      recommendedCardId: best.cardId,
+      expectedReward: best.expectedReward,
+      availableCardIds: [best.cardId, ...ready.alternatives.map((c) => c.cardId)],
+    });
+  }, [recommendationId, best?.cardId, merchant.id, merchant.name, merchant.category?.name, ready]);
+
+  function onAmountSubmit(event: FormEvent) {
+    event.preventDefault();
+    const parsed = Number.parseFloat(amountInput.replace(/,/g, ''));
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setAmount(parsed);
+    }
+  }
+
+  function onAlternativeClick(card: RecommendationCard, rank: number) {
+    if (best) {
+      trackAlternativeCardSelectedClient({
+        merchantId: merchant.id,
+        merchantName: merchant.name,
+        category: merchant.category?.name,
+        amount,
+        recommendedCardId: card.cardId,
+        expectedReward: card.expectedReward,
+        previousRecommendedCardId: best.cardId,
+        rank,
+      });
+    }
+    trackRecommendationClickedClient({
+      merchantId: merchant.id,
+      merchantName: merchant.name,
+      category: merchant.category?.name,
+      amount,
+      recommendedCardId: card.cardId,
+      expectedReward: card.expectedReward,
+      clickedCardId: card.cardId,
+      action: 'accepted',
+    });
+  }
+
+  return (
+    <section className="space-y-5" aria-labelledby="merchant-reco-heading">
+      <div className="space-y-1">
+        <h2
+          id="merchant-reco-heading"
+          className="font-display text-lg font-semibold tracking-tight"
+        >
+          Which card should you use?
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Enter your spend amount to rank cards in your portfolio for {merchant.name}.
+        </p>
+      </div>
+
+      <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={onAmountSubmit}>
+        <div className="min-w-0 flex-1 space-y-2">
+          <Label htmlFor={amountInputId}>Spend amount (₹)</Label>
+          <Input
+            id={amountInputId}
+            inputMode="decimal"
+            value={amountInput}
+            onChange={(event) => setAmountInput(event.target.value)}
+            placeholder="e.g. 2500"
+            aria-describedby="merchant-reco-amount-hint"
+          />
+          <p id="merchant-reco-amount-hint" className="text-xs text-muted-foreground">
+            We compare reward rules across every card in your portfolio.
+          </p>
+        </div>
+        <Button type="submit" className="btn-premium shrink-0 sm:mb-6">
+          Get recommendation
+        </Button>
+      </form>
+
+      {recommendation.status === 'loading' ? (
+        <RecommendationPanelSkeleton />
+      ) : recommendation.status === 'idle' ? (
+        <p className="text-sm text-muted-foreground">Enter an amount and tap Get recommendation.</p>
+      ) : null}
+
+      {recommendation.status === 'error' ? (
+        <EmptyState
+          icon={AlertTriangle}
+          title="Recommendation unavailable"
+          description={recommendation.message}
+          action={
+            <Button asChild size="sm" className="btn-premium">
+              <Link to="/account/cards/add">Add a card</Link>
+            </Button>
+          }
+          className="py-8"
+        />
+      ) : null}
+
+      {best && ready ? (
+        <div className="space-y-5">
+          <article className="reco-best rounded-2xl border border-primary/20 bg-primary/5 p-5">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                Best card
+              </span>
+              <MerchantMark name={merchant.name} slug={merchant.slug} />
+            </div>
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <MiniCreditCard
+                bankSlug={best.bankSlug}
+                cardSlug={best.cardSlug}
+                cardName={best.cardName}
+                className="mx-auto w-[7.5rem] shrink-0 sm:mx-0"
+              />
+              <div className="min-w-0 flex-1 space-y-2 text-center sm:text-left">
+                <p className="font-display text-xl font-semibold tracking-tight">{best.cardName}</p>
+                <p className="text-sm text-muted-foreground">{best.bankName}</p>
+                <p className="text-lg font-semibold text-primary">
+                  {formatInr(best.expectedReward)} estimated reward
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {best.effectiveRatePercent.toFixed(1)}% effective rate on {formatInr(amount)}
+                </p>
+                {ready.rankingVersion === 'v2' || ready.rankingVersion === 'v3' ? (
+                  <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      {Math.round(best.confidenceScore * 100)}% confidence
+                    </span>
+                    {ready.rankingVersion === 'v3' ? (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                        Strategic V3
+                      </span>
+                    ) : null}
+                    {best.campaignApplied ? (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                        Campaign active
+                      </span>
+                    ) : null}
+                    {best.milestoneCrossed ? (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                        Milestone crossed
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2 border-t border-primary/10 pt-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-semibold">Why this card</h3>
+                {ready.explanationSource === 'ai' ? <AiBadge variant="explained" /> : null}
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">{ready.explanation}</p>
+              {ready.bulletReasons && ready.bulletReasons.length > 0 ? (
+                <ul className="list-inside list-disc text-sm text-muted-foreground">
+                  {ready.bulletReasons.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {ready.calculationBreakdown ? (
+                <details className="rounded-lg border border-border/60 bg-background/40 p-3 text-xs text-muted-foreground">
+                  <summary className="cursor-pointer font-medium text-foreground">
+                    See calculation
+                  </summary>
+                  <dl className="mt-2 space-y-1">
+                    <div className="flex justify-between gap-4">
+                      <dt>Spend amount</dt>
+                      <dd className="font-medium text-foreground">
+                        {formatInr(ready.calculationBreakdown.amountInr)}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <dt>Expected reward</dt>
+                      <dd className="font-medium text-foreground">
+                        {formatInr(ready.calculationBreakdown.expectedRewardInr)}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <dt>Effective rate</dt>
+                      <dd className="font-medium text-foreground">
+                        {ready.calculationBreakdown.effectiveRatePercent.toFixed(1)}%
+                      </dd>
+                    </div>
+                    {ready.calculationBreakdown.ruleName ? (
+                      <div className="flex justify-between gap-4">
+                        <dt>Reward rule</dt>
+                        <dd className="text-right font-medium text-foreground">
+                          {ready.calculationBreakdown.ruleName}
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </details>
+              ) : null}
+              {best.scoreBreakdown &&
+              (ready.rankingVersion === 'v2' || ready.rankingVersion === 'v3') &&
+              best.scoreBreakdown.compositeInr > best.scoreBreakdown.rewardInr ? (
+                <ul className="list-inside list-disc text-xs text-muted-foreground">
+                  {best.scoreBreakdown.merchantBonusInr > 0 ? (
+                    <li>+{formatInr(best.scoreBreakdown.merchantBonusInr)} merchant context</li>
+                  ) : null}
+                  {best.scoreBreakdown.preferenceBonusInr > 0 ? (
+                    <li>+{formatInr(best.scoreBreakdown.preferenceBonusInr)} preference match</li>
+                  ) : null}
+                  {best.scoreBreakdown.promotionBonusInr > 0 ? (
+                    <li>+{formatInr(best.scoreBreakdown.promotionBonusInr)} active promotion</li>
+                  ) : null}
+                  {(best.scoreBreakdown.strategicMilestoneBonusInr ?? 0) > 0 ? (
+                    <li>
+                      +{formatInr(best.scoreBreakdown.strategicMilestoneBonusInr ?? 0)} milestone
+                      strategy
+                    </li>
+                  ) : null}
+                  {(best.scoreBreakdown.strategicExpiryBonusInr ?? 0) > 0 ? (
+                    <li>
+                      +{formatInr(best.scoreBreakdown.strategicExpiryBonusInr ?? 0)} expiring
+                      rewards
+                    </li>
+                  ) : null}
+                  {(best.scoreBreakdown.strategicTravelBonusInr ?? 0) > 0 ? (
+                    <li>
+                      +{formatInr(best.scoreBreakdown.strategicTravelBonusInr ?? 0)} travel affinity
+                    </li>
+                  ) : null}
+                </ul>
+              ) : null}
+              {best.strategicRationale ? (
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {best.strategicRationale}
+                </p>
+              ) : null}
+              {best.benefitsApplied.length > 0 &&
+              (!ready.bulletReasons || ready.bulletReasons.length === 0) ? (
+                <ul className="list-inside list-disc text-sm text-muted-foreground">
+                  {best.benefitsApplied.map((benefit) => (
+                    <li key={benefit}>{benefit}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </article>
+
+          {ready.alternatives.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">Other cards ranked</h3>
+              <ul className="space-y-2">
+                {ready.alternatives.map((card, index) => (
+                  <li key={card.userCardId}>
+                    <AlternativeCardRow
+                      card={card}
+                      rank={index + 2}
+                      onSelect={onAlternativeClick}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {recommendationId ? (
+            <RecommendationFeedbackBar
+              recommendationId={recommendationId}
+              merchantName={merchant.name}
+            />
+          ) : null}
+
+          <p className="text-xs text-muted-foreground">
+            Compared {ready.cardsEvaluated} card{ready.cardsEvaluated === 1 ? '' : 's'} in your
+            portfolio.
+          </p>
+        </div>
+      ) : recommendation.status === 'ready' && !best ? (
+        <EmptyState
+          icon={CreditCard}
+          title="No eligible rewards"
+          description="None of your cards earn rewards for this spend. Try a different amount or add cards with matching rules."
+          action={
+            <Button asChild size="sm" className="btn-premium">
+              <Link to="/account/cards/add">Add a card</Link>
+            </Button>
+          }
+          secondaryAction={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/account/cards">View portfolio</Link>
+            </Button>
+          }
+          className="py-8"
+        />
+      ) : null}
+    </section>
+  );
+}

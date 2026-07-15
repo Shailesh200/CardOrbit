@@ -1,0 +1,134 @@
+@import '@cardwise/ui/styles.css';
+@import '@consumer-theme';
+
+html,
+body,
+#root {
+  width: 400px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(180deg, oklch(0.985 0.008 160) 0%, oklch(0.975 0.01 170) 100%);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.extension-shell {
+  padding: 0.75rem;
+}
+
+.extension-panel {
+  border-radius: 1.25rem;
+  border: 1px solid oklch(0.88 0.02 170 / 0.55);
+  background: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.985 0.008 160) 100%);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+}
+
+.merchant-mark {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.6rem 0.25rem 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.btn-premium {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.35s var(--ease-out),
+    box-shadow 0.35s var(--ease-out);
+}
+
+.btn-premium::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    oklch(1 0 0 / 0.25) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.6s var(--ease-out);
+}
+
+.btn-premium:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-premium:hover::after {
+  transform: translateX(120%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-premium,
+  .btn-premium::after {
+    transition: none !important;
+  }
+
+  .btn-premium:hover {
+    transform: none;
+  }
+}
+
+/* consumer-link sets display:inline — keep icon + label on one line */
+a.extension-link-row.consumer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+a.extension-link-row.consumer-link svg {
+  flex-shrink: 0;
+}
+
+/* Matches home hero .reco-preview__live (landing screen) */
+.extension-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--consumer-teal, #4F8CFF);
+}
+
+.extension-live-badge__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: oklch(0.55 0.14 165);
+  box-shadow: 0 0 8px oklch(0.55 0.14 165 / 0.55);
+  animation: extension-live-dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes extension-live-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .extension-live-badge__dot {
+    animation: none;
+  }
+}

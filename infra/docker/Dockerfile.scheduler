@@ -1,0 +1,42 @@
+# Production scheduler — runs API CLI batch jobs on a cron schedule (supercronic).
+# Same codebase as API; does not embed BullMQ inside the API process.
+# Build from monorepo root:
+#   docker build -f infra/docker/Dockerfile.scheduler -t cardorbit-scheduler .
+
+FROM oven/bun:1.3.11-alpine AS deps
+WORKDIR /app
+COPY package.json bun.lock turbo.json ./
+COPY apps/web/package.json apps/web/
+COPY apps/admin/package.json apps/admin/
+COPY apps/extension/package.json apps/extension/
+COPY services/api/package.json services/api/
+COPY services/worker/package.json services/worker/
+COPY packages ./packages
+RUN bun install --frozen-lockfile
+
+FROM deps AS build
+WORKDIR /app
+COPY . .
+RUN bun run --filter @cardwise/api db:generate \
+  && bunx turbo run build --filter=@cardwise/api...
+
+FROM oven/bun:1.3.11-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN apk add --no-cache curl \
+  && curl -fsSL -o /usr/local/bin/supercronic \
+    https://github.com/aptible/supercronic/releases/download/v0.2.33/supercronic-linux-amd64 \
+  && chmod +x /usr/local/bin/supercronic \
+  && addgroup -S cardorbit && adduser -S cardorbit -G cardorbit
+
+COPY --from=build --chown=cardorbit:cardorbit /app/package.json /app/bun.lock /app/turbo.json ./
+COPY --from=build --chown=cardorbit:cardorbit /app/node_modules ./node_modules
+COPY --from=build --chown=cardorbit:cardorbit /app/packages ./packages
+COPY --from=build --chown=cardorbit:cardorbit /app/services/api ./services/api
+COPY --chown=cardorbit:cardorbit infra/docker/crontab /app/crontab
+
+USER cardorbit
+WORKDIR /app/services/api
+
+CMD ["supercronic", "/app/crontab"]

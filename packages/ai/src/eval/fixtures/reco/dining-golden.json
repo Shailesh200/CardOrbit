@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "domain": "dining",
+  "scenarios": [
+    {
+      "id": "dining-swiggy-850",
+      "description": "₹850 Swiggy order — Millennia leads on dining cashback",
+      "input": {
+        "spendContext": { "amount": 850, "merchantSlug": "swiggy", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "HDFC Millennia",
+          "cardSlug": "hdfc-millennia",
+          "expectedRewardInr": 42.5,
+          "effectiveRatePercent": 5,
+          "explanation": "5% cashback on dining"
+        },
+        "alternativeNames": ["SBI Cashback", "Axis Ace"],
+        "breakdown": {
+          "amountInr": 850,
+          "expectedRewardInr": 42.5,
+          "effectiveRatePercent": 5,
+          "ruleKey": "hdfc-millennia-dining"
+        },
+        "audit": [
+          { "cardSlug": "hdfc-millennia", "expectedRewardInr": 42.5, "rewardRatePercent": 5 },
+          { "cardSlug": "sbi-cashback", "expectedRewardInr": 17, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "Use HDFC Millennia for this Swiggy order to earn ₹42.5 with 5% dining cashback — the highest reward in your portfolio. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "HDFC Millennia earns ₹42.5 on dining",
+        "bulletReasons": ["5% dining cashback", "Beats SBI Cashback at ₹17"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-zomato-1200",
+      "description": "₹1,200 Zomato — capped dining reward",
+      "input": {
+        "spendContext": { "amount": 1200, "merchantSlug": "zomato", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "Axis Ace",
+          "cardSlug": "axis-ace",
+          "expectedRewardInr": 60,
+          "effectiveRatePercent": 5,
+          "explanation": "5% on bill payments and dining"
+        },
+        "alternativeNames": ["HDFC Millennia"],
+        "breakdown": {
+          "amountInr": 1200,
+          "expectedRewardInr": 60,
+          "effectiveRatePercent": 5
+        },
+        "audit": [
+          { "cardSlug": "axis-ace", "expectedRewardInr": 60, "rewardRatePercent": 5 },
+          { "cardSlug": "hdfc-millennia", "expectedRewardInr": 48, "rewardRatePercent": 4 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "Axis Ace is recommended because it earns ₹60 (5% effective rate) on this Zomato order. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Axis Ace earns ₹60 on Zomato",
+        "bulletReasons": ["5% effective dining rate", "₹60 expected reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 4], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-restaurant-3500",
+      "description": "₹3,500 restaurant — premium dining card",
+      "input": {
+        "spendContext": { "amount": 3500, "merchantSlug": "restaurant", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "HDFC Diners Black",
+          "cardSlug": "hdfc-diners-black",
+          "expectedRewardInr": 175,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["Amex Platinum Travel"],
+        "breakdown": { "amountInr": 3500, "expectedRewardInr": 175, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "hdfc-diners-black", "expectedRewardInr": 175, "rewardRatePercent": 5 },
+          { "cardSlug": "amex-platinum-travel", "expectedRewardInr": 70, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "HDFC Diners Black earns ₹175 on this restaurant spend with a 5% effective rate — the top pick in your portfolio. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Diners Black earns ₹175 dining",
+        "bulletReasons": ["5% effective rate", "Highest ₹175 reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-cafe-450",
+      "description": "₹450 cafe — low spend dining",
+      "input": {
+        "spendContext": { "amount": 450, "merchantSlug": "cafe", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "SBI Cashback",
+          "cardSlug": "sbi-cashback",
+          "expectedRewardInr": 22.5,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["ICICI Amazon Pay"],
+        "breakdown": { "amountInr": 450, "expectedRewardInr": 22.5, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "sbi-cashback", "expectedRewardInr": 22.5, "rewardRatePercent": 5 },
+          { "cardSlug": "icici-amazon-pay", "expectedRewardInr": 9, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "SBI Cashback is best for this cafe spend, returning ₹22.5 at a 5% effective rate. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "SBI Cashback earns ₹22.5",
+        "bulletReasons": ["5% on dining category", "₹22.5 expected reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-foodcourt-680",
+      "description": "₹680 food court — points card wins",
+      "input": {
+        "spendContext": { "amount": 680, "merchantSlug": "food-court", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "HDFC Regalia Gold",
+          "cardSlug": "hdfc-regalia-gold",
+          "expectedRewardInr": 34,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["Axis Magnus"],
+        "breakdown": { "amountInr": 680, "expectedRewardInr": 34, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "hdfc-regalia-gold", "expectedRewardInr": 34, "rewardRatePercent": 5 },
+          { "cardSlug": "axis-magnus", "expectedRewardInr": 20.4, "rewardRatePercent": 3 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "HDFC Regalia Gold leads with ₹34 expected reward (5% effective) on this food court purchase. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Regalia Gold earns ₹34",
+        "bulletReasons": ["Top reward at ₹34", "5% effective rate"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 3], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-delivery-2000",
+      "description": "₹2,000 delivery — multiple cards compared",
+      "input": {
+        "spendContext": { "amount": 2000, "merchantSlug": "swiggy", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "IDFC FIRST Millennia",
+          "cardSlug": "idfc-first-millennia",
+          "expectedRewardInr": 100,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["HDFC Millennia", "Flipkart Axis"],
+        "breakdown": { "amountInr": 2000, "expectedRewardInr": 100, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "idfc-first-millennia", "expectedRewardInr": 100, "rewardRatePercent": 5 },
+          { "cardSlug": "hdfc-millennia", "expectedRewardInr": 80, "rewardRatePercent": 4 },
+          { "cardSlug": "flipkart-axis", "expectedRewardInr": 40, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "IDFC FIRST Millennia earns ₹100 on this delivery order — 5% effective rate and the highest reward among your cards. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "IDFC Millennia earns ₹100",
+        "bulletReasons": ["₹100 expected reward", "5% effective dining rate"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 4, 2], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-bakery-320",
+      "description": "₹320 bakery — small ticket dining",
+      "input": {
+        "spendContext": { "amount": 320, "merchantSlug": "bakery", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "Axis Flipkart",
+          "cardSlug": "axis-flipkart",
+          "expectedRewardInr": 16,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["SBI SimplyCLICK"],
+        "breakdown": { "amountInr": 320, "expectedRewardInr": 16, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "axis-flipkart", "expectedRewardInr": 16, "rewardRatePercent": 5 },
+          { "cardSlug": "sbi-simplyclick", "expectedRewardInr": 6.4, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "Axis Flipkart returns ₹16 on this bakery spend with a 5% effective rate. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Axis Flipkart earns ₹16",
+        "bulletReasons": ["5% effective rate", "₹16 reward on dining"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-fine-dining-8500",
+      "description": "₹8,500 fine dining — high value spend",
+      "input": {
+        "spendContext": { "amount": 8500, "merchantSlug": "fine-dining", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "Amex Gold Charge",
+          "cardSlug": "amex-gold-charge",
+          "expectedRewardInr": 425,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["HDFC Infinia"],
+        "breakdown": { "amountInr": 8500, "expectedRewardInr": 425, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "amex-gold-charge", "expectedRewardInr": 425, "rewardRatePercent": 5 },
+          { "cardSlug": "hdfc-infinia", "expectedRewardInr": 255, "rewardRatePercent": 3 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "Amex Gold Charge is recommended for ₹425 reward (5% effective) on this fine dining bill. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "Amex Gold earns ₹425",
+        "bulletReasons": ["Highest ₹425 reward", "5% effective dining rate"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 3], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-cloud-kitchen-560",
+      "description": "₹560 cloud kitchen — mid spend",
+      "input": {
+        "spendContext": { "amount": 560, "merchantSlug": "cloud-kitchen", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "ICICI Sapphiro",
+          "cardSlug": "icici-sapphiro",
+          "expectedRewardInr": 28,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["Kotak White"],
+        "breakdown": { "amountInr": 560, "expectedRewardInr": 28, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "icici-sapphiro", "expectedRewardInr": 28, "rewardRatePercent": 5 },
+          { "cardSlug": "kotak-white", "expectedRewardInr": 11.2, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "ICICI Sapphiro earns ₹28 on this cloud kitchen order at 5% effective rate. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "ICICI Sapphiro earns ₹28",
+        "bulletReasons": ["5% dining effective rate", "₹28 expected reward"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [] }
+    },
+    {
+      "id": "dining-late-night-990",
+      "description": "₹990 late-night delivery",
+      "input": {
+        "spendContext": { "amount": 990, "merchantSlug": "swiggy", "categorySlug": "dining" },
+        "recommendedCard": {
+          "cardName": "RBL World Safari",
+          "cardSlug": "rbl-world-safari",
+          "expectedRewardInr": 49.5,
+          "effectiveRatePercent": 5
+        },
+        "alternativeNames": ["Yes Bank Marquee"],
+        "breakdown": { "amountInr": 990, "expectedRewardInr": 49.5, "effectiveRatePercent": 5 },
+        "audit": [
+          { "cardSlug": "rbl-world-safari", "expectedRewardInr": 49.5, "rewardRatePercent": 5 },
+          { "cardSlug": "yes-marquee", "expectedRewardInr": 19.8, "rewardRatePercent": 2 }
+        ]
+      },
+      "referenceExplanation": {
+        "explanation": "RBL World Safari returns ₹49.5 on this late-night Swiggy order — 5% effective rate and the best in your portfolio. Based on CardOrbit rules and your inputs; verify on the issuer site.",
+        "shortSummary": "RBL World Safari earns ₹49.5",
+        "bulletReasons": ["₹49.5 expected reward", "5% effective dining rate"]
+      },
+      "expect": { "mentionsCard": true, "allowedPercents": [5, 2], "allowedMultipliers": [] }
+    }
+  ]
+}

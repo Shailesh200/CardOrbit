@@ -1,0 +1,12 @@
+{
+  "name": "@cardwise/oxlint-config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared Oxlint configuration for CardWise (Oxc toolchain)",
+  "files": ["oxlint.json"],
+  "scripts": {
+    "build": "echo '@cardwise/oxlint-config: no build step'",
+    "lint": "echo '@cardwise/oxlint-config: lint via root oxlint'",
+    "typecheck": "echo '@cardwise/oxlint-config: typecheck skipped (config package)'"
+  }
+}

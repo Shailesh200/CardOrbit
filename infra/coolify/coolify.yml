@@ -1,0 +1,27 @@
+# Coolify deployment notes for CardOrbit
+#
+# Recommended Coolify setup (Docker Compose resource):
+# 1. Connect this GitHub repository in Coolify.
+# 2. Set Base Directory to `/` (monorepo root).
+# 3. Set Docker Compose file to `infra/docker/docker-compose.production.yml`.
+# 4. Paste all keys from `.env.production.example` into Coolify Environment Variables.
+# 5. Set IMAGE_REGISTRY to your GHCR prefix, e.g. `ghcr.io/YOUR_ORG/YOUR_REPO`
+#    (images are pushed as `${IMAGE_REGISTRY}-api`, `-worker`, `-scheduler`).
+# 6. Enable automatic deploy on push to `main` OR use the GitHub Action webhook secret
+#    `COOLIFY_WEBHOOK_URL`.
+# 7. Expose only the `api` service publicly (port 3000) via Coolify proxy → api.example.com.
+# 8. Do NOT expose postgres or redis ports publicly.
+# 9. Post-deploy command (optional if Actions SSH migrate is unused):
+#      docker compose -f infra/docker/docker-compose.production.yml --profile migrate run --rm migrate
+#
+# Domains (Cloudflare → Coolify / Vercel):
+# - api.example.com     → Coolify (API container)
+# - app.example.com     → Vercel (consumer web)
+# - admin.example.com   → Vercel (admin CMS)
+# - assets.example.com  → Cloudflare R2 custom domain (or r2.dev)
+
+compose_file: infra/docker/docker-compose.production.yml
+branch: main
+exposed_service: api
+exposed_port: 3000
+healthcheck_path: /health

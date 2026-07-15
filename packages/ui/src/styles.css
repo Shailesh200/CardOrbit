@@ -1,0 +1,4 @@
+@import 'tailwindcss';
+@import '@cardwise/design-system/globals.css';
+
+@source "./**/*.{ts,tsx}";
