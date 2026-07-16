@@ -381,15 +381,23 @@ https://github.com/ORG/REPO/settings/secrets/actions
 
 **Where:** https://vercel.com/new
 
+**Domain model**
+- `cardorbit.in` (+ `www`) → marketing landing
+- `app.cardorbit.in` → login / signup / account (after auth)
+- `admin.cardorbit.in` → admin CMS
+
 **Tasks**
 - [ ] Import GitHub repo twice (or two projects):
   - **cardorbit-web** — Root Directory `apps/web`
   - **cardorbit-admin** — Root Directory `apps/admin`
 - [ ] Framework: Vite
-- [ ] Env: `VITE_API_URL`, `VITE_SENTRY_DSN`
+- [ ] Env (web): `VITE_API_URL=https://api.cardorbit.in`, `VITE_LANDING_ORIGIN=https://cardorbit.in`, `VITE_APP_ORIGIN=https://app.cardorbit.in` (+ optional `VITE_SENTRY_DSN`)
+- [ ] Env (admin): `VITE_API_URL=https://api.cardorbit.in`
 - [ ] Production branch: `main`
-- [ ] Domains: `app.cardorbit.in`, `admin.cardorbit.in`
-- [ ] In Cloudflare DNS: CNAME `app` / `admin` to Vercel targets Vercel shows
+- [ ] Domains on **cardorbit-web**: `cardorbit.in`, `www.cardorbit.in`, `app.cardorbit.in`
+- [ ] Domain on **cardorbit-admin**: `admin.cardorbit.in`
+- [ ] In Cloudflare DNS: apex/`www`/`app`/`admin` → Vercel targets Vercel shows
+- [ ] Coolify `APP_URL=https://app.cardorbit.in` (OAuth + email links)
 
 **Save**
 - Vercel project URLs

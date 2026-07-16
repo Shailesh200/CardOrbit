@@ -3,11 +3,13 @@ import { lazy, Suspense } from 'react';
 import { Button, Toaster, cn } from '@cardwise/ui';
 
 import { HeroLogo } from '@brand/HeroLogo';
+import { AppOriginLink } from '../components/navigation/AppOriginLink';
 import { DASHBOARD_PATH } from '../features/dashboard/dashboard-path';
 import { useAiFeatures } from '../features/ai/use-ai-features';
 import { useDeferredAfterLoad } from '../hooks/useAfterPageLoad';
 import { useAuthSession } from '../hooks/useAuthSession';
 import { useMobileViewport } from '../hooks/useMobileViewport';
+import { landingHref } from '../lib/site-origins';
 import { MobileBottomNav } from './MobileBottomNav';
 
 const AssistantFloatingWidget = lazy(() =>
@@ -52,7 +54,11 @@ export function AppShell() {
       </a>
       <header className="site-header">
         <div className="site-header__inner">
-          <HeroLogo size="sm" tone="light" homeTo={authed ? DASHBOARD_PATH : '/'} />
+          <HeroLogo
+            size="sm"
+            tone="light"
+            homeTo={authed ? DASHBOARD_PATH : landingHref('/')}
+          />
           <nav
             className={cn('items-center gap-1 sm:gap-2', authed ? 'hidden lg:flex' : 'flex')}
             aria-label="Primary"
@@ -74,11 +80,11 @@ export function AppShell() {
               </>
             ) : (
               <>
-                <Link className="consumer-nav-link inline-flex" to="/login">
+                <AppOriginLink className="consumer-nav-link inline-flex" to="/login">
                   Sign in
-                </Link>
+                </AppOriginLink>
                 <Button asChild size="sm" className="consumer-nav-cta">
-                  <Link to="/signup">Get started</Link>
+                  <AppOriginLink to="/signup">Get started</AppOriginLink>
                 </Button>
               </>
             )}

@@ -1,7 +1,7 @@
-import { Link } from 'react-router';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@cardwise/ui';
 
+import { AppOriginLink } from '@/components/navigation/AppOriginLink';
 import { RevealOnScroll } from '@motion/RevealOnScroll';
 import { AiVisual } from '@features/ai/components/AiVisual';
 
@@ -71,10 +71,10 @@ export function HomeAiSection() {
 
       <RevealOnScroll className="mt-10 flex flex-wrap items-center gap-3">
         <Button asChild size="lg" className="btn-premium">
-          <Link to="/signup">
+          <AppOriginLink to="/signup">
             Enter CardOrbit
             <ArrowRight className="size-4" />
-          </Link>
+          </AppOriginLink>
         </Button>
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <img src="/assets/ai/ai-sparkle-mark.svg" alt="" className="size-5" aria-hidden />
