@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { Button } from '@cardwise/ui';
 
 import { HeroLogo } from '@brand/HeroLogo';
@@ -7,6 +6,7 @@ import { AiSparkleMark } from '@brand/ai/AiSparkleMark';
 import { HeroAmbientBackground } from '@marketing/HeroAmbientBackground';
 import { RecommendationPreview } from '@marketing/RecommendationPreview';
 import { TrustStrip } from '@marketing/TrustStrip';
+import { AppOriginLink } from '../components/navigation/AppOriginLink';
 
 import './home.css';
 
@@ -65,10 +65,10 @@ export function HomePage() {
 
             <div className="home-hero-ctas flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="home-btn-primary">
-                <Link to="/signup">Enter your orbit</Link>
+                <AppOriginLink to="/signup">Enter your orbit</AppOriginLink>
               </Button>
               <Button asChild size="lg" variant="outline" className="home-btn-secondary">
-                <Link to="/login">Sign in</Link>
+                <AppOriginLink to="/login">Sign in</AppOriginLink>
               </Button>
             </div>
 

@@ -1,8 +1,8 @@
-import { Link } from 'react-router';
 import { Button } from '@cardwise/ui';
 import { ArrowRight, Brain, Lock, Sparkles } from 'lucide-react';
 
 import { ConsumerDarkPanel } from '@/components/surface/ConsumerDarkPanel';
+import { AppOriginLink } from '@/components/navigation/AppOriginLink';
 import { RevealOnScroll } from '@motion/RevealOnScroll';
 
 const benefits = [
@@ -74,13 +74,13 @@ export function HomeCtaBand() {
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button asChild size="lg" className="home-btn-primary">
-                <Link to="/signup">
+                <AppOriginLink to="/signup">
                   Enter your orbit
                   <ArrowRight className="size-4" />
-                </Link>
+                </AppOriginLink>
               </Button>
               <Button asChild size="lg" variant="outline" className="home-btn-secondary">
-                <Link to="/login">Sign in</Link>
+                <AppOriginLink to="/login">Sign in</AppOriginLink>
               </Button>
             </div>
           </div>

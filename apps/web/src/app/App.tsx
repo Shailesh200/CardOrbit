@@ -13,6 +13,7 @@ import { RouteErrorPage } from './RouteErrorPage';
 import { ScrollToTop } from './ScrollToTop';
 import { FeatureFlagsBootstrap } from './FeatureFlagsBootstrap';
 import { ExperimentsBootstrap } from './ExperimentsBootstrap';
+import { HostGate } from './HostGate';
 
 type AppProps = {
   /** When set, renders with StaticRouter for build-time homepage prerender. */
@@ -184,6 +185,7 @@ export function App({ ssrLocation }: AppProps = {}) {
     <>
       <FeatureFlagsBootstrap />
       <ExperimentsBootstrap />
+      <HostGate />
       <AuthSessionRedirect />
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>

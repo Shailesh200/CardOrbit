@@ -75,6 +75,15 @@ export function HeroLogo({
     return <span className={shellClass}>{content}</span>;
   }
 
+  // Absolute origins (e.g. https://cardorbit.in) must use <a>, not React Router.
+  if (/^https?:\/\//i.test(homeTo)) {
+    return (
+      <a href={homeTo} className={shellClass}>
+        {content}
+      </a>
+    );
+  }
+
   return (
     <Link to={homeTo} className={shellClass}>
       {content}
