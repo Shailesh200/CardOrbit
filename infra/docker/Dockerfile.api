@@ -24,18 +24,21 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-RUN addgroup -S cardorbit && adduser -S cardorbit -G cardorbit
+# wget is required for Docker/Coolify healthchecks; openssl for Prisma on Alpine.
+RUN apk add --no-cache wget openssl \
+  && addgroup -S cardorbit && adduser -S cardorbit -G cardorbit
 
 COPY --from=build --chown=cardorbit:cardorbit /app/package.json /app/bun.lock /app/turbo.json ./
 COPY --from=build --chown=cardorbit:cardorbit /app/node_modules ./node_modules
 COPY --from=build --chown=cardorbit:cardorbit /app/packages ./packages
 COPY --from=build --chown=cardorbit:cardorbit /app/services/api ./services/api
+COPY --chmod=755 infra/docker/scripts/api-entrypoint.sh /usr/local/bin/api-entrypoint.sh
 
 USER cardorbit
 WORKDIR /app/services/api
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
   CMD wget -qO- http://127.0.0.1:3000/health || exit 1
 
-CMD ["bun", "run", "dist/main.js"]
+CMD ["/usr/local/bin/api-entrypoint.sh"]

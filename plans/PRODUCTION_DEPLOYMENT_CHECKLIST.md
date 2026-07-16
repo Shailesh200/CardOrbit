@@ -122,12 +122,11 @@ ssh -i ~/.ssh/cardorbit_hetzner root@167.233.223.123 'uname -a'
 
 ## Step 18 — Coolify: connect GitHub + compose app (in progress)
 
-**GitHub App: DONE** — `card-orbit-coolify`
+**GitHub App: DONE** — `card-orbit-coolify`  
+**Repo: DONE** — `Shailesh200/CardOrbit` on `main`  
+**Compose resource: DONE** — `infra/docker/docker-compose.production.yml`
 
-**Next**
-- [ ] New Resource → Docker Compose → select CardOrbit repo
-- [ ] Compose file: `infra/docker/docker-compose.production.yml`
-- [ ] Paste env (after secrets + SaaS keys ready)
+**Next:** paste Coolify env (secrets kept in password manager only — not in git)
 
 ---
 

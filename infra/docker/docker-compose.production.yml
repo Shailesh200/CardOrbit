@@ -67,7 +67,8 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    # noeviction required for BullMQ (avoid dropping job keys under memory pressure)
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction
     volumes:
       - redis_data:/data
     healthcheck:
@@ -94,6 +95,8 @@ services:
 
   api:
     image: ${IMAGE_REGISTRY:-ghcr.io/cardorbit/cardorbit}-api:${IMAGE_TAG:-latest}
+    # Use local images until GHCR auth / CI push is wired (Coolify "force pull" off)
+    pull_policy: ${PULL_POLICY:-missing}
     restart: unless-stopped
     environment:
       <<: *app-env
@@ -106,16 +109,17 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/health']
-      interval: 30s
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/health || exit 1']
+      interval: 15s
       timeout: 5s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 60s
     networks:
       - internal
 
   worker:
     image: ${IMAGE_REGISTRY:-ghcr.io/cardorbit/cardorbit}-worker:${IMAGE_TAG:-latest}
+    pull_policy: ${PULL_POLICY:-missing}
     restart: unless-stopped
     environment:
       <<: *app-env
@@ -131,6 +135,7 @@ services:
 
   scheduler:
     image: ${IMAGE_REGISTRY:-ghcr.io/cardorbit/cardorbit}-scheduler:${IMAGE_TAG:-latest}
+    pull_policy: ${PULL_POLICY:-missing}
     restart: unless-stopped
     environment:
       <<: *app-env

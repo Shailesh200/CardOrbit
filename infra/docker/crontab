@@ -1,8 +1,8 @@
 # CardOrbit production CLI schedules (UTC)
-# reward-expiry and contextual notifications — existing API CLIs
+# supercronic execs each line directly — wrap shell metacharacters in sh -c
 
 # Every day at 01:15 UTC — reward expiry scan
-15 1 * * * cd /app/services/api && bun run reward-expiry:scan
+15 1 * * * /bin/sh -c 'cd /app/services/api && bun run reward-expiry:scan'
 
 # Every hour at :10 — contextual notifications sync
-10 * * * * cd /app/services/api && bun run notifications:sync
+10 * * * * /bin/sh -c 'cd /app/services/api && bun run notifications:sync'
