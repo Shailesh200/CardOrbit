@@ -21,11 +21,9 @@ body {
 .admin-app {
   min-height: 100vh;
   min-height: 100dvh;
-  background: linear-gradient(
-    180deg,
-    oklch(0.985 0.008 160) 0%,
-    oklch(0.975 0.01 170) 100%
-  );
+  /* Match design-system dark tokens (--foreground is light); avoid light shell washout */
+  background: linear-gradient(180deg, var(--background) 0%, var(--orbit-secondary) 100%);
+  color: var(--foreground);
 }
 
 .admin-sidebar {
@@ -36,11 +34,11 @@ body {
   display: flex;
   width: var(--admin-sidebar-width);
   flex-direction: column;
-  border-right: 1px solid oklch(0.88 0.02 170 / 0.55);
-  background: oklch(0.995 0.006 170 / 0.94);
+  border-right: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
   backdrop-filter: blur(16px);
   padding: 1.25rem 1rem;
-  box-shadow: 4px 0 24px oklch(0.2 0.03 250 / 0.04);
+  box-shadow: 4px 0 24px rgb(0 0 0 / 0.35);
   overflow: hidden;
 }
 
@@ -88,7 +86,7 @@ body {
 
 .admin-table__expand-row td {
   padding: 0 0.5rem 0.75rem;
-  background: oklch(0.97 0.01 160 / 0.45);
+  background: color-mix(in oklab, var(--muted) 55%, transparent);
   border-bottom: 1px solid var(--border);
 }
 
@@ -131,7 +129,7 @@ body {
 
 .admin-sidebar__brand {
   padding: 0.25rem 0.625rem 1.5rem;
-  border-bottom: 1px solid oklch(0.9 0.015 160 / 0.6);
+  border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
 }
 
@@ -226,9 +224,9 @@ body {
   justify-content: space-between;
   gap: 1rem;
   min-height: var(--admin-topbar-height);
-  border-bottom: 1px solid oklch(0.88 0.02 170 / 0.55);
+  border-bottom: 1px solid var(--border);
   padding: 0.75rem 1.5rem;
-  background: oklch(0.995 0.006 170 / 0.82);
+  background: color-mix(in oklab, var(--card) 88%, transparent);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
@@ -271,8 +269,9 @@ body {
 }
 
 .admin-panel {
-  background: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.985 0.008 160) 100%);
-  border: 1px solid oklch(0.9 0.015 160);
+  background: linear-gradient(180deg, var(--card) 0%, var(--orbit-elevated) 100%);
+  border: 1px solid var(--border);
+  color: var(--card-foreground);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition:
@@ -282,15 +281,15 @@ body {
 
 .admin-panel:hover {
   box-shadow: var(--shadow-md);
-  border-color: oklch(0.38 0.11 170 / 0.18);
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
 }
 
 .admin-panel--accent {
-  border-color: oklch(0.38 0.11 170 / 0.25);
+  border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
   background: linear-gradient(
     180deg,
-    oklch(0.995 0.006 170) 0%,
-    oklch(0.99 0.012 165) 100%
+    color-mix(in oklab, var(--card) 90%, var(--primary) 10%) 0%,
+    var(--orbit-elevated) 100%
   );
 }
 
@@ -349,8 +348,9 @@ body {
 }
 
 .admin-stat {
-  background: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.988 0.007 165) 100%);
-  border: 1px solid oklch(0.9 0.015 160);
+  background: linear-gradient(180deg, var(--card) 0%, var(--muted) 100%);
+  border: 1px solid var(--border);
+  color: var(--card-foreground);
   box-shadow: var(--shadow-xs);
   transition: box-shadow 0.3s var(--ease-out), transform 0.3s var(--ease-out);
 }
@@ -408,7 +408,7 @@ body {
 }
 
 .admin-table tbody tr:hover {
-  background: oklch(0.38 0.11 170 / 0.04);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
 }
 
 .admin-table th {
@@ -417,7 +417,7 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted-foreground);
-  background: oklch(0.97 0.01 160 / 0.6);
+  background: color-mix(in oklab, var(--muted) 70%, transparent);
 }
 
 .admin-table__actions {
@@ -457,12 +457,12 @@ body {
 }
 
 .admin-tabs__list button:hover {
-  border-color: oklch(0.38 0.11 170 / 0.3);
+  border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
   color: var(--foreground);
 }
 
 .admin-tabs__list button.is-active {
-  border-color: oklch(0.38 0.11 170 / 0.45);
+  border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
   background: var(--admin-teal-soft);
   color: var(--foreground);
   box-shadow: var(--shadow-xs);
