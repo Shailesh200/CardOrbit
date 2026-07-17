@@ -13,10 +13,29 @@ import {
 
 import { getAdminToken, login, setAdminToken } from '../lib/api';
 
+const PROD_LOGIN_EMAIL = 'admin@cardorbit.in';
+const DEV_LOGIN_EMAIL = 'admin@cardwise.local';
+const DEV_LOGIN_PASSWORD = 'cardwise-admin';
+
+function defaultLoginEmail(): string {
+  if (import.meta.env.VITE_ADMIN_LOGIN_EMAIL?.trim()) {
+    return import.meta.env.VITE_ADMIN_LOGIN_EMAIL.trim();
+  }
+  return import.meta.env.PROD ? PROD_LOGIN_EMAIL : DEV_LOGIN_EMAIL;
+}
+
+function defaultLoginPassword(): string {
+  if (import.meta.env.VITE_ADMIN_LOGIN_PASSWORD != null) {
+    return import.meta.env.VITE_ADMIN_LOGIN_PASSWORD;
+  }
+  // Prod password must come from Vercel env (never commit it). Dev keeps local bootstrap defaults.
+  return import.meta.env.PROD ? '' : DEV_LOGIN_PASSWORD;
+}
+
 export function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@cardwise.local');
-  const [password, setPassword] = useState('cardwise-admin');
+  const [email, setEmail] = useState(defaultLoginEmail);
+  const [password, setPassword] = useState(defaultLoginPassword);
   const [busy, setBusy] = useState(false);
 
   if (getAdminToken()) {
