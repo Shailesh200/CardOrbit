@@ -52,8 +52,6 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       (function loadFontsDeferred() {
-        var href =
-          'https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.css';
         var inter =
           'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
         function inject(url) {
@@ -64,7 +62,6 @@
         }
         function schedule() {
           window.setTimeout(function () {
-            inject(href);
             inject(inter);
           }, 10000);
         }

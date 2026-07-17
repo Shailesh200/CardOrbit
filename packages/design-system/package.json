@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./globals.css": "./src/globals.css",
+    "./fonts/geist-sans.css": "./src/fonts/geist-sans.css",
     "./themes/light.css": "./src/themes/light.css",
     "./themes/dark.css": "./src/themes/dark.css",
     "./tokens": "./src/tokens/index.ts"
