@@ -7,12 +7,34 @@ import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { AuthService } from '../auth.service';
 import { AuthTokenService } from '../auth-token.service';
 import { NotificationsService } from '../../notifications/notifications.service';
-import { exchangeGoogleCode, getGoogleOAuthConfig } from '../google-oauth';
+import {
+  exchangeGoogleCode,
+  getGoogleAuthUrl,
+  getGoogleOAuthConfig,
+  GMAIL_READONLY_SCOPE,
+  GOOGLE_LOGIN_SCOPES,
+} from '../google-oauth';
 import { JwtService } from '@nestjs/jwt';
 
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 
 describe('google oauth helpers (M-012)', () => {
+  it('login scopes exclude gmail; mailbox scopes include it', () => {
+    const config = {
+      clientId: 'cid',
+      clientSecret: 'csecret',
+      callbackUrl: 'http://localhost:3000/api/v1/auth/oauth/callback',
+    };
+    const loginUrl = new URL(getGoogleAuthUrl(config, { intent: 'login' }));
+    const mailboxUrl = new URL(
+      getGoogleAuthUrl(config, { intent: 'link_mailbox', userId: 'user_1' }),
+    );
+    expect(loginUrl.searchParams.get('scope')).toBe(GOOGLE_LOGIN_SCOPES);
+    expect(loginUrl.searchParams.get('scope')).not.toContain(GMAIL_READONLY_SCOPE);
+    expect(mailboxUrl.searchParams.get('scope')).toContain(GMAIL_READONLY_SCOPE);
+    expect(mailboxUrl.searchParams.get('scope')).toContain('email');
+  });
+
   it('returns null config when env unset', () => {
     const previousId = process.env.GOOGLE_CLIENT_ID;
     const previousSecret = process.env.GOOGLE_CLIENT_SECRET;

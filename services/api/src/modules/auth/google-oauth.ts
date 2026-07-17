@@ -22,7 +22,18 @@ export type GoogleTokenExchange = {
 
 export const GMAIL_READONLY_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
 
-export const GOOGLE_OAUTH_SCOPES = ['openid', 'email', 'profile', GMAIL_READONLY_SCOPE].join(' ');
+/** Sign-in only — non-sensitive; works for all users once OAuth consent is In production. */
+export const GOOGLE_LOGIN_SCOPES = ['openid', 'email', 'profile'].join(' ');
+
+/** Gmail connect — restricted; requires test users or Google verification. */
+export const GOOGLE_MAILBOX_SCOPES = [GOOGLE_LOGIN_SCOPES, GMAIL_READONLY_SCOPE].join(' ');
+
+/** @deprecated Use GOOGLE_LOGIN_SCOPES / GOOGLE_MAILBOX_SCOPES — kept for callers expecting the old name. */
+export const GOOGLE_OAUTH_SCOPES = GOOGLE_MAILBOX_SCOPES;
+
+export function scopesForIntent(intent: OAuthIntent): string {
+  return intent === 'link_mailbox' ? GOOGLE_MAILBOX_SCOPES : GOOGLE_LOGIN_SCOPES;
+}
 
 export function getGoogleOAuthConfig(): GoogleOAuthConfig | null {
   const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
@@ -49,10 +60,10 @@ export function getGoogleAuthUrl(
     client_id: config.clientId,
     redirect_uri: config.callbackUrl,
     response_type: 'code',
-    scope: GOOGLE_OAUTH_SCOPES,
+    scope: scopesForIntent(intent),
     access_type: 'offline',
-    // consent ensures refresh_token on first grant; select_account for linking another inbox
-    prompt: intent === 'link_mailbox' ? 'select_account consent' : 'consent',
+    // Mailbox needs consent for gmail.readonly + refresh_token; login stays lightweight
+    prompt: intent === 'link_mailbox' ? 'select_account consent' : 'select_account',
     include_granted_scopes: 'true',
     state,
   });
@@ -102,7 +113,7 @@ export async function exchangeGoogleCode(
     profile,
     accessToken: tokenJson.access_token,
     refreshToken: tokenJson.refresh_token ?? null,
-    scopes: (tokenJson.scope ?? GOOGLE_OAUTH_SCOPES).split(/\s+/).filter(Boolean),
+    scopes: (tokenJson.scope ?? GOOGLE_LOGIN_SCOPES).split(/\s+/).filter(Boolean),
   };
 }
 
