@@ -1,4 +1,4 @@
-import { ANALYTICS_EVENT_CATALOG } from '@cardwise/analytics';
+import { ANALYTICS_EVENT_CATALOG } from '@cardwise/analytics/catalog';
 
 const CATEGORY_LABELS: Record<string, string> = {
   user: 'User',
