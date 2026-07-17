@@ -46,3 +46,4 @@ services/api/prisma/*.db-journal
 # Misc
 *.pem
 .cache/
+.env.coolify.local

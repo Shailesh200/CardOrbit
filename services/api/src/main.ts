@@ -43,6 +43,9 @@ async function bootstrap() {
       process.env.ADMIN_APP_URL ?? 'http://localhost:5174',
     ],
     credentials: true,
+    // Fastify/Nest default allow-list is GET/HEAD/POST — browsers block PATCH preflight otherwise
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   app.setGlobalPrefix('api/v1', {
