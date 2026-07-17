@@ -253,27 +253,10 @@
 
 .onboarding-page__action-dock {
   flex-shrink: 0;
-  min-height: 7.5rem;
-  padding: 0.85rem 0 0.5rem;
-  /* Match dark glass panel — previous cream/white gradient washed out footer CTAs */
-  border-top: 1px solid oklch(1 0 0 / 0.1);
-  background: linear-gradient(
-    180deg,
-    oklch(0.22 0.03 200 / 0.15) 0%,
-    oklch(0.16 0.025 210 / 0.55) 45%,
-    oklch(0.14 0.02 215 / 0.75) 100%
-  );
-}
-
-.onboarding-page__legal {
-  flex-shrink: 0;
-  padding: 0.75rem 0 1.15rem;
-  border-top: 1px solid oklch(1 0 0 / 0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  text-align: center;
+  min-height: 0;
+  padding: 0.85rem 0 1.15rem;
+  border-top: none;
+  background: transparent;
 }
 
 .onboarding-step {
@@ -319,13 +302,6 @@
   width: 100%;
   max-width: 220px;
   object-fit: contain;
-}
-
-.onboarding-page__legal-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
 }
 
 /* Option grids */

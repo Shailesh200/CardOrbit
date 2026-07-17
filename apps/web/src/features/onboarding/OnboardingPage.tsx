@@ -229,16 +229,6 @@ export function OnboardingPage() {
             className="onboarding-page__action-dock"
             aria-label="Step actions"
           />
-
-          {!showComplete ? (
-            <footer className="onboarding-page__legal">
-              <nav className="onboarding-page__legal-nav" aria-label="Legal">
-                <Link className="consumer-footer-link" to="/privacy">
-                  Privacy
-                </Link>
-              </nav>
-            </footer>
-          ) : null}
         </div>
       </div>
     </div>
