@@ -4,5 +4,6 @@
   "installCommand": "cd ../.. && bun install",
   "buildCommand": "cd ../.. && bunx turbo run build --filter=@cardwise/admin...",
   "outputDirectory": "dist",
+  "ignoreCommand": "cd ../.. && bunx turbo-ignore @cardwise/admin",
   "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
 }
