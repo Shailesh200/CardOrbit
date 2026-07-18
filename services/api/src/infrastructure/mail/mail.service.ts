@@ -2,6 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import nodemailer, { type Transporter } from 'nodemailer';
 
 import {
+  renderPasswordResetEmailHtml,
+  renderPasswordResetEmailText,
+  renderVerificationEmailHtml,
+  renderVerificationEmailText,
+} from './verification-email';
+import {
   renderWelcomeEmailHtml,
   renderWelcomeEmailText,
   type WelcomeEmailInput,
@@ -46,21 +52,23 @@ export class MailService {
 
   async sendVerificationEmail(to: string, rawToken: string): Promise<void> {
     const appUrl = process.env.APP_URL || 'http://localhost:5173';
-    const link = `${appUrl}/verify-email?token=${encodeURIComponent(rawToken)}`;
+    const verifyUrl = `${appUrl}/verify-email?token=${encodeURIComponent(rawToken)}`;
     await this.send(
       to,
       'Verify your CardOrbit email',
-      `Welcome to CardOrbit.\n\nVerify your email:\n${link}\n\nIf you did not sign up, ignore this message.`,
+      renderVerificationEmailText({ verifyUrl }),
+      renderVerificationEmailHtml({ verifyUrl }),
     );
   }
 
   async sendPasswordResetEmail(to: string, rawToken: string): Promise<void> {
     const appUrl = process.env.APP_URL || 'http://localhost:5173';
-    const link = `${appUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
+    const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
     await this.send(
       to,
       'Reset your CardOrbit password',
-      `Reset your password:\n${link}\n\nIf you did not request this, ignore this message.`,
+      renderPasswordResetEmailText({ resetUrl }),
+      renderPasswordResetEmailHtml({ resetUrl }),
     );
   }
 
