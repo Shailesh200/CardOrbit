@@ -56,7 +56,13 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/health\//],
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/health\//,
+          /^\/sitemap\.xml$/,
+          /^\/robots\.txt$/,
+          /^\/og-default\.jpg$/,
+        ],
         runtimeCaching: [
           {
             // Never let the SW intercept API calls — always hit the network.

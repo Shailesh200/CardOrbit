@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.json --noEmit && vite build && vite build --ssr src/prerender/entry-server.tsx --outDir dist/server && node scripts/prerender-home.mjs",
+    "build": "tsc -p tsconfig.json --noEmit && vite build && vite build --ssr src/prerender/entry-server.tsx --outDir dist/server && node scripts/prerender-routes.mjs",
     "preview": "vite preview",
     "lint": "echo '@cardwise/web: lint via root oxlint'",
     "typecheck": "tsc --noEmit -p tsconfig.json",

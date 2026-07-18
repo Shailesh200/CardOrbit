@@ -70,6 +70,11 @@ export function isAppOnlyPath(pathname: string): boolean {
   return appPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
+/** Marketing / legal paths that belong on the landing apex (SEO canonical host). */
+export function isLandingOnlyPath(pathname: string): boolean {
+  return pathname === '/privacy' || pathname === '/terms' || pathname === '/cookies';
+}
+
 /** Absolute app URL when on the landing host; otherwise a same-origin path. */
 export function appHref(path: string): string {
   const normalized = path.startsWith('/') ? path : `/${path}`;

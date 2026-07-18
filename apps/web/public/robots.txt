@@ -3,5 +3,10 @@ Allow: /
 Disallow: /account/
 Disallow: /onboarding/
 Disallow: /oauth/
+Disallow: /login
+Disallow: /signup
+Disallow: /verify-email
+Disallow: /forgot-password
+Disallow: /reset-password
 
 Sitemap: https://cardorbit.in/sitemap.xml

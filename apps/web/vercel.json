@@ -5,9 +5,68 @@
   "buildCommand": "cd ../.. && bunx turbo run build --filter=@cardwise/web...",
   "outputDirectory": "dist",
   "ignoreCommand": "cd ../.. && bunx turbo-ignore @cardwise/web",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.cardorbit.in" }],
+      "destination": "https://cardorbit.in/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/privacy",
+      "has": [{ "type": "host", "value": "app.cardorbit.in" }],
+      "destination": "https://cardorbit.in/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/terms",
+      "has": [{ "type": "host", "value": "app.cardorbit.in" }],
+      "destination": "https://cardorbit.in/terms",
+      "permanent": true
+    },
+    {
+      "source": "/cookies",
+      "has": [{ "type": "host", "value": "app.cardorbit.in" }],
+      "destination": "https://cardorbit.in/cookies",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "app.cardorbit.in" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+      ]
+    }
+  ],
   "rewrites": [
     {
-      "source": "/((?!assets/|icons/|illustrations/|placeholders/|favicon\\.svg|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml).*)",
+      "source": "/((?!assets/|icons/|illustrations/|placeholders/|favicon\\.svg|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml|og-default\\.jpg).*)",
       "destination": "/index.html"
     }
   ]

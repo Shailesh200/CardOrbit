@@ -11,6 +11,7 @@ import {
   isAppOnlyPath,
   isBrowserOnAppHost,
   isBrowserOnLandingHost,
+  isLandingOnlyPath,
   isLocalDevHost,
 } from '../lib/site-origins';
 
@@ -49,6 +50,20 @@ export function HostGate() {
       }
       setGate({ status: 'redirecting', label: 'Taking you to your CardOrbit account…' });
       window.location.replace(`${origin}${suffix}`);
+      return;
+    }
+
+    if (isBrowserOnAppHost() && isLandingOnlyPath(pathname)) {
+      const landing = getLandingOrigin();
+      if (!landing) {
+        setGate({
+          status: 'error',
+          message: "We couldn't determine the CardOrbit website address. Please try again shortly.",
+        });
+        return;
+      }
+      setGate({ status: 'redirecting', label: 'Taking you to CardOrbit…' });
+      window.location.replace(`${landing}${suffix}`);
       return;
     }
 

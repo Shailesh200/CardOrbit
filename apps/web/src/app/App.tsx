@@ -5,7 +5,11 @@ import { FeatureFlag } from '@cardwise/feature-flags/browser';
 import { AccountLayout } from '../components/layout/AccountLayout';
 import { ErrorBoundary } from '../components/feedback/ErrorBoundary';
 import { AuthShell } from '../components/layout/AuthShell';
+import { DocumentSeo } from '../components/seo/DocumentSeo';
 import { RequireAuth } from '../features/auth/RequireAuth';
+import { CookiePolicyPage } from '../features/privacy/pages/CookiePolicyPage';
+import { PrivacyPolicyPage } from '../features/privacy/pages/PrivacyPolicyPage';
+import { TermsPage } from '../features/privacy/pages/TermsPage';
 import { HomePage } from '../pages/HomePage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { AppShell } from './AppShell';
@@ -19,7 +23,7 @@ import { ExperimentsBootstrap } from './ExperimentsBootstrap';
 import { HostGate } from './HostGate';
 
 type AppProps = {
-  /** When set, renders with StaticRouter for build-time homepage prerender. */
+  /** When set, renders with StaticRouter for build-time public-route prerender. */
   ssrLocation?: string;
 };
 
@@ -172,25 +176,12 @@ const NotificationsPage = lazy(() =>
     default: m.NotificationsPage,
   })),
 );
-const PrivacyPolicyPage = lazy(() =>
-  import('../features/privacy/pages/PrivacyPolicyPage').then((m) => ({
-    default: m.PrivacyPolicyPage,
-  })),
-);
-const TermsPage = lazy(() =>
-  import('../features/privacy/pages/TermsPage').then((m) => ({ default: m.TermsPage })),
-);
-const CookiePolicyPage = lazy(() =>
-  import('../features/privacy/pages/CookiePolicyPage').then((m) => ({
-    default: m.CookiePolicyPage,
-  })),
-);
-
 export function App({ ssrLocation }: AppProps = {}) {
   const routes = (
     <>
       <FeatureFlagsBootstrap />
       <ExperimentsBootstrap />
+      <DocumentSeo />
       <HostGate />
       <AuthSessionRedirect />
       <ScrollToTop />
