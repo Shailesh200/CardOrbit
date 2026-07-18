@@ -86,6 +86,20 @@ Preferred path: GitHub Actions builds new images → Coolify redeploys compose w
 
 Avoid hand-editing containers on the VPS except for emergencies.
 
+### Traefik HTTPS after recreate (CardOrbit)
+
+If `https://api.cardorbit.in` gateway-times-out but `http://` redirects and the API is healthy inside Docker, Coolify likely dropped Traefik service labels. Re-apply:
+
+```bash
+ssh root@VPS_IP
+python3 /opt/cardorbit-src/infra/docker/scripts/patch-coolify-traefik.py
+cd /data/coolify/applications/hoci5uux0n03wivuoxcj9awv
+docker compose up -d --force-recreate --no-deps api
+curl -sS -o /dev/null -w '%{http_code}\n' https://api.cardorbit.in/health   # expect 200
+```
+
+Script: [`infra/docker/scripts/patch-coolify-traefik.py`](../infra/docker/scripts/patch-coolify-traefik.py).
+
 ---
 
 ## 8. Rollback
