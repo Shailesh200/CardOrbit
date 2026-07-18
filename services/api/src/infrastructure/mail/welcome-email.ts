@@ -7,7 +7,7 @@ export function renderWelcomeEmailText({ firstName, appUrl }: WelcomeEmailInput)
   const greeting = firstName ? `Hi ${firstName},` : 'Hi there,';
   return `${greeting}
 
-Welcome to CardWise — we'll help you pick the best credit card for every purchase in India.
+Welcome to CardOrbit — we'll help you pick the best credit card for every purchase in India.
 
 Get started:
 - Add your cards to your portfolio: ${appUrl}/account/cards
@@ -15,7 +15,7 @@ Get started:
 
 You can manage notification preferences anytime in Settings.
 
-— The CardWise team`;
+— The CardOrbit team`;
 }
 
 export function renderWelcomeEmailHtml({ firstName, appUrl }: WelcomeEmailInput): string {
@@ -28,7 +28,7 @@ export function renderWelcomeEmailHtml({ firstName, appUrl }: WelcomeEmailInput)
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Welcome to CardWise</title>
+    <title>Welcome to CardOrbit</title>
   </head>
   <body style="margin:0;padding:0;background:#0f1419;font-family:'Segoe UI',system-ui,sans-serif;color:#e8edf2;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f1419;padding:32px 16px;">
@@ -37,11 +37,11 @@ export function renderWelcomeEmailHtml({ firstName, appUrl }: WelcomeEmailInput)
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#151c24;border:1px solid #243040;border-radius:16px;overflow:hidden;">
             <tr>
               <td style="padding:32px 28px 8px;">
-                <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#7dd3fc;">CardWise</p>
+                <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#7dd3fc;">CardOrbit</p>
                 <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;color:#ffffff;">Welcome aboard</h1>
                 <p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:#c5d0db;">${greeting}</p>
                 <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#c5d0db;">
-                  Your account is ready. CardWise helps you choose the best credit card for every purchase in India.
+                  Your account is ready. CardOrbit helps you choose the best credit card for every purchase in India.
                 </p>
               </td>
             </tr>
