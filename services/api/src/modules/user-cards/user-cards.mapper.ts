@@ -26,6 +26,7 @@ export type CatalogCardDto = {
   tier: string;
   annualFeeInr: string | null;
   joiningFeeInr: string | null;
+  sourceUrl: string | null;
   bank: { id: string; name: string; slug: string; logoUrl: string | null };
   network: { id: string; code: string; name: string };
   benefitCount: number;
@@ -90,6 +91,7 @@ export function toCatalogCardDto(
     tier: card.tier,
     annualFeeInr: decimalToString(card.annualFeeInr),
     joiningFeeInr: decimalToString(card.joiningFeeInr),
+    sourceUrl: card.sourceUrl ?? null,
     bank: {
       id: card.bank.id,
       name: card.bank.name,

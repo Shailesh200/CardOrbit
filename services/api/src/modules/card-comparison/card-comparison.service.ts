@@ -46,11 +46,15 @@ export class CardComparisonService {
     try {
       input = parseCompareCardsInput(raw);
     } catch {
-      throw new BadRequestException('Provide 2–4 portfolio card IDs to compare');
+      throw new BadRequestException('Provide 2–4 portfolio or catalog card IDs to compare');
     }
 
-    const uniqueIds = [...new Set(input.userCardIds)];
-    if (uniqueIds.length !== input.userCardIds.length) {
+    if (input.creditCardIds?.length) {
+      return this.compareCatalogCards(userId, input.creditCardIds);
+    }
+
+    const uniqueIds = [...new Set(input.userCardIds ?? [])];
+    if (uniqueIds.length !== (input.userCardIds?.length ?? 0)) {
       throw new BadRequestException('Duplicate cards in comparison');
     }
 
@@ -80,6 +84,56 @@ export class CardComparisonService {
       .filter((row): row is (typeof rows)[number] => row != null);
 
     const snapshots = await Promise.all(ordered.map((row) => this.buildSnapshot(row)));
+
+    this.trackCompared(userId, snapshots);
+
+    return {
+      columns: buildComparisonColumns(snapshots),
+      rows: buildComparisonRows(snapshots),
+      recommendedUserCardId: pickRecommendedCard(snapshots),
+    };
+  }
+
+  private async compareCatalogCards(
+    userId: string,
+    creditCardIds: string[],
+  ): Promise<CardComparisonResult> {
+    const uniqueIds = [...new Set(creditCardIds)];
+    if (uniqueIds.length !== creditCardIds.length) {
+      throw new BadRequestException('Duplicate cards in comparison');
+    }
+
+    const cards = await this.prisma.creditCard.findMany({
+      where: { id: { in: uniqueIds }, deletedAt: null, active: true },
+      include: {
+        bank: true,
+        rewardProgram: true,
+        benefits: {
+          where: { deletedAt: null },
+          include: { benefitType: true },
+        },
+      },
+    });
+
+    if (cards.length !== uniqueIds.length) {
+      throw new NotFoundException('One or more catalog cards were not found');
+    }
+
+    const ordered = uniqueIds
+      .map((id) => cards.find((card) => card.id === id))
+      .filter((card): card is (typeof cards)[number] => card != null);
+
+    const snapshots = await Promise.all(
+      ordered.map((card) =>
+        this.buildSnapshot({
+          id: `catalog:${card.id}`,
+          nickname: null,
+          isFavorite: false,
+          creditCard: card,
+          rewardAccount: null,
+        }),
+      ),
+    );
 
     this.trackCompared(userId, snapshots);
 

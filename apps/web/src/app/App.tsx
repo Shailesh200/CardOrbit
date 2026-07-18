@@ -59,6 +59,9 @@ const PortfolioPage = lazy(() =>
 const AddCardPage = lazy(() =>
   import('../features/portfolio/AddCardPage').then((m) => ({ default: m.AddCardPage })),
 );
+const CatalogBrowsePage = lazy(() =>
+  import('../features/catalog/CatalogBrowsePage').then((m) => ({ default: m.CatalogBrowsePage })),
+);
 const CardComparisonPage = lazy(() =>
   import('../features/portfolio/CardComparisonPage').then((m) => ({
     default: m.CardComparisonPage,
@@ -297,6 +300,7 @@ export function App({ ssrLocation }: AppProps = {}) {
                   }
                 />
                 <Route path="cards" element={<PortfolioPage />} />
+                <Route path="cards/explore" element={<CatalogBrowsePage />} />
                 <Route path="cards/compare" element={<CardComparisonPage />} />
                 <Route path="cards/add" element={<AddCardPage />} />
                 <Route path="cards/:userCardId" element={<CardDetailPage />} />

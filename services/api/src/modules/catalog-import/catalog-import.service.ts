@@ -1,9 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { crawlBankCards, INDIA_BANK_SOURCES, isSupportedBankSlug } from '@cardwise/catalog-ingest';
+import {
+  AUTO_PUBLISH_GROUNDING_SCORE,
+  crawlCatalogSource,
+  INDIA_BANK_SOURCES,
+  INDIA_CATALOG_SOURCES,
+  isLikelySameCard,
+  isSupportedCatalogSourceSlug,
+} from '@cardwise/catalog-ingest';
 import {
   parseIngestMerchantRemove,
   parseIngestMerchantUpsert,
   extractIngestCardBundle,
+  extractCatalogImportIngestMeta,
   parseRewardRulePayload,
   type IngestCardBundle,
 } from '@cardwise/validation';
@@ -119,16 +127,25 @@ export class CatalogImportService {
     };
   }
 
+  listCatalogSources(): Array<{ slug: string; name: string; kind: string; catalogUrl: string }> {
+    return INDIA_CATALOG_SOURCES.map((source) => ({
+      slug: source.slug,
+      name: source.name,
+      kind: source.kind,
+      catalogUrl: source.catalogUrl,
+    }));
+  }
+
   async crawlBankCatalogBatch(
     bankSlug: string,
   ): Promise<{ batchId: string; itemCount: number; bankSlug: string }> {
-    if (!isSupportedBankSlug(bankSlug)) {
-      throw new BadRequestException(`Unsupported bank for crawl: ${bankSlug}`);
+    if (!isSupportedCatalogSourceSlug(bankSlug)) {
+      throw new BadRequestException(`Unsupported catalog source for crawl: ${bankSlug}`);
     }
 
-    const payloads = await crawlBankCards(bankSlug);
+    const payloads = await crawlCatalogSource(bankSlug);
     if (!payloads.length) {
-      throw new BadRequestException(`No cards crawled for bank: ${bankSlug}`);
+      throw new BadRequestException(`No cards crawled for source: ${bankSlug}`);
     }
 
     const batchId = newUuidV7();
@@ -137,10 +154,11 @@ export class CatalogImportService {
       data: {
         id: batchId,
         label: `${bankSlug} crawl ${new Date().toISOString().slice(0, 10)}`,
-        source: `bank-crawl:${bankSlug}`,
+        source: `catalog-crawl:${bankSlug}`,
         metadata: {
           market: 'IN',
           bankSlug,
+          sourceSlug: bankSlug,
           crawledAt: new Date().toISOString(),
         },
       },
@@ -209,6 +227,23 @@ export class CatalogImportService {
       throw new BadRequestException('Only pending items can be approved');
     }
 
+    if (row.entityType === CatalogImportEntityType.CARD_BUNDLE) {
+      const meta = extractCatalogImportIngestMeta(row.payload);
+      const grounding = meta?.grounding;
+      const blocked =
+        meta?.candidateOnly === true ||
+        grounding?.critical === true ||
+        (grounding != null && grounding.score < AUTO_PUBLISH_GROUNDING_SCORE);
+      if (blocked) {
+        const override = notes?.trim();
+        if (!override || override.length < 8) {
+          throw new BadRequestException(
+            'Low grounding / aggregator candidate — provide review notes (≥8 chars) to override',
+          );
+        }
+      }
+    }
+
     const updated = await this.prisma.catalogImportItem.update({
       where: { id },
       data: {
@@ -221,6 +256,7 @@ export class CatalogImportService {
 
     await this.audit.record(admin, 'catalog_import.approve', 'catalog_import_item', id, {
       entityKey: row.entityKey,
+      override: Boolean(notes?.trim()),
     });
 
     return this.toDto(updated);
@@ -323,13 +359,26 @@ export class CatalogImportService {
         reviewStatus: CatalogImportReviewStatus.PENDING_REVIEW,
         ...(entityType ? { entityType } : {}),
       },
-      select: { id: true },
     });
 
     let approved = 0;
     for (const item of items) {
-      await this.approveItem(item.id, admin);
-      approved += 1;
+      if (item.entityType === CatalogImportEntityType.CARD_BUNDLE) {
+        const meta = extractCatalogImportIngestMeta(item.payload);
+        const grounding = meta?.grounding;
+        const eligible =
+          meta?.candidateOnly !== true &&
+          grounding != null &&
+          !grounding.critical &&
+          grounding.score >= AUTO_PUBLISH_GROUNDING_SCORE;
+        if (!eligible) continue;
+      }
+      try {
+        await this.approveItem(item.id, admin, 'Bulk approve — auto-eligible grounding');
+        approved += 1;
+      } catch {
+        // skip items that still fail gates
+      }
     }
 
     return { approved };
@@ -519,8 +568,25 @@ export class CatalogImportService {
       }
     }
 
-    const existingCard = await this.prisma.creditCard.findFirst({ where: { slug: bundle.slug } });
+    const existingBySlug = await this.prisma.creditCard.findFirst({ where: { slug: bundle.slug } });
+    const bankCards = existingBySlug
+      ? []
+      : await this.prisma.creditCard.findMany({
+          where: { bankId: bank.id, deletedAt: null },
+          select: { id: true, slug: true, name: true, sourceUrl: true },
+        });
+    const fuzzyMatch = bankCards.find((card) =>
+      isLikelySameCard(
+        { bankSlug: bundle.bankSlug, name: bundle.name },
+        { bankSlug: bundle.bankSlug, name: card.name },
+      ),
+    );
+    const existingCard = existingBySlug ?? (fuzzyMatch ? { id: fuzzyMatch.id } : null);
     let cardId: string;
+
+    // Issuer pages win for sourceUrl; aggregator evidence stays on the staged payload only.
+    const preferIssuerSourceUrl =
+      !bundle.tags?.some((tag) => tag.startsWith('source:')) || Boolean(existingBySlug);
 
     if (existingCard) {
       cardId = existingCard.id;
@@ -535,7 +601,7 @@ export class CatalogImportService {
           active: true,
           annualFeeInr: bundle.annualFeeInr ?? null,
           joiningFeeInr: bundle.joiningFeeInr ?? null,
-          sourceUrl: bundle.sourceUrl,
+          sourceUrl: preferIssuerSourceUrl ? bundle.sourceUrl : undefined,
           deletedAt: null,
           version: { increment: 1 },
         },
@@ -628,6 +694,16 @@ export class CatalogImportService {
       select: { id: true, slug: true },
     });
     const merchantBySlug = new Map(merchants.map((row) => [row.slug, row.id]));
+
+    const incomingRuleKeys = [...new Set(bundle.rewardRules.map((rule) => rule.ruleKey))];
+    await this.prisma.rewardRule.updateMany({
+      where: {
+        creditCardId: cardId,
+        deletedAt: null,
+        ...(incomingRuleKeys.length > 0 ? { ruleKey: { notIn: incomingRuleKeys } } : {}),
+      },
+      data: { deletedAt: new Date() },
+    });
 
     for (const rule of bundle.rewardRules) {
       const payload = parseRewardRulePayload(rule.payload);

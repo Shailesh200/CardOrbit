@@ -3,7 +3,9 @@ import { z } from 'zod';
 import type { JobDefinition } from './types';
 
 export const CatalogAiIngestPayloadSchema = z.object({
+  /** Catalog source slug (issuer bank or aggregator). Legacy field name kept for API compat. */
   bankSlug: z.string().min(1),
+  sourceSlug: z.string().min(1).optional(),
   purgePending: z.boolean().optional(),
   limit: z.number().int().positive().optional(),
 });
@@ -12,6 +14,7 @@ export type CatalogAiIngestPayload = z.infer<typeof CatalogAiIngestPayloadSchema
 
 export const CatalogCrawlPayloadSchema = z.object({
   bankSlug: z.string().min(1),
+  sourceSlug: z.string().min(1).optional(),
 });
 
 export type CatalogCrawlPayload = z.infer<typeof CatalogCrawlPayloadSchema>;
@@ -23,7 +26,7 @@ export const catalogAiIngestJob: JobDefinition<
 > = {
   type: 'catalog.ai-ingest',
   queue: 'catalog',
-  description: 'Fetch issuer pages, AI-structure card bundles, stage for admin review',
+  description: 'Fetch issuer/aggregator pages, AI-structure card bundles, stage for admin review',
   estimatedMinutes: { min: 1, max: 60 },
   payloadSchema: CatalogAiIngestPayloadSchema,
   defaultPayload: { bankSlug: '', purgePending: true },
@@ -36,7 +39,7 @@ export const catalogCrawlJob: JobDefinition<
 > = {
   type: 'catalog.crawl',
   queue: 'catalog',
-  description: 'Rule-based crawl fallback for a bank catalog',
+  description: 'Rule-based crawl for an issuer or aggregator catalog',
   estimatedMinutes: { min: 2, max: 15 },
   payloadSchema: CatalogCrawlPayloadSchema,
 };

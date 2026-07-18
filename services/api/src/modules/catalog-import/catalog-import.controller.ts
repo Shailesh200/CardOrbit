@@ -26,9 +26,15 @@ export class CatalogImportController {
     private readonly jobs: JobsService,
   ) {}
 
+  @Get('sources')
+  @ApiOkResponse({ description: 'List issuer + aggregator catalog sources' })
+  listSources() {
+    return this.catalogImport.listCatalogSources();
+  }
+
   @Post('ai-ingest/:bankSlug')
   @ApiOkResponse({
-    description: 'Enqueue AI catalog ingest job (background worker)',
+    description: 'Enqueue AI catalog ingest job for issuer or aggregator (background worker)',
   })
   aiIngestBank(
     @Param('bankSlug') bankSlug: string,

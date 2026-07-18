@@ -30,7 +30,7 @@
 
 /* —— App shell —— */
 .shell {
-  background: #050816;
+  background: var(--background);
   color: var(--foreground);
 }
 
@@ -63,10 +63,10 @@
     height: calc(var(--consumer-bottom-nav-height) + var(--safe-bottom));
     padding-bottom: var(--safe-bottom);
     padding-inline: var(--safe-left) var(--safe-right);
-    border-top: 1px solid rgb(255 255 255 / 0.08);
-    background: rgb(11 16 35 / 0.92);
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--card) 92%, transparent);
     backdrop-filter: blur(20px);
-    box-shadow: 0 -8px 32px rgb(0 0 0 / 0.35);
+    box-shadow: var(--shadow-md);
   }
 }
 
@@ -110,11 +110,11 @@
 
 @media (display-mode: standalone) and (max-width: 1023px) {
   .site-header {
-    background: rgb(11 16 35 / 0.96);
+    background: color-mix(in srgb, var(--card) 96%, transparent);
   }
 
   .consumer-bottom-nav {
-    background: rgb(11 16 35 / 0.98);
+    background: color-mix(in srgb, var(--card) 98%, transparent);
   }
 }
 
@@ -127,10 +127,10 @@
   height: calc(var(--shell-header-height) + var(--safe-top));
   padding-top: var(--safe-top);
   padding-inline: var(--safe-left) var(--safe-right);
-  border-bottom: 1px solid rgb(255 255 255 / 0.08);
-  background: rgb(5 8 22 / 0.78);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--background) 78%, transparent);
   backdrop-filter: blur(20px);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 4%, transparent) inset;
 }
 
 .site-header__inner {

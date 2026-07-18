@@ -19,6 +19,7 @@ export const idfcFirstAdapter: BankCrawlerAdapter = {
   bankName: 'IDFC FIRST Bank',
   baseUrl: IDFC_FIRST_BASE_URL,
   catalogUrl: IDFC_FIRST_CATALOG_URL,
+  sourceKind: 'issuer',
 
   async discoverCardUrls() {
     const paths = await discoverIdfcFirstCardPaths();

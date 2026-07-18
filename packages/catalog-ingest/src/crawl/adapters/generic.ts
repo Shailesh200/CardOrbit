@@ -19,6 +19,7 @@ export function createGenericBankAdapter(bank: BankSource): BankCrawlerAdapter {
     bankName: bank.name,
     baseUrl: new URL(bank.catalogUrl).origin,
     catalogUrl: bank.catalogUrl,
+    sourceKind: 'issuer',
 
     async discoverCardUrls() {
       return discoverGenericBankCardUrls(bank.slug);

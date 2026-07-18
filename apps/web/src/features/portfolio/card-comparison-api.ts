@@ -41,6 +41,14 @@ export function comparePortfolioCards(userCardIds: string[]) {
   });
 }
 
+export function compareCatalogCards(creditCardIds: string[]) {
+  return authFetch<CardComparisonResult>(`${API_BASE}/api/v1/card-comparison`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ creditCardIds }),
+  });
+}
+
 export function parseComparisonIdsParam(value: string | null): string[] {
   if (!value?.trim()) return [];
   return value

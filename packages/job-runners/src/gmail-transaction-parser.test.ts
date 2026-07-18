@@ -25,4 +25,24 @@ describe('parseGmailTransactionAlert', () => {
   it('returns null when no amount is present', () => {
     expect(parseGmailTransactionAlert('Your HDFC statement is ready to view.')).toBeNull();
   });
+
+  it('rejects bill / amount-due emails that look like spends', () => {
+    expect(
+      parseGmailTransactionAlert('Total Amount Due Rs. 16,703 on 20-07-2026 for your HDFC card.'),
+    ).toBeNull();
+    expect(
+      parseGmailTransactionAlert(
+        'Amount Due Rs. 16,703 on 18/07/2026. Please pay by the due date.',
+      ),
+    ).toBeNull();
+    expect(
+      parseGmailTransactionAlert(
+        'Your e-statement is ready. Outstanding balance Rs. 16,703 on your Axis card.',
+      ),
+    ).toBeNull();
+  });
+
+  it('rejects amount-on-date copy without a spend verb or merchant', () => {
+    expect(parseGmailTransactionAlert('Rs. 16,703 on 20-07-2026 HDFC Bank Credit Card.')).toBeNull();
+  });
 });

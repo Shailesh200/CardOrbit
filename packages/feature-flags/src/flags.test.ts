@@ -29,8 +29,8 @@ describe('@cardwise/feature-flags', () => {
     expect(FeatureFlag.ONBOARDING_V1).toBe('onboarding_v1');
     expect(FeatureFlag.PORTFOLIO_V1).toBe('portfolio_v1');
     expect(FEATURE_FLAG_DEFAULTS.browser_extension_enabled).toBe(true);
-    expect(FEATURE_FLAG_DEFAULTS.ai_platform_enabled).toBe(false);
-    expect(FEATURE_FLAG_DEFAULTS.ai_assistant_enabled).toBe(false);
+    expect(FEATURE_FLAG_DEFAULTS.ai_platform_enabled).toBe(true);
+    expect(FEATURE_FLAG_DEFAULTS.ai_assistant_enabled).toBe(true);
     expect(FEATURE_FLAG_DEFAULTS.ai_copilot_enabled).toBe(true);
     expect(FEATURE_FLAG_DEFAULTS.travel_booking_enabled).toBe(true);
     expect(FEATURE_FLAG_DEFAULTS.premium_features_enabled).toBe(false);
@@ -40,7 +40,7 @@ describe('@cardwise/feature-flags', () => {
   it('resolves flags correctly for development environment', async () => {
     expect(getFeatureFlagsEnvironment()).toBe('development');
     expect(await isEnabled(FeatureFlag.BROWSER_EXTENSION_ENABLED)).toBe(true);
-    expect(await isEnabled(FeatureFlag.AI_ASSISTANT_ENABLED)).toBe(false);
+    expect(await isEnabled(FeatureFlag.AI_ASSISTANT_ENABLED)).toBe(true);
     expect(await isEnabled(FeatureFlag.TRAVEL_BOOKING_ENABLED)).toBe(true);
     expect(await isEnabled(FeatureFlag.PREMIUM_FEATURES_ENABLED)).toBe(false);
     expect(await isEnabled(FeatureFlag.ONBOARDING_V1)).toBe(true);

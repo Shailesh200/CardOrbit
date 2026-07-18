@@ -114,6 +114,23 @@ type ImportPayloadEnvelope = {
     promptVersion?: string;
     latencyMs?: number;
     fallbackBundle?: CardBundlePayload;
+    sourceKind?: 'issuer' | 'aggregator';
+    catalogSourceSlug?: string;
+    grounding?: {
+      score: number;
+      critical: boolean;
+      issues: Array<{ code: string; message: string }>;
+      ungroundedClaims?: Array<{ kind: string; value: string | number }>;
+    };
+    sources?: Array<{ kind: string; slug: string; sourceUrl: string }>;
+    conflicts?: Array<{
+      field: string;
+      issuerValue?: string | number | null;
+      aggregatorValue?: string | number | null;
+      resolution: string;
+    }>;
+    autoPublishEligible?: boolean;
+    candidateOnly?: boolean;
   };
 };
 
@@ -607,18 +624,99 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
                 ) : null}
 
                 {detailIngestMeta ? (
-                  <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs">
-                    <p className="font-medium text-foreground">Ingest method</p>
-                    <p className="mt-1 text-muted-foreground">
-                      {detailIngestMeta.method}
-                      {detailIngestMeta.model ? ` · ${detailIngestMeta.model}` : ''}
-                      {detailIngestMeta.promptVersion
-                        ? ` · prompt ${detailIngestMeta.promptVersion}`
-                        : ''}
-                      {detailIngestMeta.latencyMs != null
-                        ? ` · ${detailIngestMeta.latencyMs}ms`
-                        : ''}
-                    </p>
+                  <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs">
+                    <div>
+                      <p className="font-medium text-foreground">Ingest method</p>
+                      <p className="mt-1 text-muted-foreground">
+                        {detailIngestMeta.method}
+                        {detailIngestMeta.model ? ` · ${detailIngestMeta.model}` : ''}
+                        {detailIngestMeta.promptVersion
+                          ? ` · prompt ${detailIngestMeta.promptVersion}`
+                          : ''}
+                        {detailIngestMeta.latencyMs != null
+                          ? ` · ${detailIngestMeta.latencyMs}ms`
+                          : ''}
+                      </p>
+                    </div>
+                    {detailIngestMeta.catalogSourceSlug || detailIngestMeta.sourceKind ? (
+                      <p className="text-muted-foreground">
+                        Source:{' '}
+                        <span className="font-medium text-foreground">
+                          {detailIngestMeta.catalogSourceSlug ?? 'unknown'}
+                        </span>
+                        {detailIngestMeta.sourceKind ? ` (${detailIngestMeta.sourceKind})` : ''}
+                        {detailIngestMeta.candidateOnly ? ' · candidate only' : ''}
+                        {detailIngestMeta.autoPublishEligible ? ' · auto-publish eligible' : ''}
+                      </p>
+                    ) : null}
+                    {detailIngestMeta.grounding ? (
+                      <div>
+                        <p className="font-medium text-foreground">
+                          Grounding score{' '}
+                          <span
+                            className={
+                              detailIngestMeta.grounding.critical ||
+                              detailIngestMeta.grounding.score < 0.9
+                                ? 'text-destructive'
+                                : 'text-primary'
+                            }
+                          >
+                            {(detailIngestMeta.grounding.score * 100).toFixed(0)}%
+                          </span>
+                          {detailIngestMeta.grounding.critical ? ' · critical issues' : ''}
+                        </p>
+                        {detailIngestMeta.grounding.issues.length > 0 ? (
+                          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-muted-foreground">
+                            {detailIngestMeta.grounding.issues.map((issue) => (
+                              <li key={`${issue.code}-${issue.message}`}>
+                                {issue.code}: {issue.message}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {detailIngestMeta.sources && detailIngestMeta.sources.length > 0 ? (
+                      <div>
+                        <p className="font-medium text-foreground">Contributing sources</p>
+                        <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                          {detailIngestMeta.sources.map((source) => (
+                            <li key={`${source.slug}-${source.sourceUrl}`}>
+                              {source.kind}/{source.slug} —{' '}
+                              <a
+                                href={source.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary underline-offset-2 hover:underline"
+                              >
+                                open
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    {detailIngestMeta.conflicts && detailIngestMeta.conflicts.length > 0 ? (
+                      <div>
+                        <p className="font-medium text-foreground">Conflicts</p>
+                        <ul className="mt-1 list-disc space-y-0.5 pl-4 text-muted-foreground">
+                          {detailIngestMeta.conflicts.map((conflict) => (
+                            <li key={conflict.field}>
+                              {conflict.field}: issuer={String(conflict.issuerValue ?? '—')} vs
+                              aggregator={String(conflict.aggregatorValue ?? '—')} →{' '}
+                              {conflict.resolution}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    {detailIngestMeta.fallbackBundle ? (
+                      <p className="text-muted-foreground">
+                        Fallback bundle: {detailIngestMeta.fallbackBundle.rewardRules?.length ?? 0}{' '}
+                        reward rules · {detailIngestMeta.fallbackBundle.highlights?.length ?? 0}{' '}
+                        highlights
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
 

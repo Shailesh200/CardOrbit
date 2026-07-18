@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import {
   Button,
@@ -14,6 +14,7 @@ import { ArrowDownToLine, CreditCard, Plus, Receipt } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
 import { notify, toast } from '@lib/app-toast';
+import { useAuthSWR } from '../../hooks/useAuthSWR';
 import {
   enqueueMailSync,
   listMailboxes,
@@ -66,12 +67,15 @@ function summarizeMailSync(statuses: MailSyncJobStatus[]): string {
   return statuses.map((row) => row.result?.note).find(Boolean) ?? 'Gmail sync finished';
 }
 
+type TransactionsBundle = {
+  cards: PortfolioCardSummary[];
+  items: TransactionSummary[];
+  total: number;
+  volumeInr: number;
+  mailboxes: MailSyncMailbox[];
+};
+
 export function TransactionsPage() {
-  const [cards, setCards] = useState<PortfolioCardSummary[]>([]);
-  const [items, setItems] = useState<TransactionSummary[]>([]);
-  const [total, setTotal] = useState(0);
-  const [volumeInr, setVolumeInr] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [showImport, setShowImport] = useState(false);
@@ -79,7 +83,6 @@ export function TransactionsPage() {
   const [csv, setCsv] = useState(CSV_IMPORT_TEMPLATE);
   const [defaultCardId, setDefaultCardId] = useState('');
   const [importing, setImporting] = useState(false);
-  const [mailboxes, setMailboxes] = useState<MailSyncMailbox[]>([]);
   const [syncMailboxId, setSyncMailboxId] = useState<string>('all');
   const [syncing, setSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState<string | null>(null);
@@ -93,9 +96,11 @@ export function TransactionsPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
+  const listKey = ['transactions', search.trim() || '', categoryFilter || ''] as const;
+
+  const { data, error, isLoading, mutate } = useAuthSWR<TransactionsBundle>(
+    listKey,
+    async () => {
       const [portfolio, response, mailboxResponse] = await Promise.all([
         listPortfolio(),
         listTransactions({
@@ -105,29 +110,43 @@ export function TransactionsPage() {
         }),
         listMailboxes().catch(() => ({ items: [] as MailSyncMailbox[] })),
       ]);
-      setCards(portfolio);
-      setItems(response.items);
-      setTotal(response.total);
-      setVolumeInr(response.summary.totalVolumeInr);
-      setMailboxes(mailboxResponse.items);
-      if (!defaultCardId && portfolio[0]) {
-        setDefaultCardId(portfolio[0].id);
-        setAddDraft((current) => ({ ...current, userCardId: portfolio[0]!.id }));
-      }
-    } catch (error) {
-      notify.fromError(error, 'Could not load transactions');
-    } finally {
-      setLoading(false);
-    }
-  }, [categoryFilter, defaultCardId, search]);
+      return {
+        cards: portfolio,
+        items: response.items,
+        total: response.total,
+        volumeInr: response.summary.totalVolumeInr,
+        mailboxes: mailboxResponse.items,
+      };
+    },
+    { dedupingInterval: 15_000 },
+  );
+
+  const cards = data?.cards ?? [];
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const volumeInr = data?.volumeInr ?? 0;
+  const mailboxes = data?.mailboxes ?? [];
+  const loading = isLoading && !data;
 
   useEffect(() => {
     document.title = 'CardOrbit · Transactions';
-    void load();
     return () => {
       syncAbortRef.current?.abort();
     };
-  }, [load]);
+  }, []);
+
+  useEffect(() => {
+    if (error && !data) {
+      notify.fromError(error, 'Could not load transactions');
+    }
+  }, [error, data]);
+
+  useEffect(() => {
+    if (!defaultCardId && cards[0]) {
+      setDefaultCardId(cards[0].id);
+      setAddDraft((current) => ({ ...current, userCardId: cards[0]!.id }));
+    }
+  }, [cards, defaultCardId]);
 
   async function onImport() {
     setImporting(true);
@@ -143,7 +162,7 @@ export function TransactionsPage() {
         );
       }
       setShowImport(false);
-      await load();
+      await mutate();
     } catch (error) {
       notify.fromError(error, 'Import failed');
     } finally {
@@ -170,7 +189,7 @@ export function TransactionsPage() {
       toast.success('Transaction added');
       setShowAdd(false);
       setAddDraft((current) => ({ ...current, merchantName: '', amountInr: '' }));
-      await load();
+      await mutate();
     } catch (error) {
       notify.fromError(error, 'Could not add transaction');
     } finally {
@@ -212,7 +231,7 @@ export function TransactionsPage() {
       } else {
         toast.success(summary);
       }
-      await load();
+      await mutate();
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
       notify.fromError(error, 'Sync failed to start');
@@ -507,7 +526,7 @@ export function TransactionsPage() {
             ))}
           </SelectContent>
         </Select>
-        <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
+        <Button type="button" variant="outline" size="sm" onClick={() => void mutate()}>
           Apply filters
         </Button>
       </section>

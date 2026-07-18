@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 
-import { getClientFeatureFlag, loadFeatureFlagsFromApi } from './browser-client';
+import {
+  getClientFeatureFlag,
+  loadFeatureFlagsFromApi,
+  subscribeClientFeatureFlags,
+} from './browser-client';
 import type { FeatureFlagKey } from './flags';
 import { FEATURE_FLAG_DEFAULTS } from './flags';
 
@@ -16,6 +20,14 @@ export function useFeatureFlag(flag: FeatureFlagKey, _distinctId?: string): bool
   useEffect(() => {
     let cancelled = false;
 
+    function sync() {
+      if (!cancelled) {
+        setEnabled(getClientFeatureFlag(flag));
+      }
+    }
+
+    const unsubscribe = subscribeClientFeatureFlags(sync);
+
     async function resolve() {
       if (typeof window === 'undefined') {
         if (!cancelled) setEnabled(FEATURE_FLAG_DEFAULTS[flag]);
@@ -27,14 +39,13 @@ export function useFeatureFlag(flag: FeatureFlagKey, _distinctId?: string): bool
       } catch {
         // Keep cached/default values when API is unavailable.
       }
-      if (!cancelled) {
-        setEnabled(getClientFeatureFlag(flag));
-      }
+      sync();
     }
 
     void resolve();
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [flag]);
 

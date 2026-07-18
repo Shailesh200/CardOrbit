@@ -3,9 +3,24 @@ import { z } from 'zod';
 export const MIN_COMPARISON_CARDS = 2;
 export const MAX_COMPARISON_CARDS = 4;
 
-export const CompareCardsInputSchema = z.object({
-  userCardIds: z.array(z.string()).min(MIN_COMPARISON_CARDS).max(MAX_COMPARISON_CARDS),
-});
+export const CompareCardsInputSchema = z
+  .object({
+    userCardIds: z.array(z.string()).min(MIN_COMPARISON_CARDS).max(MAX_COMPARISON_CARDS).optional(),
+    creditCardIds: z
+      .array(z.string())
+      .min(MIN_COMPARISON_CARDS)
+      .max(MAX_COMPARISON_CARDS)
+      .optional(),
+  })
+  .refine((value) => Boolean(value.userCardIds?.length) !== Boolean(value.creditCardIds?.length), {
+    message: 'Provide either userCardIds or creditCardIds (exactly one)',
+  })
+  .refine(
+    (value) =>
+      (value.userCardIds?.length ?? 0) >= MIN_COMPARISON_CARDS ||
+      (value.creditCardIds?.length ?? 0) >= MIN_COMPARISON_CARDS,
+    { message: `Provide ${MIN_COMPARISON_CARDS}–${MAX_COMPARISON_CARDS} cards` },
+  );
 
 export type CompareCardsInput = z.infer<typeof CompareCardsInputSchema>;
 

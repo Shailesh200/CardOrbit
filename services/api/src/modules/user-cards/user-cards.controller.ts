@@ -84,12 +84,18 @@ export class CardsCatalogController {
     @CurrentUser() user: ConsumerPrincipal,
     @Query('q') q?: string,
     @Query('bankSlug') bankSlug?: string,
+    @Query('networkCode') networkCode?: string,
+    @Query('maxAnnualFeeInr') maxAnnualFeeInr?: string,
+    @Query('category') category?: string,
     @Query('offset') offset?: string,
     @Query('limit') limit?: string,
   ) {
     return this.portfolio.listCatalog(user.id, {
       q,
       bankSlug,
+      networkCode,
+      maxAnnualFeeInr: maxAnnualFeeInr ? Number(maxAnnualFeeInr) : undefined,
+      category,
       offset: offset ? Number(offset) : undefined,
       limit: limit ? Number(limit) : undefined,
     });

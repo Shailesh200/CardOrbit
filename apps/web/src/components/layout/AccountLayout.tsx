@@ -6,7 +6,9 @@ import {
   CalendarDays,
   CreditCard,
   FileText,
+  GitCompareArrows,
   LayoutDashboard,
+  Library,
   Plane,
   Receipt,
   Settings,
@@ -52,6 +54,8 @@ const navGroups: NavGroup[] = [
     label: 'Cards & spend',
     items: [
       { to: '/account/cards', label: 'Cards', icon: CreditCard },
+      { to: '/account/cards/explore', label: 'Explore', icon: Library },
+      { to: '/account/cards/compare', label: 'Compare', icon: GitCompareArrows },
       { to: '/account/merchants', label: 'Merchants', icon: Store },
       { to: '/account/offers', label: 'Offers', icon: Tag },
       { to: '/account/rewards', label: 'Rewards', icon: Wallet },

@@ -73,7 +73,17 @@ function parseAnnualFee(text: string): number | null {
   if (/\blifetime free\b|\bzero annual fee\b|\bno annual fee\b|\bltf\b/.test(lower)) {
     return 0;
   }
-  const match = text.match(/(?:annual fee|renewal fee)[^₹\d]{0,24}₹\s*([\d,]+)/i);
+  const match = text.match(/(?:annual fee|renewal fee)[^₹\d]{0,40}(?:₹|Rs\.?|INR)\s*([\d,]+)/i);
+  if (match?.[1]) return Number(match[1].replace(/,/g, ''));
+  return null;
+}
+
+function parseJoiningFee(text: string): number | null {
+  const lower = text.toLowerCase();
+  if (/\b(?:joining|joining\/one.?time)\s+fee[^.]{0,40}\b(?:nil|waived|free|zero)\b/.test(lower)) {
+    return 0;
+  }
+  const match = text.match(/(?:joining fee|one.?time fee|joining\/one.?time)[^₹\d]{0,40}(?:₹|Rs\.?|INR)\s*([\d,]+)/i);
   if (match?.[1]) return Number(match[1].replace(/,/g, ''));
   return null;
 }
@@ -141,9 +151,9 @@ export function parseGenericCardPage(input: {
     });
   }
 
-  const feeText = `${description ?? ''} ${feesSummary ?? ''}`;
+  const feeText = `${description ?? ''} ${feesSummary ?? ''} ${input.html.slice(0, 80_000)}`;
   const annualFeeInr = parseAnnualFee(feeText);
-  const joiningFeeInr = annualFeeInr;
+  const joiningFeeInr = parseJoiningFee(feeText);
 
   const rewardText = highlights
     .filter((item) => item.category === 'REWARDS')

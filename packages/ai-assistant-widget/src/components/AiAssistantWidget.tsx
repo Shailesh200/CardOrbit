@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button, cn } from '@cardwise/ui';
-import { Bot, Minus, Sparkles, X } from 'lucide-react';
+import { Bot, Minus, Orbit, Sparkles, X } from 'lucide-react';
 
 import type { AiAssistantTransport, AssistantAction } from '../types';
 import { AiAssistantChat } from './AiAssistantChat';
@@ -29,14 +29,19 @@ export type AiAssistantWidgetProps = {
   mobileNavOffset?: boolean;
   className?: string;
   fabLabel?: string;
+  /** External open signal — increment or change to open the panel. */
+  openSignal?: number;
+  /** Prompt to auto-send after the panel opens. */
+  pendingPrompt?: string | null;
+  onPendingPromptConsumed?: () => void;
 };
 
 export function AiAssistantWidget({
   transport,
   enabled: enabledProp,
   starters,
-  title = 'AI Assistant',
-  subtitle = 'Ask about cards, merchants, and rewards — read-only with sources cited.',
+  title = 'Nova',
+  subtitle = 'Plan trips, pick the right card, and chart your rewards — read-only with sources cited.',
   resolveActionHref,
   resolveResultHref,
   LinkComponent,
@@ -44,7 +49,10 @@ export function AiAssistantWidget({
   onError,
   mobileNavOffset = true,
   className,
-  fabLabel = 'Open AI assistant',
+  fabLabel = 'Open Nova',
+  openSignal = 0,
+  pendingPrompt = null,
+  onPendingPromptConsumed,
 }: AiAssistantWidgetProps) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
@@ -52,6 +60,7 @@ export function AiAssistantWidget({
   const [enabled, setEnabled] = useState(enabledProp ?? false);
   const panelId = useId();
   const fabRef = useRef<HTMLButtonElement | null>(null);
+  const lastOpenSignal = useRef(0);
 
   useEffect(() => {
     setMounted(true);
@@ -68,6 +77,13 @@ export function AiAssistantWidget({
       .then((status) => setEnabled(status.enabled))
       .catch(() => setEnabled(false));
   }, [enabledProp, transport]);
+
+  useEffect(() => {
+    if (!openSignal || openSignal === lastOpenSignal.current) return;
+    lastOpenSignal.current = openSignal;
+    setOpen(true);
+    setSessionActive(true);
+  }, [openSignal]);
 
   useEffect(() => {
     if (!open) return;
@@ -110,7 +126,7 @@ export function AiAssistantWidget({
         <button
           type="button"
           className="ai-assistant-widget__backdrop fixed inset-0 z-[69] cursor-default border-0 bg-black/10 dark:bg-black/25"
-          aria-label="Close assistant"
+          aria-label="Close Nova"
           onClick={() => setOpen(false)}
         />
       ) : null}
@@ -139,13 +155,13 @@ export function AiAssistantWidget({
             <div className="min-w-0 space-y-0.5">
               <div className="flex items-center gap-2">
                 <span className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Bot className="size-4" aria-hidden />
+                  <Orbit className="size-4" aria-hidden />
                 </span>
                 <div>
                   <p className="font-display text-sm font-semibold tracking-tight">{title}</p>
                   <p className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
                     <Sparkles className="size-2.5" aria-hidden />
-                    Read-only
+                    Orbit planner
                   </p>
                 </div>
               </div>
@@ -157,7 +173,7 @@ export function AiAssistantWidget({
                 size="icon"
                 variant="ghost"
                 className="size-8"
-                aria-label="Minimize assistant"
+                aria-label="Minimize Nova"
                 onClick={() => setOpen(false)}
               >
                 <Minus className="size-4" aria-hidden />
@@ -167,7 +183,7 @@ export function AiAssistantWidget({
                 size="icon"
                 variant="ghost"
                 className="size-8"
-                aria-label="Close assistant"
+                aria-label="Close Nova"
                 onClick={() => setOpen(false)}
               >
                 <X className="size-4" aria-hidden />
@@ -179,6 +195,8 @@ export function AiAssistantWidget({
             transport={transport}
             enabled
             starters={starters}
+            pendingPrompt={open ? pendingPrompt : null}
+            onPendingPromptConsumed={onPendingPromptConsumed}
             resolveActionHref={resolveActionHref}
             resolveResultHref={resolveResultHref}
             LinkComponent={LinkComponent}
@@ -201,7 +219,7 @@ export function AiAssistantWidget({
           'ai-assistant-widget__fab pointer-events-auto inline-flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-[1.03] hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           open && 'scale-95',
         )}
-        aria-label={open ? 'Close AI assistant' : fabLabel}
+        aria-label={open ? 'Close Nova' : fabLabel}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((value) => !value)}

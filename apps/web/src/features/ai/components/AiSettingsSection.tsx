@@ -9,7 +9,7 @@ const CAPABILITIES = [
   {
     key: 'search',
     icon: Search,
-    title: 'AI search',
+    title: 'Nova search',
     body: 'Find merchants and cards by name, category, or natural keywords like "dining cashback".',
     href: '/account/merchants',
     cta: 'Try merchant search',
@@ -25,8 +25,8 @@ const CAPABILITIES = [
   {
     key: 'assistant',
     icon: Bot,
-    title: 'Read-only AI assistant',
-    body: 'Use the floating assistant button to ask which card to use, compare benefits, or explore your portfolio — citations included, no auto-actions.',
+    title: 'Nova planner',
+    body: 'Use the dashboard Nova search bar or floating button to plan trips, pick cards, and explore your portfolio — citations included, no auto-actions.',
   },
 ] as const;
 
@@ -41,8 +41,8 @@ export function AiSettingsSection() {
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">AI features</h2>
             <p className="max-w-lg text-sm text-muted-foreground">
-              CardOrbit is built AI-native: semantic search, grounded explanations, and a read-only
-              assistant. AI capabilities are managed by your CardOrbit administrator and will appear
+              CardOrbit is built AI-native with Nova: semantic search, grounded explanations, and a
+              read-only planner. Capabilities are managed by your CardOrbit administrator and appear
               here when enabled.
             </p>
           </div>

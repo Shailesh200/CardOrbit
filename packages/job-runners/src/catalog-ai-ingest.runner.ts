@@ -2,16 +2,22 @@ import { PrismaClient, CatalogImportReviewStatus, type Prisma } from '@prisma/cl
 import { isAiConfigured, structureCardBundleFromPage } from '@cardwise/ai';
 import {
   crawlIdfcFirstCard,
-  discoverBankCardUrls,
+  discoverCatalogCardUrls,
   fetchText,
   fetchAndExtractPdfText,
   extractSourceDocumentLinks,
   mergeSourceDocuments,
   bankCatalogUrl,
+  catalogSourceUrl,
+  catalogSourceKind,
+  getCatalogCrawlerAdapter,
+  getCatalogSource,
+  groundIngestBundle,
+  AUTO_PUBLISH_GROUNDING_SCORE,
+  isSupportedCatalogSourceSlug,
   parseGenericCardPage,
   IDFC_FIRST_BANK_SLUG,
   IDFC_FIRST_CATALOG_URL,
-  isSupportedAiIngestBankSlug,
 } from '@cardwise/catalog-ingest';
 import type {
   CatalogAiIngestPayload,
@@ -19,6 +25,7 @@ import type {
   CatalogAiIngestResult,
   JobLogEntry,
 } from '@cardwise/jobs';
+import { validateCatalogBundleSafety } from '@cardwise/ai';
 import { parseIngestCardBundle, type CatalogImportIngestMeta, type IngestCardBundle } from '@cardwise/validation';
 
 import type { NewUuidFn } from './catalog-crawl.runner';
@@ -134,18 +141,19 @@ export async function runCatalogAiIngest(
     execConfig: AiExecConfig;
   },
 ): Promise<CatalogAiIngestResult> {
-  const { bankSlug } = payload;
-  if (!isSupportedAiIngestBankSlug(bankSlug)) {
-    throw new Error(`Unsupported bank for AI ingest: ${bankSlug}`);
+  const bankSlug = payload.sourceSlug ?? payload.bankSlug;
+  if (!isSupportedCatalogSourceSlug(bankSlug)) {
+    throw new Error(`Unsupported catalog source for AI ingest: ${bankSlug}`);
   }
   if (!isAiConfigured()) {
     throw new Error('AI is not configured');
   }
 
+  const sourceMeta = getCatalogSource(bankSlug);
   const batchId = options.newUuidV7();
   const tracker = new ProgressTracker(options.onProgress, { bankSlug, batchId });
 
-  await tracker.log('info', `Starting AI ingest for ${bankSlug}`, {
+  await tracker.log('info', `Starting AI ingest for ${bankSlug} (${sourceMeta?.kind ?? 'issuer'})`, {
     done: 0,
     total: 0,
     currentUrl: null,
@@ -158,16 +166,19 @@ export async function runCatalogAiIngest(
   let purgedPending = 0;
   if (payload.purgePending !== false) {
     const deleted = await prisma.catalogImportItem.deleteMany({
-      where: { reviewStatus: CatalogImportReviewStatus.PENDING_REVIEW },
+      where: {
+        reviewStatus: CatalogImportReviewStatus.PENDING_REVIEW,
+        batch: { source: `ai-ingest:${bankSlug}` },
+      },
     });
     purgedPending = deleted.count;
     if (purgedPending > 0) {
-      await tracker.log('info', `Cleared ${purgedPending} pending import item(s)`);
+      await tracker.log('info', `Cleared ${purgedPending} pending import item(s) for ${bankSlug}`);
     }
   }
 
-  await tracker.log('info', 'Discovering card product URLs from issuer catalog', { phase: 'discovering' });
-  const discovered = await discoverBankCardUrls(bankSlug);
+  await tracker.log('info', 'Discovering card product URLs from catalog source', { phase: 'discovering' });
+  const discovered = await discoverCatalogCardUrls(bankSlug);
   const limit =
     payload.limit && payload.limit > 0 ? Math.min(payload.limit, discovered.length) : discovered.length;
   const cardUrls = discovered.slice(0, limit);
@@ -185,6 +196,8 @@ export async function runCatalogAiIngest(
       metadata: {
         market: 'IN',
         bankSlug,
+        sourceSlug: bankSlug,
+        sourceKind: sourceMeta?.kind ?? 'issuer',
         ingestMethod: 'ai',
         jobDriven: true,
         promptVersion: options.execConfig.promptVersion,
@@ -340,16 +353,16 @@ async function ingestCardUrl(input: {
   };
   onPhase: (phase: CatalogAiIngestProgress['phase'], detail: string) => Promise<void>;
 }) {
-  const { bankSlug, sourceUrl, triggeredBy, execConfig, onPhase } = input;
+  const { bankSlug: sourceSlug, sourceUrl, triggeredBy, execConfig, onPhase } = input;
+  const sourceKind = catalogSourceKind(sourceSlug);
   const catalogReferer =
-    bankSlug === IDFC_FIRST_BANK_SLUG ? IDFC_FIRST_CATALOG_URL : bankCatalogUrl(bankSlug);
+    sourceSlug === IDFC_FIRST_BANK_SLUG ? IDFC_FIRST_CATALOG_URL : catalogSourceUrl(sourceSlug);
   const html = await fetchText(sourceUrl, 30_000, catalogReferer);
   const path = pathFromUrl(sourceUrl);
+  const adapter = getCatalogCrawlerAdapter(sourceSlug);
 
-  // MITC/T&C/fee-schedule links found on the product page — captured as secondary evidence
-  // regardless of ingest method, and optionally fed into the AI prompt as corroborating text.
   const sourceDocuments = extractSourceDocumentLinks(html, sourceUrl);
-  const PDF_DOCUMENT_KINDS: readonly string[] = new Set(['MITC', 'TNC', 'KFS', 'SCHEDULE_OF_CHARGES', 'PDF']);
+  const PDF_DOCUMENT_KINDS = new Set(['MITC', 'TNC', 'KFS', 'SCHEDULE_OF_CHARGES', 'PDF']);
   let pdfExcerpt: string | undefined;
   const pdfCandidate = sourceDocuments.find((doc) => PDF_DOCUMENT_KINDS.has(doc.kind));
   if (pdfCandidate) {
@@ -358,7 +371,7 @@ async function ingestCardUrl(input: {
       const { text } = await fetchAndExtractPdfText(pdfCandidate.url, 15_000, sourceUrl);
       pdfExcerpt = text || undefined;
     } catch {
-      // PDF fetch/parse is best-effort secondary evidence; never fail ingest because of it.
+      // best-effort
     }
   }
 
@@ -369,12 +382,16 @@ async function ingestCardUrl(input: {
   let aiLatencyMs: number | undefined;
   let aiError: string | undefined;
 
+  const aiBankSlug =
+    sourceKind === 'aggregator'
+      ? (await adapter.parseProductPage({ sourceUrl, html }))?.bankSlug ?? 'hdfc'
+      : sourceSlug;
+
   try {
     const aiResult = await structureCardBundleFromPage({
-      bankSlug,
+      bankSlug: aiBankSlug,
       sourceUrl,
-      bankSourceUrl:
-        bankSlug === IDFC_FIRST_BANK_SLUG ? IDFC_FIRST_CATALOG_URL : bankCatalogUrl(bankSlug),
+      bankSourceUrl: catalogReferer,
       html,
       secondaryText: pdfExcerpt,
       systemPrompt: execConfig.systemPrompt,
@@ -391,26 +408,23 @@ async function ingestCardUrl(input: {
   }
 
   let fallbackBundle: IngestCardBundle | null = null;
-  if (bankSlug === IDFC_FIRST_BANK_SLUG) {
-    await onPhase('structuring', 'AI miss — trying IDFC rule-based fallback parser');
-    try {
+  await onPhase('structuring', 'Running rule-based fallback parser');
+  try {
+    if (sourceSlug === IDFC_FIRST_BANK_SLUG) {
       const crawled = await crawlIdfcFirstCard(path, html);
       if (crawled?.bundle) fallbackBundle = crawled.bundle;
-    } catch {
-      // optional
-    }
-  } else {
-    await onPhase('structuring', 'AI miss — trying JSON-LD / HTML fallback parser');
-    try {
+    } else if (sourceKind === 'aggregator') {
+      fallbackBundle = (await adapter.parseProductPage({ sourceUrl, html })) ?? null;
+    } else {
       fallbackBundle = parseGenericCardPage({
-        bankSlug,
+        bankSlug: sourceSlug,
         sourceUrl,
         html,
-        bankSourceUrl: bankCatalogUrl(bankSlug),
+        bankSourceUrl: bankCatalogUrl(sourceSlug),
       });
-    } catch {
-      // optional
     }
+  } catch {
+    // optional
   }
 
   const mergedSourceDocuments = mergeSourceDocuments(
@@ -440,7 +454,41 @@ async function ingestCardUrl(input: {
     throw new Error(`AI and fallback parsers both failed (${detail})`);
   }
 
+  const corpus = `${html}\n${pdfExcerpt ?? ''}`;
+  const grounded = groundIngestBundle(bundle, corpus);
+  bundle = grounded.bundle;
+
+  const safetyIssues = validateCatalogBundleSafety(bundle);
+  for (const message of safetyIssues) {
+    grounded.grounding.issues.push({ code: 'SAFETY', message });
+  }
+
   parseIngestCardBundle(bundle);
+
+  const candidateOnly = sourceKind === 'aggregator';
+  const autoPublishEligible =
+    !candidateOnly &&
+    !grounded.grounding.critical &&
+    grounded.grounding.score >= AUTO_PUBLISH_GROUNDING_SCORE &&
+    safetyIssues.length === 0;
+
+  ingestMeta = {
+    ...ingestMeta,
+    sourceKind,
+    catalogSourceSlug: sourceSlug,
+    grounding: grounded.grounding,
+    sources: [
+      {
+        kind: sourceKind,
+        slug: sourceSlug,
+        sourceUrl,
+      },
+    ],
+    conflicts: [],
+    similarCardSlug: null,
+    autoPublishEligible,
+    candidateOnly,
+  };
 
   const method =
     ingestMeta.method === 'ai'

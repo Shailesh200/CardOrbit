@@ -9,6 +9,10 @@ describe('card comparison validation', () => {
       CompareCardsInputSchema.parse({ userCardIds: ['a', 'b', 'c', 'd', 'e'] }),
     ).toThrow();
     expect(() => CompareCardsInputSchema.parse({ userCardIds: ['a', 'b'] })).not.toThrow();
+    expect(() => CompareCardsInputSchema.parse({ creditCardIds: ['a', 'b'] })).not.toThrow();
+    expect(() =>
+      CompareCardsInputSchema.parse({ userCardIds: ['a', 'b'], creditCardIds: ['c', 'd'] }),
+    ).toThrow();
   });
 
   it('accepts comparison result payload', () => {

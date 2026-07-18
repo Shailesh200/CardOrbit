@@ -19,6 +19,7 @@ import { normalizeConversationMessages } from '../normalize-conversation';
 import { AiAssistantResultCards } from './AiAssistantResultCards';
 
 const DEFAULT_STARTERS = [
+  'Plan an itinerary for Delhi — best cards for flights and hotels',
   'Which card should I use at Swiggy for ₹800?',
   'What cards do I have in my portfolio?',
   'Find a card with 0% forex markup',
@@ -38,6 +39,9 @@ export type AiAssistantChatProps = {
   title?: string;
   subtitle?: string;
   readOnlyLabel?: string;
+  /** When set, auto-submits once the chat is ready (e.g. from Nova search). */
+  pendingPrompt?: string | null;
+  onPendingPromptConsumed?: () => void;
   resolveActionHref?: (action: AssistantAction) => string | null;
   resolveResultHref?: (result: AssistantResultItem) => string | null;
   LinkComponent?: ComponentType<ActionLinkProps>;
@@ -66,9 +70,11 @@ export function AiAssistantChat({
   transport,
   enabled: enabledProp,
   starters = DEFAULT_STARTERS,
-  title = 'Ask CardWise',
-  subtitle = 'Grounded answers from your portfolio and catalog · sources cited · read-only',
+  title = 'Ask Nova',
+  subtitle = 'Plan trips, pick cards, and chart rewards · sources cited · read-only',
   readOnlyLabel = 'Read-only',
+  pendingPrompt = null,
+  onPendingPromptConsumed,
   resolveActionHref: _resolveActionHref,
   resolveResultHref,
   LinkComponent,
@@ -86,6 +92,7 @@ export function AiAssistantChat({
   const [sending, setSending] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingHandledRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (enabledProp !== undefined) {
@@ -122,6 +129,12 @@ export function AiAssistantChat({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, sending]);
+
+  useEffect(() => {
+    if (!pendingPrompt) {
+      pendingHandledRef.current = null;
+    }
+  }, [pendingPrompt]);
 
   async function submitMessage(text: string) {
     const trimmed = text.trim();
@@ -161,6 +174,17 @@ export function AiAssistantChat({
     }
   }
 
+  useEffect(() => {
+    const prompt = pendingPrompt?.trim();
+    if (!prompt || !enabled || statusLoading || historyLoading || sending) return;
+    if (pendingHandledRef.current === prompt) return;
+    pendingHandledRef.current = prompt;
+    onPendingPromptConsumed?.();
+    void submitMessage(prompt);
+    // One-shot handoff from Nova search — avoid re-binding on every message update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional one-shot
+  }, [pendingPrompt, enabled, statusLoading, historyLoading, sending, onPendingPromptConsumed]);
+
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     void submitMessage(input);
@@ -186,10 +210,10 @@ export function AiAssistantChat({
         <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Bot className="size-6" aria-hidden />
         </div>
-        <h2 className="font-display text-lg font-semibold tracking-tight">AI Assistant</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight">Nova</h2>
         <p className="text-xs text-muted-foreground">
-          The read-only AI assistant is rolling out gradually. When enabled for your account, use
-          the floating button to ask about cards, merchants, and portfolio picks.
+          Nova is rolling out gradually. When enabled for your account, use the floating button to
+          plan trips, pick cards, and ask about portfolio rewards.
         </p>
       </div>
     );
@@ -200,7 +224,7 @@ export function AiAssistantChat({
       {!compactHeader ? (
         <div className="mb-4 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Assistant</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Nova</p>
             <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
               <Sparkles className="size-2.5" aria-hidden />
               {readOnlyLabel}
@@ -289,7 +313,7 @@ export function AiAssistantChat({
           <Input
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Ask about cards, rewards, or merchants…"
+            placeholder="Ask Nova about cards, trips, or rewards…"
             disabled={sending}
             aria-label="Message to assistant"
             className="h-9 flex-1 text-xs"

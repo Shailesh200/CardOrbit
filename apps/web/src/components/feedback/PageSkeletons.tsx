@@ -122,3 +122,38 @@ export function AccountRouteSkeleton() {
     </div>
   );
 }
+
+export function RewardWalletSkeleton() {
+  return (
+    <div className="space-y-8" aria-busy="true" aria-label="Loading reward wallet">
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-8 w-64 max-w-full" />
+        <Skeleton className="h-4 w-80 max-w-full" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="space-y-3 rounded-2xl border border-border bg-card/50 p-5">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-8 w-28" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-4">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div key={index} className="space-y-3 rounded-2xl border border-border bg-card/50 p-5">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-12 rounded-xl" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            </div>
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

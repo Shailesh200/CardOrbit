@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "description": "Minimal HTML fixtures for every INDIA_CATALOG_SOURCES slug — grounding smoke coverage",
+  "sources": [
+    { "slug": "hdfc", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "hdfc" },
+    { "slug": "icici", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "icici" },
+    { "slug": "sbi", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "sbi" },
+    { "slug": "axis", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "axis" },
+    { "slug": "kotak", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "kotak" },
+    { "slug": "yes-bank", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "yes-bank" },
+    { "slug": "indusind", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "indusind" },
+    { "slug": "idfc-first", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "idfc-first" },
+    { "slug": "bob", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "bob" },
+    { "slug": "pnb", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "pnb" },
+    { "slug": "standard-chartered", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "standard-chartered" },
+    { "slug": "citi", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "citi" },
+    { "slug": "rbl", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "rbl" },
+    { "slug": "au", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "au" },
+    { "slug": "hsbc", "kind": "issuer", "fixture": "sample-product.html", "expectBankSlug": "hsbc" },
+    { "slug": "cardinsider", "kind": "aggregator", "fixture": "aggregator-product.html", "expectBankSlug": "hdfc" },
+    { "slug": "paisabazaar", "kind": "aggregator", "fixture": "aggregator-product.html", "expectBankSlug": "hdfc" }
+  ]
+}

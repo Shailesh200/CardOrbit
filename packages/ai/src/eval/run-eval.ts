@@ -78,6 +78,49 @@ export function runCatalogGoldenEval(): EvalSuiteResult {
     });
   }
 
+  const htmlManifest = readJson(join(FIXTURES_DIR, 'catalog', 'html-manifest.json')) as {
+    sources: Array<{ slug: string; kind: string; fixture: string }>;
+  };
+  const expectedSlugs = new Set([
+    'hdfc',
+    'icici',
+    'sbi',
+    'axis',
+    'kotak',
+    'yes-bank',
+    'indusind',
+    'idfc-first',
+    'bob',
+    'pnb',
+    'standard-chartered',
+    'citi',
+    'rbl',
+    'au',
+    'hsbc',
+    'cardinsider',
+    'paisabazaar',
+  ]);
+  const manifestSlugs = new Set(htmlManifest.sources.map((row) => row.slug));
+  const missing = [...expectedSlugs].filter((slug) => !manifestSlugs.has(slug));
+  const htmlIssues: string[] = [];
+  if (missing.length > 0) {
+    htmlIssues.push(`html-manifest missing sources: ${missing.join(', ')}`);
+  }
+  for (const row of htmlManifest.sources) {
+    try {
+      readFileSync(join(FIXTURES_DIR, 'catalog', 'html', row.fixture), 'utf8');
+    } catch {
+      htmlIssues.push(`missing HTML fixture file: ${row.fixture} (for ${row.slug})`);
+    }
+  }
+  cases.push({
+    id: 'catalog-html-manifest-coverage',
+    domain: 'catalog',
+    passed: htmlIssues.length === 0,
+    issues: htmlIssues,
+    mode: 'offline',
+  });
+
   const failed = cases.filter((row) => !row.passed).length;
   return { passed: failed === 0, total: cases.length, failed, cases };
 }

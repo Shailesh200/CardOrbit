@@ -5,6 +5,8 @@ import { AlertTriangle, Pencil, Wallet } from 'lucide-react';
 
 import { MiniCreditCard } from '@brand/MiniCreditCard';
 import { PageBackLink } from '@layout/PageBackLink';
+import { RewardWalletSkeleton } from '../../components/feedback/PageSkeletons';
+import { useAuthSWR } from '../../hooks/useAuthSWR';
 import { notify, toast } from '@lib/app-toast';
 
 import { getRewardExpiryIntelligence, type RewardExpiryIntelligence } from './reward-expiry-api';
@@ -229,44 +231,56 @@ function CardWalletEditor({
   );
 }
 
+async function loadRewardWalletBundle(): Promise<{
+  wallet: RewardWalletOverview;
+  expiry: RewardExpiryIntelligence;
+}> {
+  const [wallet, expiry] = await Promise.all([
+    getRewardWalletOverview(),
+    getRewardExpiryIntelligence(),
+  ]);
+  return { wallet, expiry };
+}
+
 export function RewardWalletPage() {
-  const [overview, setOverview] = useState<RewardWalletOverview | null>(null);
-  const [expiryIntel, setExpiryIntel] = useState<RewardExpiryIntelligence | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, error, isLoading, mutate } = useAuthSWR('reward-wallet', loadRewardWalletBundle, {
+    dedupingInterval: 30_000,
+  });
+  const overview = data?.wallet ?? null;
+  const expiryIntel = data?.expiry ?? null;
 
   useEffect(() => {
     document.title = 'CardOrbit · Reward wallet';
-    Promise.all([getRewardWalletOverview(), getRewardExpiryIntelligence()])
-      .then(([wallet, expiry]) => {
-        setOverview(wallet);
-        setExpiryIntel(expiry);
-      })
-      .catch((error: Error) => notify.fromError(error))
-      .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (error && !overview) {
+      notify.fromError(error);
+    }
+  }, [error, overview]);
+
   function onCardSaved(updated: RewardWalletCardSummary) {
-    setOverview((current) => {
-      if (!current) return current;
-      const cards = current.cards.map((row) =>
-        row.userCardId === updated.userCardId ? updated : row,
-      );
-      const totalEstimatedValueInr = cards.reduce(
-        (sum, row) => sum + row.totalEstimatedValueInr,
-        0,
-      );
-      return { ...current, cards, totalEstimatedValueInr };
-    });
-    void Promise.all([getRewardWalletOverview(), getRewardExpiryIntelligence()])
-      .then(([wallet, expiry]) => {
-        setOverview(wallet);
-        setExpiryIntel(expiry);
-      })
-      .catch(() => undefined);
+    void mutate(
+      (current) => {
+        if (!current) return current;
+        const cards = current.wallet.cards.map((row) =>
+          row.userCardId === updated.userCardId ? updated : row,
+        );
+        const totalEstimatedValueInr = cards.reduce(
+          (sum, row) => sum + row.totalEstimatedValueInr,
+          0,
+        );
+        return {
+          ...current,
+          wallet: { ...current.wallet, cards, totalEstimatedValueInr },
+        };
+      },
+      { revalidate: true },
+    );
   }
 
-  if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading reward wallet…</p>;
+  if (isLoading && !overview) {
+    return <RewardWalletSkeleton />;
   }
 
   if (!overview) {

@@ -20,6 +20,7 @@ export {
   primeClientFeatureFlags,
   refreshFeatureFlagsFromApi,
   resetClientFeatureFlags,
+  subscribeClientFeatureFlags,
   type FeatureFlagsApiResponse,
   type FeatureFlagsClientOptions,
 } from './browser-client';

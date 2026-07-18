@@ -191,13 +191,14 @@ export async function runGmailStatementSync(
 
   await onProgress?.({ message: 'Searching Gmail for card transactions' });
 
+  // Alert-only: exclude statement/bill subjects so due amounts are not imported as spends.
   const query = [
     '(',
-    'subject:statement OR subject:"e-statement" OR subject:"account statement"',
-    'OR subject:spent OR subject:debited OR subject:transaction OR subject:"credit card"',
-    'OR "spent on your" OR "debited from" OR "transaction of"',
+    'subject:spent OR subject:debited OR subject:transaction OR subject:"credit card"',
+    'OR "spent on your" OR "debited from" OR "transaction of" OR "paid using"',
     ')',
     '(credit OR card OR hdfc OR icici OR sbi OR axis OR amex OR kotak OR rbl OR idfc)',
+    '-subject:statement -subject:"e-statement" -subject:"account statement" -"amount due" -"minimum due"',
     'newer_than:90d',
   ].join(' ');
 

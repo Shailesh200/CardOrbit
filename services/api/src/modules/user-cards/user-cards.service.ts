@@ -62,7 +62,15 @@ export class UserCardsService {
 
   async listCatalog(
     userId: string,
-    query: { q?: string; bankSlug?: string; offset?: number; limit?: number } = {},
+    query: {
+      q?: string;
+      bankSlug?: string;
+      networkCode?: string;
+      maxAnnualFeeInr?: number;
+      category?: string;
+      offset?: number;
+      limit?: number;
+    } = {},
   ): Promise<{
     items: CatalogCardDto[];
     total: number;
@@ -74,11 +82,27 @@ export class UserCardsService {
 
     const offset = Math.max(0, query.offset ?? 0);
     const limit = Math.min(Math.max(query.limit ?? 20, 1), 50);
+    const networkCode = query.networkCode?.trim().toUpperCase();
+    const category = query.category?.trim().toUpperCase();
 
     const where = {
       deletedAt: null,
       active: true,
       ...(query.bankSlug ? { bank: { slug: query.bankSlug, deletedAt: null } } : {}),
+      ...(networkCode ? { network: { code: networkCode, deletedAt: null } } : {}),
+      ...(query.maxAnnualFeeInr != null && Number.isFinite(query.maxAnnualFeeInr)
+        ? { annualFeeInr: { lte: query.maxAnnualFeeInr } }
+        : {}),
+      ...(category
+        ? {
+            benefits: {
+              some: {
+                deletedAt: null,
+                benefitType: { code: category, deletedAt: null },
+              },
+            },
+          }
+        : {}),
       ...(query.q ? buildCatalogCardKeywordWhere(query.q) : {}),
     };
 

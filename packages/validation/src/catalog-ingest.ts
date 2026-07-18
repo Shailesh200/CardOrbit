@@ -135,12 +135,65 @@ export function parseIngestMerchantRemove(input: unknown): IngestMerchantRemove 
   return IngestMerchantRemoveSchema.parse(input);
 }
 
+export const CatalogImportGroundingSchema = z.object({
+  score: z.number().min(0).max(1),
+  groundedClaims: z
+    .array(
+      z.object({
+        kind: z.string(),
+        value: z.union([z.string(), z.number()]),
+        grounded: z.boolean(),
+      }),
+    )
+    .default([]),
+  ungroundedClaims: z
+    .array(
+      z.object({
+        kind: z.string(),
+        value: z.union([z.string(), z.number()]),
+        grounded: z.boolean(),
+      }),
+    )
+    .default([]),
+  issues: z
+    .array(
+      z.object({
+        code: z.string(),
+        message: z.string(),
+      }),
+    )
+    .default([]),
+  critical: z.boolean().default(false),
+});
+
+export const CatalogImportSourceContributionSchema = z.object({
+  kind: z.enum(['issuer', 'aggregator']),
+  slug: z.string().min(1),
+  sourceUrl: url,
+  contentHash: z.string().optional(),
+});
+
+export const CatalogImportConflictSchema = z.object({
+  field: z.string(),
+  issuerValue: z.union([z.string(), z.number(), z.null()]).optional(),
+  aggregatorValue: z.union([z.string(), z.number(), z.null()]).optional(),
+  resolution: z.enum(['issuer_wins', 'needs_review', 'aggregator_only']),
+});
+
 export const CatalogImportIngestMetaSchema = z.object({
   method: z.enum(['ai', 'crawl', 'ai+fallback', 'fallback']),
   model: z.string().optional(),
   promptVersion: z.string().optional(),
   latencyMs: z.number().int().nonnegative().optional(),
   fallbackBundle: IngestCardBundleSchema.optional(),
+  sourceKind: z.enum(['issuer', 'aggregator']).optional(),
+  catalogSourceSlug: z.string().optional(),
+  grounding: CatalogImportGroundingSchema.optional(),
+  sources: z.array(CatalogImportSourceContributionSchema).optional(),
+  conflicts: z.array(CatalogImportConflictSchema).optional(),
+  similarCardSlug: z.string().optional().nullable(),
+  autoPublishEligible: z.boolean().optional(),
+  candidateOnly: z.boolean().optional(),
 });
 
 export type CatalogImportIngestMeta = z.infer<typeof CatalogImportIngestMetaSchema>;

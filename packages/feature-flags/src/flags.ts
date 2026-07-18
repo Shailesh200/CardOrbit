@@ -35,12 +35,12 @@ export type FeatureFlagKey = (typeof FeatureFlag)[keyof typeof FeatureFlag];
 /** Environment-aware defaults for Phase 0 (local/development rollout). */
 export const FEATURE_FLAG_DEFAULTS: Record<FeatureFlagKey, boolean> = {
   browser_extension_enabled: true,
-  ai_platform_enabled: false,
+  ai_platform_enabled: true,
   ai_catalog_structuring_enabled: false,
-  ai_explanations_enabled: false,
-  ai_insights_enabled: false,
-  ai_search_enabled: false,
-  ai_assistant_enabled: false,
+  ai_explanations_enabled: true,
+  ai_insights_enabled: true,
+  ai_search_enabled: true,
+  ai_assistant_enabled: true,
   ai_copilot_enabled: true,
   ai_knowledge_graph_enabled: false,
   ai_ranking_signals_enabled: false,

@@ -1,6 +1,6 @@
 import { INDIA_BANK_SOURCES } from '../../india/bank-sources';
 import type { BankCrawlerAdapter } from '../adapter';
-import { createGenericBankAdapter } from './generic';
+import { createIssuerBankAdapter } from '../issuer-bank-adapter';
 
 const BANK_SLUG = 'standard-chartered';
 
@@ -9,5 +9,7 @@ if (!bankSource) {
   throw new Error(`Missing INDIA_BANK_SOURCES entry for bank slug: ${BANK_SLUG}`);
 }
 
-/** Standard Chartered (India) — generic discovery + JSON-LD product page adapter (no dedicated deep crawler yet). */
-export const standardCharteredAdapter: BankCrawlerAdapter = createGenericBankAdapter(bankSource);
+/** Standard Chartered (India) — issuer adapter with bank-tuned discovery + fee/MITC extraction. */
+export const standardCharteredAdapter: BankCrawlerAdapter = createIssuerBankAdapter(bankSource, {
+  productPathHints: ['credit-card', 'credit-cards'],
+});

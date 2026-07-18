@@ -18,14 +18,12 @@ export function AiNativeStrip() {
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <AiVisual variant="mark" className="size-4" />
-            <h2 className="font-display text-sm font-semibold tracking-tight">
-              AI-native intelligence
-            </h2>
+            <h2 className="font-display text-sm font-semibold tracking-tight">Powered by Nova</h2>
             <AiBadge variant="native" showIcon={false} />
           </div>
           <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
-            Rewards math is always computed by CardOrbit rules. AI helps you search, understand
-            picks, and ask questions — with sources cited, never invented rates.
+            Rewards math is always computed by CardOrbit rules. Nova helps you plan trips, search,
+            understand picks, and ask questions — with sources cited, never invented rates.
           </p>
         </div>
 
@@ -50,7 +48,7 @@ export function AiNativeStrip() {
         {ai.assistant ? (
           <p className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/80 px-3 py-1.5 text-xs font-medium text-primary">
             <img src="/assets/ai/ai-assistant-mark.svg" alt="" className="size-3.5" aria-hidden />
-            Use the floating assistant button
+            Ask Nova from the search bar or floating button
           </p>
         ) : null}
         {ai.explanations ? (

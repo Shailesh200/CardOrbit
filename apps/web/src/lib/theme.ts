@@ -32,6 +32,19 @@ export function persistTheme(theme: Theme): void {
 /** Applies the theme to <html> so CSS (`.dark`) and Toaster stay in sync. */
 export function applyTheme(theme: Theme): void {
   if (typeof document === 'undefined') return;
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-  document.documentElement.dataset.theme = theme;
+  const root = document.documentElement;
+  root.classList.toggle('dark', theme === 'dark');
+  root.dataset.theme = theme;
+  // Keep FOUC inline colors in sync with the toggle (see index.html).
+  if (theme === 'light') {
+    root.style.backgroundColor = '#f4f6fb';
+    root.style.color = '#0f172a';
+  } else {
+    root.style.backgroundColor = '#050816';
+    root.style.color = '#f9fafb';
+  }
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) {
+    themeColor.setAttribute('content', theme === 'light' ? '#f4f6fb' : '#050816');
+  }
 }

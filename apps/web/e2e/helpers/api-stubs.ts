@@ -4,12 +4,12 @@ type Json = Record<string, unknown> | unknown[] | string | number | boolean | nu
 
 const FEATURE_FLAGS = {
   browser_extension_enabled: true,
-  ai_platform_enabled: false,
+  ai_platform_enabled: true,
   ai_catalog_structuring_enabled: false,
-  ai_explanations_enabled: false,
-  ai_insights_enabled: false,
-  ai_search_enabled: false,
-  ai_assistant_enabled: false,
+  ai_explanations_enabled: true,
+  ai_insights_enabled: true,
+  ai_search_enabled: true,
+  ai_assistant_enabled: true,
   ai_copilot_enabled: true,
   ai_knowledge_graph_enabled: false,
   ai_ranking_signals_enabled: false,
@@ -265,6 +265,30 @@ export async function stubConsumerApi(page: Page, mode: ApiStubMode = 'happy'): 
 
     if (pathname === '/api/v1/dashboard') {
       await fulfillJson(route, dashboardSnapshotStub());
+      return;
+    }
+
+    if (pathname === '/api/v1/ai/assistant/status') {
+      await fulfillJson(route, { enabled: true, configured: true, mode: 'assistant' });
+      return;
+    }
+
+    if (pathname === '/api/v1/ai/assistant/conversation') {
+      await fulfillJson(route, null);
+      return;
+    }
+
+    if (pathname === '/api/v1/ai/chat' && method === 'POST') {
+      await fulfillJson(route, {
+        conversationId: 'conv-e2e',
+        message: 'Stubbed Nova reply for e2e.',
+        readOnly: true,
+        confidence: 'medium',
+        toolsUsed: [],
+        citations: [],
+        actions: [],
+        results: [],
+      });
       return;
     }
 

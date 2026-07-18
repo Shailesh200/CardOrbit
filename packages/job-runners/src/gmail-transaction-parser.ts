@@ -6,11 +6,17 @@ export type ParsedGmailTransaction = {
   rawSnippet: string;
 };
 
+/** Bill / statement copy that must never be imported as a spend. */
+const BILL_OR_STATEMENT_PATTERN =
+  /\b(?:amount\s+due|total\s+amount\s+due|total\s+due|minimum\s+(?:amount\s+)?due|min\.?\s*due|outstanding(?:\s+balance)?|payment\s+due|due\s+date|e-?statement|account\s+statement|statement\s+is\s+ready|statement\s+ready|bill\s+(?:of|generated|is\s+ready)|please\s+pay|pay\s+by)\b/i;
+
+const SPEND_VERB_PATTERN =
+  /\b(?:spent|debited|paid|charged|used|withdrawn|purchase|txn|transaction(?:\s+of)?)\b/i;
+
 const AMOUNT_PATTERNS = [
   /(?:Rs\.?|INR|₹)\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.\d{1,2})?|[0-9]+(?:\.\d{1,2})?)\s*(?:was\s+)?(?:spent|debited|paid|charged|used|withdrawn)/i,
   /(?:spent|debited|paid|charged|used)\s+(?:of\s+)?(?:Rs\.?|INR|₹)\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.\d{1,2})?|[0-9]+(?:\.\d{1,2})?)/i,
   /(?:transaction|txn|purchase)\s+(?:of\s+)?(?:Rs\.?|INR|₹)\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.\d{1,2})?|[0-9]+(?:\.\d{1,2})?)/i,
-  /(?:Rs\.?|INR|₹)\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.\d{1,2})?|[0-9]+(?:\.\d{1,2})?)\s+(?:on|at)\s+/i,
 ];
 
 const MERCHANT_PATTERNS = [
@@ -89,7 +95,7 @@ function parseBankHint(text: string): string | null {
   return null;
 }
 
-/** Extract a spend transaction from Indian credit-card alert / statement email text. */
+/** Extract a spend transaction from Indian credit-card alert email text. */
 export function parseGmailTransactionAlert(
   text: string,
   options: { fallbackDate?: Date } = {},
@@ -97,10 +103,15 @@ export function parseGmailTransactionAlert(
   const normalized = text.replace(/\s+/g, ' ').trim();
   if (!normalized) return null;
 
+  if (BILL_OR_STATEMENT_PATTERN.test(normalized)) return null;
+  if (!SPEND_VERB_PATTERN.test(normalized)) return null;
+
   const amountInr = parseAmount(normalized);
   if (amountInr == null) return null;
 
-  const merchantName = parseMerchant(normalized) ?? 'Card spend';
+  const merchantName = parseMerchant(normalized);
+  if (!merchantName) return null;
+
   const transactedAt = parseDate(normalized, options.fallbackDate ?? new Date());
   const bankHint = parseBankHint(normalized);
 

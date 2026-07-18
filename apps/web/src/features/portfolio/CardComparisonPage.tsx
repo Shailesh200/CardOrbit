@@ -8,6 +8,7 @@ import { notify, toast } from '@lib/app-toast';
 
 import {
   buildComparisonIdsParam,
+  compareCatalogCards,
   comparePortfolioCards,
   COMPARISON_GROUP_LABELS,
   MAX_COMPARISON_CARDS,
@@ -120,9 +121,10 @@ function ComparisonDataRow({ row, columnIds }: { row: ComparisonRow; columnIds: 
 
 export function CardComparisonPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const catalogMode = Boolean(searchParams.get('catalogIds'));
   const [portfolio, setPortfolio] = useState<PortfolioCardSummary[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
-    parseComparisonIdsParam(searchParams.get('ids')),
+    parseComparisonIdsParam(searchParams.get(catalogMode ? 'catalogIds' : 'ids')),
   );
   const [result, setResult] = useState<CardComparisonResult | null>(null);
   const [loadingPortfolio, setLoadingPortfolio] = useState(true);
@@ -132,29 +134,38 @@ export function CardComparisonPage() {
 
   useEffect(() => {
     document.title = 'CardOrbit · Compare cards';
+    if (catalogMode) {
+      setLoadingPortfolio(false);
+      return;
+    }
     listPortfolio()
       .then(setPortfolio)
       .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoadingPortfolio(false));
-  }, []);
+  }, [catalogMode]);
 
-  const runComparison = useCallback(async (ids: string[]) => {
-    if (ids.length < MIN_COMPARISON_CARDS) {
-      setResult(null);
-      return;
-    }
+  const runComparison = useCallback(
+    async (ids: string[]) => {
+      if (ids.length < MIN_COMPARISON_CARDS) {
+        setResult(null);
+        return;
+      }
 
-    setComparing(true);
-    try {
-      const data = await comparePortfolioCards(ids);
-      setResult(data);
-    } catch (error) {
-      setResult(null);
-      notify.fromError(error, 'Comparison failed');
-    } finally {
-      setComparing(false);
-    }
-  }, []);
+      setComparing(true);
+      try {
+        const data = catalogMode
+          ? await compareCatalogCards(ids)
+          : await comparePortfolioCards(ids);
+        setResult(data);
+      } catch (error) {
+        setResult(null);
+        notify.fromError(error, 'Comparison failed');
+      } finally {
+        setComparing(false);
+      }
+    },
+    [catalogMode],
+  );
 
   useEffect(() => {
     if (selectedIds.length >= MIN_COMPARISON_CARDS) {
@@ -166,10 +177,11 @@ export function CardComparisonPage() {
 
   useEffect(() => {
     const next = buildComparisonIdsParam(selectedIds);
-    if (next !== (searchParams.get('ids') ?? '')) {
-      setSearchParams(next ? { ids: next } : {}, { replace: true });
+    const key = catalogMode ? 'catalogIds' : 'ids';
+    if (next !== (searchParams.get(key) ?? '')) {
+      setSearchParams(next ? { [key]: next } : {}, { replace: true });
     }
-  }, [selectedIds, searchParams, setSearchParams]);
+  }, [selectedIds, searchParams, setSearchParams, catalogMode]);
 
   function toggleCard(userCardId: string) {
     setSelectedIds((current) => {
@@ -220,66 +232,78 @@ export function CardComparisonPage() {
               Card comparison
             </p>
             <h1 className="consumer-page-heading font-display text-[1.75rem] font-semibold tracking-tight">
-              Compare your cards side by side
+              Compare cards side by side
             </h1>
             <p className="text-sm text-muted-foreground">
-              Pick {MIN_COMPARISON_CARDS}–{MAX_COMPARISON_CARDS} portfolio cards to compare fees,
-              rewards, lounge access, insurance, and more.
+              {catalogMode
+                ? `Comparing ${selectedIds.length} catalog cards on fees, rewards, lounge access, and more.`
+                : `Pick ${MIN_COMPARISON_CARDS}–${MAX_COMPARISON_CARDS} portfolio cards to compare fees, rewards, lounge access, insurance, and more.`}
             </p>
+            {catalogMode ? (
+              <p className="text-sm">
+                <Link to="/account/cards/explore" className="text-primary hover:underline">
+                  Back to explore
+                </Link>
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Select cards
-        </h2>
-        {loadingPortfolio ? (
-          <p className="text-sm text-muted-foreground">Loading portfolio…</p>
-        ) : portfolio.length < MIN_COMPARISON_CARDS ? (
-          <p className="text-sm text-muted-foreground">
-            Add at least two cards to your portfolio to compare.{' '}
-            <Link to="/account/cards/add" className="text-primary hover:underline">
-              Browse catalog
-            </Link>
-          </p>
-        ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {portfolio.map((card) => {
-              const selected = selectedIds.includes(card.id);
-              return (
-                <li key={card.id}>
-                  <button
-                    type="button"
-                    onClick={() => toggleCard(card.id)}
-                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                      selected
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-border/60 bg-background/60 hover:border-primary/30'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold">{card.nickname ?? card.card.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {card.card.bank.name}
-                        </p>
+      {catalogMode ? null : (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Select cards
+          </h2>
+          {loadingPortfolio ? (
+            <p className="text-sm text-muted-foreground">Loading portfolio…</p>
+          ) : portfolio.length < MIN_COMPARISON_CARDS ? (
+            <p className="text-sm text-muted-foreground">
+              Add at least two cards to your portfolio to compare.{' '}
+              <Link to="/account/cards/explore" className="text-primary hover:underline">
+                Explore catalog
+              </Link>
+            </p>
+          ) : (
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {portfolio.map((card) => {
+                const selected = selectedIds.includes(card.id);
+                return (
+                  <li key={card.id}>
+                    <button
+                      type="button"
+                      onClick={() => toggleCard(card.id)}
+                      className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                        selected
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border/60 bg-background/60 hover:border-primary/30'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold">
+                            {card.nickname ?? card.card.name}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {card.card.bank.name}
+                          </p>
+                        </div>
+                        {card.isFavorite ? (
+                          <Star className="size-4 shrink-0 fill-primary text-primary" aria-hidden />
+                        ) : null}
                       </div>
-                      {card.isFavorite ? (
-                        <Star className="size-4 shrink-0 fill-primary text-primary" aria-hidden />
-                      ) : null}
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        <p className="text-xs text-muted-foreground">
-          {selectedIds.length} of {MAX_COMPARISON_CARDS} selected
-          {selectedIds.length >= MIN_COMPARISON_CARDS ? ' · share this URL to revisit' : ''}
-        </p>
-      </section>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {selectedIds.length} of {MAX_COMPARISON_CARDS} selected
+            {selectedIds.length >= MIN_COMPARISON_CARDS ? ' · share this URL to revisit' : ''}
+          </p>
+        </section>
+      )}
 
       {sortedResult ? (
         <section className="space-y-4">

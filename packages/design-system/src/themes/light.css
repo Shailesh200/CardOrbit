@@ -1,6 +1,6 @@
 /**
- * CardOrbit design tokens — Deep Space (default).
- * Premium AI financial OS: deep space canvas, electric blue + orbit purple.
+ * CardOrbit design tokens — light theme (:root).
+ * Soft daylight canvas with the same electric blue + orbit purple accents.
  * Typography: Geist (display + UI).
  */
 :root {
@@ -46,11 +46,11 @@
   --radius-xl: calc(var(--radius) * 1.6);
   --radius-full: 9999px;
 
-  /* Soft elevation — floating glass, not muddy */
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.24);
-  --shadow-sm: 0 4px 24px rgb(0 0 0 / 0.28);
-  --shadow-md: 0 12px 40px rgb(0 0 0 / 0.36);
-  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.45);
+  /* Soft elevation */
+  --shadow-xs: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-sm: 0 4px 20px rgb(15 23 42 / 0.08);
+  --shadow-md: 0 12px 32px rgb(15 23 42 / 0.1);
+  --shadow-lg: 0 24px 56px rgb(15 23 42 / 0.12);
 
   /* Motion — deliberate, orbital */
   --duration-fast: 160ms;
@@ -59,44 +59,44 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Atmosphere — blue / purple orbital mesh */
-  --mesh-teal: rgb(79 140 255 / 0.18);
-  --mesh-gold: rgb(124 92 255 / 0.14);
-  --mesh-ink: rgb(99 102 241 / 0.08);
+  /* Atmosphere — blue / purple orbital mesh (lighter) */
+  --mesh-teal: rgb(79 140 255 / 0.12);
+  --mesh-gold: rgb(124 92 255 / 0.1);
+  --mesh-ink: rgb(99 102 241 / 0.06);
 
-  /* Color — Deep Space */
-  --background: #050816;
-  --foreground: #f9fafb;
-  --card: #111827;
-  --card-foreground: #f9fafb;
-  --popover: #161d33;
-  --popover-foreground: #f9fafb;
-  --primary: #4f8cff;
-  --primary-foreground: #f9fafb;
-  --secondary: #0b1023;
-  --secondary-foreground: #f9fafb;
-  --muted: #161d33;
-  --muted-foreground: #94a3b8;
-  --accent: #161d33;
-  --accent-foreground: #f9fafb;
-  --destructive: #ef4444;
-  --destructive-foreground: #f9fafb;
-  --border: rgb(255 255 255 / 0.08);
-  --input: rgb(255 255 255 / 0.1);
-  --ring: #4f8cff;
-  --chart-1: #4f8cff;
-  --chart-2: #7c5cff;
-  --chart-3: #6366f1;
-  --chart-4: #22c55e;
-  --chart-5: #f59e0b;
+  /* Color — Daylight */
+  --background: #f4f6fb;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #3b6fe0;
+  --primary-foreground: #f8fafc;
+  --secondary: #e8eefc;
+  --secondary-foreground: #0f172a;
+  --muted: #eef2f8;
+  --muted-foreground: #64748b;
+  --accent: #e8eefc;
+  --accent-foreground: #0f172a;
+  --destructive: #dc2626;
+  --destructive-foreground: #f8fafc;
+  --border: rgb(15 23 42 / 0.1);
+  --input: rgb(15 23 42 / 0.12);
+  --ring: #3b6fe0;
+  --chart-1: #3b6fe0;
+  --chart-2: #6d4fe8;
+  --chart-3: #4f46e5;
+  --chart-4: #16a34a;
+  --chart-5: #d97706;
 
   /* Orbit brand accents */
-  --orbit-blue: #4f8cff;
-  --orbit-purple: #7c5cff;
-  --orbit-indigo: #6366f1;
-  --orbit-surface: #111827;
-  --orbit-elevated: #161d33;
-  --orbit-secondary: #0b1023;
-  --success: #22c55e;
-  --warning: #f59e0b;
+  --orbit-blue: #3b6fe0;
+  --orbit-purple: #6d4fe8;
+  --orbit-indigo: #4f46e5;
+  --orbit-surface: #ffffff;
+  --orbit-elevated: #f8fafc;
+  --orbit-secondary: #e8eefc;
+  --success: #16a34a;
+  --warning: #d97706;
 }

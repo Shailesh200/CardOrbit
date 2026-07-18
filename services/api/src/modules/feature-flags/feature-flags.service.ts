@@ -28,6 +28,7 @@ export class FeatureFlagsService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     initFeatureFlags({ useLocalOnly: true });
     await this.seedMissingDefinitions();
+    await this.alignUneditedDefaults();
     await this.refreshDefinitions();
   }
 
@@ -137,6 +138,34 @@ export class FeatureFlagsService implements OnModuleInit {
       });
     }
     this.logger.log(`Seeded ${keys.length} feature flag definitions`);
+  }
+
+  /**
+   * Promote flags whose package defaults flipped on, but only when an admin never
+   * edited the row (updatedBy is null). Preserves intentional admin disables.
+   */
+  private async alignUneditedDefaults(): Promise<void> {
+    const keys = (Object.keys(FEATURE_FLAG_DEFAULTS) as FeatureFlagKey[]).filter(
+      (key) => FEATURE_FLAG_DEFAULTS[key],
+    );
+    let updated = 0;
+    for (const key of keys) {
+      const result = await this.prisma.featureFlagDefinition.updateMany({
+        where: {
+          key,
+          enabled: false,
+          updatedBy: null,
+        },
+        data: {
+          enabled: true,
+          rolloutPercentage: 100,
+        },
+      });
+      updated += result.count;
+    }
+    if (updated > 0) {
+      this.logger.log(`Aligned ${updated} unedited feature flags to package defaults`);
+    }
   }
 
   private toDto(row: {

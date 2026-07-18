@@ -1,7 +1,9 @@
 import type { IngestCardBundle } from '@cardwise/validation';
 
+import { INDIA_AGGREGATOR_SOURCES } from '../india/aggregator-sources';
 import { INDIA_BANK_SOURCES } from '../india/bank-sources';
-import { getBankCrawlerAdapter } from './adapters/registry';
+import { INDIA_CATALOG_SOURCES, getCatalogSource } from '../india/catalog-sources';
+import { getCatalogCrawlerAdapter } from './adapters/registry';
 import { fetchText } from './http';
 import { crawlIdfcFirstBank } from './idfc-first';
 
@@ -13,16 +15,14 @@ export type CatalogIngestPayload = {
   summary: string;
 };
 
-/**
- * Deep crawler adapters exist for every India bank in `INDIA_BANK_SOURCES` (see
- * `crawl/adapters/registry.ts`): `idfc-first` uses a dedicated deep implementation, every
- * other bank uses the hardened generic discovery + product-page parser until a
- * bank-specific deep implementation is written.
- */
 export const SUPPORTED_BANK_CRAWLERS = INDIA_BANK_SOURCES.map((bank) => bank.slug);
 export const SUPPORTED_BANK_AI_INGEST = INDIA_BANK_SOURCES.map((bank) => bank.slug);
+export const SUPPORTED_CATALOG_SOURCES = INDIA_CATALOG_SOURCES.map((source) => source.slug);
+export const SUPPORTED_AGGREGATOR_SOURCES = INDIA_AGGREGATOR_SOURCES.map((source) => source.slug);
+
 export type SupportedBankSlug = (typeof SUPPORTED_BANK_CRAWLERS)[number];
 export type SupportedAiIngestBankSlug = (typeof SUPPORTED_BANK_AI_INGEST)[number];
+export type SupportedCatalogSourceSlug = (typeof SUPPORTED_CATALOG_SOURCES)[number];
 
 export function isSupportedAiIngestBankSlug(value: string): value is SupportedAiIngestBankSlug {
   return (SUPPORTED_BANK_AI_INGEST as readonly string[]).includes(value);
@@ -32,10 +32,18 @@ export function isSupportedBankSlug(value: string): value is SupportedBankSlug {
   return (SUPPORTED_BANK_CRAWLERS as readonly string[]).includes(value);
 }
 
-/** Discover per-bank product page URLs via the registered `BankCrawlerAdapter`. */
-export async function discoverBankCardUrls(bankSlug: SupportedAiIngestBankSlug): Promise<string[]> {
-  const adapter = getBankCrawlerAdapter(bankSlug);
+export function isSupportedCatalogSourceSlug(value: string): value is SupportedCatalogSourceSlug {
+  return (SUPPORTED_CATALOG_SOURCES as readonly string[]).includes(value);
+}
+
+/** Discover product page URLs via the registered catalog adapter (issuer or aggregator). */
+export async function discoverBankCardUrls(bankSlug: string): Promise<string[]> {
+  const adapter = getCatalogCrawlerAdapter(bankSlug);
   return adapter.discoverCardUrls();
+}
+
+export async function discoverCatalogCardUrls(sourceSlug: string): Promise<string[]> {
+  return discoverBankCardUrls(sourceSlug);
 }
 
 function summarizeBundle(bundle: IngestCardBundle, sourceUrl: string): string {
@@ -43,12 +51,18 @@ function summarizeBundle(bundle: IngestCardBundle, sourceUrl: string): string {
 }
 
 /**
- * Rule-based (non-AI) crawl for a bank's full card catalog, used by the admin "Crawl bank"
- * action. IDFC FIRST uses its dedicated deep crawler; every other bank crawls via its
- * registered generic `BankCrawlerAdapter` (discover → fetch → parseProductPage).
+ * Rule-based crawl for a catalog source (issuer bank or aggregator).
  */
-export async function crawlBankCards(bankSlug: SupportedBankSlug): Promise<CatalogIngestPayload[]> {
-  if (bankSlug === 'idfc-first') {
+export async function crawlBankCards(bankSlug: string): Promise<CatalogIngestPayload[]> {
+  return crawlCatalogSource(bankSlug);
+}
+
+export async function crawlCatalogSource(sourceSlug: string): Promise<CatalogIngestPayload[]> {
+  if (!isSupportedCatalogSourceSlug(sourceSlug)) {
+    throw new Error(`Unsupported catalog source: ${sourceSlug}`);
+  }
+
+  if (sourceSlug === 'idfc-first') {
     const cards = await crawlIdfcFirstBank();
     return cards.map(({ bundle, sourceUrl }) => ({
       entityType: 'CARD_BUNDLE' as const,
@@ -59,7 +73,7 @@ export async function crawlBankCards(bankSlug: SupportedBankSlug): Promise<Catal
     }));
   }
 
-  const adapter = getBankCrawlerAdapter(bankSlug);
+  const adapter = getCatalogCrawlerAdapter(sourceSlug);
   const sourceUrls = await adapter.discoverCardUrls();
   const payloadsBySlug = new Map<string, CatalogIngestPayload>();
 
@@ -83,6 +97,10 @@ export async function crawlBankCards(bankSlug: SupportedBankSlug): Promise<Catal
   return [...payloadsBySlug.values()].sort((a, b) => a.payload.name.localeCompare(b.payload.name));
 }
 
+export function catalogSourceKind(sourceSlug: string): 'issuer' | 'aggregator' {
+  return getCatalogSource(sourceSlug)?.kind ?? 'issuer';
+}
+
 export {
   IDFC_FIRST_BANK_SLUG,
   IDFC_FIRST_BASE_URL,
@@ -94,15 +112,26 @@ export {
 
 export { discoverGenericBankCardUrls, bankCatalogListingUrl } from './generic-discovery';
 export { parseGenericCardPage } from './generic-card-page';
+export { parseAggregatorCardPage, discoverAggregatorUrlsFromHtml } from './aggregator-parse';
+export { createIssuerBankAdapter } from './issuer-bank-adapter';
+export {
+  normalizeCardName,
+  normalizeSourceUrl,
+  cardNameSimilarity,
+  isLikelySameCard,
+} from './identity';
 
 export { fetchText, fetchHtml, fetchPdf, type FetchHtmlResult, type FetchPdfResult } from './http';
 export { extractPdfText, fetchAndExtractPdfText } from './pdf';
 export { extractSourceDocumentLinks, mergeSourceDocuments } from './source-documents';
 
-export type { BankCrawlerAdapter, ProductPageInput } from './adapter';
+export type { BankCrawlerAdapter, CatalogCrawlerAdapter, ProductPageInput } from './adapter';
 export { createGenericBankAdapter } from './adapters/generic';
 export {
   BANK_CRAWLER_ADAPTERS,
+  CATALOG_CRAWLER_ADAPTERS,
   getBankCrawlerAdapter,
+  getCatalogCrawlerAdapter,
   listRegisteredBankCrawlerAdapters,
+  listRegisteredCatalogCrawlerAdapters,
 } from './adapters/registry';

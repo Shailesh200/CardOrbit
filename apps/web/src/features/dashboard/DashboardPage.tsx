@@ -1,18 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Button } from '@cardwise/ui';
-import { Plus } from 'lucide-react';
+import { GitCompareArrows, Plus } from 'lucide-react';
 
 import { DashboardHomeSkeleton } from '../../components/feedback/PageSkeletons';
+import { useAuthSWR } from '../../hooks/useAuthSWR';
 import { AiNativeStrip } from '../ai/components/AiNativeStrip';
+import { NovaPlannerSearch } from '../nova/NovaPlannerSearch';
 
 import { getRecentMerchants } from '../merchants/recent-searches';
 import { notify } from '../../lib/app-toast';
-import {
-  getDashboardSnapshot,
-  type DashboardSnapshot,
-  type DashboardWidgetId,
-} from './dashboard-api';
+import { getDashboardSnapshot, type DashboardWidgetId } from './dashboard-api';
 
 import { DashboardRecommendationWidget } from './components/DashboardRecommendationWidget';
 import { ExpiringRewardsWidget } from './components/ExpiringRewardsWidget';
@@ -29,55 +27,25 @@ import { RewardWalletSummaryWidget } from './components/RewardWalletSummaryWidge
 import { UpcomingTravelWidget } from './components/UpcomingTravelWidget';
 
 const HERO_WIDGETS = new Set<DashboardWidgetId>(['recommendation', 'savings']);
-const CACHE_TTL_MS = 60_000;
-
-type DashboardCache = { data: DashboardSnapshot; fetchedAt: number };
-let dashboardCache: DashboardCache | null = null;
-
-function readFreshCache(): DashboardSnapshot | null {
-  if (!dashboardCache) return null;
-  if (Date.now() - dashboardCache.fetchedAt > CACHE_TTL_MS) return null;
-  return dashboardCache.data;
-}
 
 export function DashboardPage() {
-  const cached = readFreshCache();
-  const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(
-    () => cached ?? dashboardCache?.data ?? null,
-  );
-  const [loading, setLoading] = useState(() => !dashboardCache);
   const [recentMerchants] = useState(() => getRecentMerchants());
-
-  const load = useCallback(async (quiet = false) => {
-    if (!quiet && !dashboardCache) setLoading(true);
-    try {
-      const data = await getDashboardSnapshot();
-      dashboardCache = { data, fetchedAt: Date.now() };
-      setSnapshot(data);
-    } catch (error) {
-      if (!dashboardCache) {
-        notify.fromError(error, 'Homepage unavailable');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const {
+    data: snapshot,
+    isLoading,
+    error,
+  } = useAuthSWR('dashboard-snapshot', getDashboardSnapshot, { dedupingInterval: 60_000 });
+  const loading = isLoading && !snapshot;
 
   useEffect(() => {
     document.title = 'CardOrbit · Home';
-    const fresh = readFreshCache();
-    if (fresh) {
-      setSnapshot(fresh);
-      setLoading(false);
-      void load(true);
-      return;
+  }, []);
+
+  useEffect(() => {
+    if (error && !snapshot) {
+      notify.fromError(error, 'Homepage unavailable');
     }
-    if (dashboardCache) {
-      setSnapshot(dashboardCache.data);
-      setLoading(false);
-    }
-    void load(Boolean(dashboardCache));
-  }, [load]);
+  }, [error, snapshot]);
 
   function renderWidget(id: DashboardWidgetId) {
     if (!snapshot) return null;
@@ -142,7 +110,7 @@ export function DashboardPage() {
       `Personalized for ${snapshot.personalization.preferredRewardLabel}`)
     : snapshot
       ? `AI-personalized for ${snapshot.personalization.preferredRewardLabel} · ${snapshot.portfolioCount} card${snapshot.portfolioCount === 1 ? '' : 's'} in portfolio`
-      : 'Optimizing rewards, AI search, and guidance in one command center.';
+      : 'Optimizing rewards, Nova planning, and guidance in one command center.';
 
   return (
     <div className="dashboard-page orbit-bg space-y-8">
@@ -159,6 +127,12 @@ export function DashboardPage() {
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm" variant="outline">
+              <Link to="/account/cards/compare">
+                <GitCompareArrows className="size-4" />
+                Compare cards
+              </Link>
+            </Button>
             <Button asChild size="sm" className="btn-premium">
               <Link to="/account/cards/add">
                 <Plus className="size-4" />
@@ -168,6 +142,8 @@ export function DashboardPage() {
           </div>
         </div>
       </header>
+
+      <NovaPlannerSearch />
 
       <AiNativeStrip />
 
