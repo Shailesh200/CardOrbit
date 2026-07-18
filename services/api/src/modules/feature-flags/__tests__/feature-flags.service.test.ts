@@ -11,6 +11,7 @@ describe('FeatureFlagsService', () => {
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
     auditLog: {
       create: vi.fn(),
