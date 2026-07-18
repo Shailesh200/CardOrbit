@@ -36,6 +36,22 @@
 
 .shell-main {
   position: relative;
+  min-width: 0;
+}
+
+@media (display-mode: standalone) {
+  .shell {
+    min-height: 100dvh;
+  }
+
+  .shell-main {
+    min-height: 0;
+  }
+
+  .onboarding-page {
+    min-height: calc(100dvh - var(--shell-header-height) - var(--safe-top) - var(--safe-bottom));
+    padding-bottom: calc(2.5rem + var(--safe-bottom));
+  }
 }
 
 .site-header-spacer {
@@ -247,7 +263,7 @@
 .consumer-footer {
   border-top: 1px solid rgb(255 255 255 / 0.08);
   background: linear-gradient(180deg, #050816 0%, #0b1023 100%);
-  color: var(--muted-foreground);
+  color: rgb(183 195 214 / 0.92);
 }
 
 .consumer-footer-brand {
@@ -255,19 +271,19 @@
   font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.03em;
-  color: var(--foreground);
+  color: #ffffff;
 }
 
 .consumer-footer-link {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--muted-foreground);
+  color: rgb(183 195 214 / 0.92);
   text-decoration: none;
   transition: color 0.22s var(--ease-out);
 }
 
 .consumer-footer-link:hover {
-  color: var(--foreground);
+  color: #ffffff;
 }
 
 .consumer-footer-link:focus-visible {
@@ -715,9 +731,11 @@ button.consumer-link--muted:disabled {
 
 /* —— Page shells —— */
 .consumer-page {
+  box-sizing: border-box;
   max-width: 72rem;
+  min-width: 0;
   margin-inline: auto;
-  padding-inline: 1rem;
+  padding-inline: max(1rem, var(--safe-left)) max(1rem, var(--safe-right));
 }
 
 .consumer-page-heading {
@@ -780,6 +798,41 @@ button.consumer-link--muted:disabled {
 
 .toaster [data-sonner-toast] [data-description] {
   opacity: 0.92;
+}
+
+/* Close control: top-right, never a solid dark hover blotch on richColors toasts */
+.toaster [data-sonner-toast] [data-close-button] {
+  left: unset !important;
+  right: 0 !important;
+  top: 0 !important;
+  transform: translate(35%, -35%) !important;
+  border: 1px solid rgb(15 23 42 / 0.12) !important;
+  background: color-mix(in srgb, var(--normal-bg, #ffffff) 92%, transparent) !important;
+  color: inherit !important;
+  opacity: 0.85;
+}
+
+.toaster [data-sonner-toast] [data-close-button]:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--normal-bg, #ffffff) 100%, transparent) !important;
+  border-color: rgb(15 23 42 / 0.2) !important;
+  color: inherit !important;
+}
+
+.toaster [data-sonner-toast][data-type='success'] [data-close-button],
+.toaster [data-sonner-toast][data-type='error'] [data-close-button],
+.toaster [data-sonner-toast][data-type='warning'] [data-close-button],
+.toaster [data-sonner-toast][data-type='info'] [data-close-button] {
+  background: color-mix(in srgb, currentColor 8%, #ffffff) !important;
+  border-color: color-mix(in srgb, currentColor 22%, transparent) !important;
+  color: inherit !important;
+}
+
+.toaster [data-sonner-toast][data-type='success'] [data-close-button]:hover,
+.toaster [data-sonner-toast][data-type='error'] [data-close-button]:hover,
+.toaster [data-sonner-toast][data-type='warning'] [data-close-button]:hover,
+.toaster [data-sonner-toast][data-type='info'] [data-close-button]:hover {
+  background: color-mix(in srgb, currentColor 14%, #ffffff) !important;
 }
 
 @media (max-width: 1023px) {
@@ -878,6 +931,33 @@ button.consumer-link--muted:disabled {
 /* Search fields with leading icon — beat shell input padding */
 .shell [data-slot='input'].consumer-input-with-icon {
   padding-inline-start: 2.5rem;
+}
+
+.shell [data-slot='input'].consumer-input-with-clear {
+  padding-inline-end: 2.5rem;
+}
+
+.shell [data-slot='input'].consumer-input-with-icon.consumer-input-with-clear {
+  padding-inline-start: 2.5rem;
+  padding-inline-end: 2.5rem;
+}
+
+/* Browser autofill should match themed inputs (not yellow/white flash) */
+.shell [data-slot='input']:-webkit-autofill,
+.shell [data-slot='input']:-webkit-autofill:hover,
+.shell [data-slot='input']:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+  box-shadow: 0 0 0 1000px #0b1220 inset;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
+html:not(.dark) .shell [data-slot='input']:-webkit-autofill,
+html:not(.dark) .shell [data-slot='input']:-webkit-autofill:hover,
+html:not(.dark) .shell [data-slot='input']:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0f172a;
+  caret-color: #0f172a;
+  box-shadow: 0 0 0 1000px #ffffff inset;
 }
 
 /* —— Light theme: replace hardcoded Deep Space chrome —— */

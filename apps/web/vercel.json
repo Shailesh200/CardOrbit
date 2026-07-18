@@ -5,5 +5,10 @@
   "buildCommand": "cd ../.. && bunx turbo run build --filter=@cardwise/web...",
   "outputDirectory": "dist",
   "ignoreCommand": "cd ../.. && bunx turbo-ignore @cardwise/web",
-  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/((?!assets/|icons/|illustrations/|placeholders/|favicon\\.svg|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

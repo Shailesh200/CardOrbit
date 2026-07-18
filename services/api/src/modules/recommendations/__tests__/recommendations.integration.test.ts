@@ -174,15 +174,23 @@ describe.skipIf(!hasDatabase)('recommendations engine (M-018)', () => {
     expect(audit.audit[0]?.cardSlug).toBe(fixtures.premium.slug);
   });
 
-  it('rejects recommendation when portfolio is empty', async () => {
+  it('returns catalog picks when portfolio is empty', async ({ skip }) => {
+    if (!fixtures) {
+      skip();
+      return;
+    }
     const user = await createUser(`m018-empty-${Date.now()}@cardwise.test`);
 
-    await expect(
-      recommendations.recommendBestCard(user.id, {
-        amount: 5000,
-        categorySlug: 'shopping',
-      }),
-    ).rejects.toThrow(/portfolio/i);
+    const result = await recommendations.recommendBestCard(user.id, {
+      amount: 5000,
+      categorySlug: 'shopping',
+    });
+
+    expect(result.recommendedCard).toBeNull();
+    expect(result.cardsEvaluated).toBe(0);
+    expect(result.catalogRecommendation).not.toBeNull();
+    expect(result.catalogRecommendation!.cardsEvaluated).toBeGreaterThan(0);
+    expect(result.catalogRecommendation!.recommendedCard).not.toBeNull();
   });
 
   it('showcase ranks active catalog cards for Swiggy dining without a user', async () => {

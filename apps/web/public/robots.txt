@@ -3,3 +3,5 @@ Allow: /
 Disallow: /account/
 Disallow: /onboarding/
 Disallow: /oauth/
+
+Sitemap: https://cardorbit.in/sitemap.xml

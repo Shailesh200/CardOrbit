@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { Loader2, X } from 'lucide-react';
 import { Input } from '@cardwise/ui';
-import { Loader2 } from 'lucide-react';
 
 import { AiBadge } from '../../ai/components/AiBadge';
 import { AiSparkleMark } from '@brand/ai/AiSparkleMark';
@@ -120,6 +120,7 @@ export function MerchantSearchAutocomplete({ value, onChange, onSubmit, disabled
         aria-expanded={open}
         disabled={disabled}
         role="combobox"
+        className={value || loading ? 'consumer-input-with-clear' : undefined}
       />
 
       {loading ? (
@@ -127,6 +128,19 @@ export function MerchantSearchAutocomplete({ value, onChange, onSubmit, disabled
           className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
           aria-hidden
         />
+      ) : value ? (
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
+          aria-label="Clear search"
+          onClick={() => {
+            onChange('');
+            setSuggestions([]);
+            setOpen(false);
+          }}
+        >
+          <X className="size-4" aria-hidden />
+        </button>
       ) : null}
 
       {open && suggestions.length > 0 ? (

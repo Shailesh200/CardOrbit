@@ -13,10 +13,14 @@
   letter-spacing: -0.03em;
 }
 
-/* Suppress global body mesh behind dark hero */
+/* Full-bleed hero without 100vw scrollbar overflow on mobile/PWA */
+.home-page {
+  overflow-x: clip;
+}
+
 .home-page .home-hero {
-  margin-inline: calc(-50vw + 50%);
-  width: 100vw;
+  width: 100%;
+  margin-inline: 0;
 }
 
 /* —— Ambient canvas background —— */

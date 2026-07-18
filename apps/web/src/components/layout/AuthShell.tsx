@@ -10,10 +10,10 @@ export function AuthShell() {
   const { pathname } = useLocation();
 
   return (
-    <div className="consumer-page mx-auto grid min-h-[calc(100vh-8rem)] max-w-5xl gap-8 py-8 lg:grid-cols-2 lg:items-start lg:py-10">
+    <div className="consumer-page mx-auto grid min-h-[calc(100dvh-var(--shell-header-height)-var(--safe-top)-var(--safe-bottom)-2rem)] max-w-5xl gap-6 py-6 sm:gap-8 sm:py-8 lg:grid-cols-2 lg:items-start lg:py-10">
       <AuthRail />
-      <div className="auth-panel-column mx-auto flex w-full max-w-md flex-col justify-center">
-        <div key={pathname} className="auth-panel-view flex flex-col space-y-6">
+      <div className="auth-panel-column mx-auto flex w-full min-w-0 max-w-md flex-col justify-center">
+        <div key={pathname} className="auth-panel-view flex min-w-0 flex-col space-y-6">
           <Outlet />
         </div>
       </div>

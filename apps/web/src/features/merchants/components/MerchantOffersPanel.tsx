@@ -24,7 +24,12 @@ export function MerchantOffersPanel({ merchantSlug, defaultAmountInr = 2500 }: P
   }, [defaultAmountInr, merchantSlug]);
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading offers…</p>;
+    return (
+      <div className="space-y-3" aria-busy="true" aria-label="Loading offers">
+        <div className="h-16 animate-pulse rounded-xl bg-muted/40" />
+        <div className="h-16 animate-pulse rounded-xl bg-muted/40" />
+      </div>
+    );
   }
 
   if (offers.length === 0) {

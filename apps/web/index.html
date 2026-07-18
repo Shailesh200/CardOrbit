@@ -9,24 +9,57 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta
       name="description"
-      content="CardOrbit — your AI-powered financial orbit. Optimize credit cards, rewards, offers, travel, and payments with intelligent recommendations."
+      content="CardOrbit helps people in India choose the best credit card for every purchase — portfolio tracking, merchant recommendations, rewards, travel benefits, and optional Gmail spend-alert import."
     />
+    <link rel="canonical" href="https://cardorbit.in/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="CardOrbit · Your AI-powered financial orbit" />
+    <meta property="og:site_name" content="CardOrbit" />
+    <meta property="og:url" content="https://cardorbit.in/" />
+    <meta property="og:title" content="CardOrbit" />
     <meta
       property="og:description"
-      content="An AI-powered financial operating system for India — optimize every payment across cards, rewards, offers, and travel."
+      content="Add your cards, get merchant recommendations with estimated rewards, track offers and travel benefits, and optionally import Gmail credit-card spend alerts."
     />
     <meta property="og:locale" content="en_IN" />
-    <title>CardOrbit · Your AI-powered financial orbit</title>
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CardOrbit" />
+    <meta
+      name="twitter:description"
+      content="Credit-card recommendations, portfolio tracking, rewards insight, and optional Gmail spend sync for India."
+    />
+    <title>CardOrbit</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "CardOrbit",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "url": "https://cardorbit.in/",
+        "description": "CardOrbit helps people in India choose the best credit card for every purchase, with portfolio tracking, merchant recommendations, rewards insight, and optional Gmail spend-alert import.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR"
+        }
+      }
+    </script>
     <script>
-      /* Apply persisted theme before paint to avoid a flash of the wrong theme. */
+      /* Apply persisted theme before paint to avoid a flash of the wrong theme.
+         Cookie Domain=.cardorbit.in keeps landing ↔ app signup in sync. */
       (function applyStoredTheme() {
         try {
-          var stored = localStorage.getItem('cardwise.theme');
+          var stored = null;
+          try {
+            stored = localStorage.getItem('cardorbit.theme') || localStorage.getItem('cardwise.theme');
+          } catch (e) {}
+          if (stored !== 'light' && stored !== 'dark') {
+            var match = document.cookie.match(/(?:^|;\s*)(?:cardorbit|cardwise)\.theme=(light|dark)(?:;|$)/);
+            stored = match ? match[1] : null;
+          }
           var theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
           document.documentElement.classList.toggle('dark', theme === 'dark');
           document.documentElement.dataset.theme = theme;
@@ -37,6 +70,22 @@
             document.documentElement.style.backgroundColor = '#050816';
             document.documentElement.style.color = '#f9fafb';
           }
+          try {
+            var parts = [
+              'cardorbit.theme=' + theme,
+              'path=/',
+              'max-age=31536000',
+              'SameSite=Lax',
+            ];
+            var host = location.hostname;
+            if (host === 'cardorbit.in' || host.slice(-14) === '.cardorbit.in') {
+              parts.push('Domain=.cardorbit.in');
+            }
+            if (location.protocol === 'https:') parts.push('Secure');
+            document.cookie = parts.join('; ');
+            localStorage.setItem('cardorbit.theme', theme);
+            localStorage.removeItem('cardwise.theme');
+          } catch (e) {}
         } catch (e) {
           document.documentElement.classList.add('dark');
         }
@@ -44,14 +93,16 @@
     </script>
     <style>
       /* Layout stability + hero colors before full stylesheet (cuts CLS/LCP jitter) */
-      body {
-        margin: 0;
-        background: inherit;
-        color: inherit;
-      }
       html {
+        overflow-x: clip;
         background: #050816;
         color: #f9fafb;
+      }
+      body {
+        margin: 0;
+        overflow-x: clip;
+        background: inherit;
+        color: inherit;
       }
       html:not(.dark) {
         background: #f4f6fb;

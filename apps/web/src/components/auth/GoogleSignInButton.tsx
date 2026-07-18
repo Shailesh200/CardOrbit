@@ -1,6 +1,8 @@
+import { cn } from '@cardwise/ui';
+
 import { googleOAuthUrl } from '@lib/auth-api';
 
-function GoogleMark({ className }: { className?: string }) {
+export function GoogleMark({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path
@@ -23,6 +25,9 @@ function GoogleMark({ className }: { className?: string }) {
   );
 }
 
+const googleBtnClass =
+  'google-signin-btn group inline-flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-[#dadce0] bg-white px-4 text-sm font-medium text-[#3c4043] shadow-[0_1px_2px_rgba(60,64,67,0.08)] transition-[background-color,box-shadow,border-color] hover:border-[#d2e3fc] hover:bg-[#f8faff] hover:shadow-[0_1px_3px_rgba(60,64,67,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4]/40 focus-visible:ring-offset-2 active:bg-[#f1f3f4] disabled:pointer-events-none disabled:opacity-60';
+
 type GoogleSignInButtonProps = {
   label?: string;
 };
@@ -30,12 +35,36 @@ type GoogleSignInButtonProps = {
 /** Official-style Google identity button for auth screens. */
 export function GoogleSignInButton({ label = 'Continue with Google' }: GoogleSignInButtonProps) {
   return (
-    <a
-      href={googleOAuthUrl()}
-      className="google-signin-btn group inline-flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-[#dadce0] bg-white px-4 text-sm font-medium text-[#3c4043] shadow-[0_1px_2px_rgba(60,64,67,0.08)] transition-[background-color,box-shadow,border-color] hover:border-[#d2e3fc] hover:bg-[#f8faff] hover:shadow-[0_1px_3px_rgba(60,64,67,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4]/40 focus-visible:ring-offset-2 active:bg-[#f1f3f4]"
-    >
+    <a href={googleOAuthUrl()} className={googleBtnClass}>
       <GoogleMark className="size-5 shrink-0" />
       <span className="tracking-[-0.01em]">{label}</span>
     </a>
+  );
+}
+
+type GoogleConnectButtonProps = {
+  label?: string;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+};
+
+/** Same Google visual language for mailbox connect / reconnect actions. */
+export function GoogleConnectButton({
+  label = 'Connect Google',
+  onClick,
+  disabled,
+  className,
+}: GoogleConnectButtonProps) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(googleBtnClass, className)}
+    >
+      <GoogleMark className="size-5 shrink-0" />
+      <span className="tracking-[-0.01em]">{label}</span>
+    </button>
   );
 }

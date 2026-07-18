@@ -10,10 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@cardwise/ui';
-import { GitCompareArrows, Search, Store } from 'lucide-react';
+import { GitCompareArrows, Store } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
 import { notify } from '@lib/app-toast';
+import { ClearableSearchInput } from '../../components/forms/ClearableSearchInput';
+import { CatalogListSkeleton } from '../../components/feedback/PageSkeletons';
 import { useAuthSWR } from '../../hooks/useAuthSWR';
 import { searchCatalog, type CatalogCard } from '../portfolio/portfolio-api';
 import {
@@ -110,16 +112,12 @@ export function CatalogBrowsePage() {
       >
         <div className="space-y-1.5 lg:col-span-2">
           <Label htmlFor="catalog-q">Search</Label>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="catalog-q"
-              value={q}
-              onChange={(event) => setQ(event.target.value)}
-              placeholder="Millennia, lounge, forex…"
-              className="consumer-input-with-icon"
-            />
-          </div>
+          <ClearableSearchInput
+            id="catalog-q"
+            value={q}
+            onChange={setQ}
+            placeholder="Millennia, lounge, forex…"
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="catalog-bank">Bank slug</Label>
@@ -181,7 +179,7 @@ export function CatalogBrowsePage() {
       </form>
 
       {isLoading && !data ? (
-        <p className="text-sm text-muted-foreground">Loading catalog…</p>
+        <CatalogListSkeleton />
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/70 p-8 text-center">
           <Store className="mx-auto size-8 text-muted-foreground" />

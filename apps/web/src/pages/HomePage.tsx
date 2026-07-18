@@ -49,15 +49,16 @@ export function HomePage() {
               </p>
               <h1 className="home-headline font-display text-[2.5rem] font-semibold leading-[1.05] tracking-[-0.04em] text-white sm:text-[3.35rem] lg:text-[3.55rem] xl:text-[3.75rem]">
                 <span className="headline-lines block">
-                  <span>Your AI-powered </span>
+                  <span>CardOrbit — your AI-powered </span>
                   <span>
                     financial <em className="home-headline-accent not-italic">orbit.</em>
                   </span>
                 </span>
               </h1>
               <p className="home-subcopy max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
-                Optimize every payment across cards, rewards, offers, and travel — intelligent
-                recommendations, explained clearly, with AI that keeps your finances in alignment.
+                CardOrbit helps people in India choose the best credit card for every purchase —
+                with portfolio tracking, merchant recommendations, rewards insight, and optional
+                Gmail spend-alert import.
               </p>
             </div>
 
@@ -103,6 +104,47 @@ export function HomePage() {
           >
             <HomeHeroShowcase showCardStack={isLargeScreen} />
           </Suspense>
+        </div>
+      </section>
+
+      {/* Eager (not lazy): Google OAuth branding + crawlers need this in the initial HTML. */}
+      <section
+        id="what-cardorbit-does"
+        className="home-purpose relative border-b border-border/60 bg-background px-4 py-14 sm:py-16"
+        aria-labelledby="what-cardorbit-heading"
+      >
+        <div className="mx-auto max-w-3xl space-y-4 text-center sm:text-left">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            What CardOrbit does
+          </p>
+          <h2
+            id="what-cardorbit-heading"
+            className="font-display text-[1.75rem] font-semibold tracking-tight sm:text-[2.15rem]"
+          >
+            A credit-card decision app for India
+          </h2>
+          <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <strong className="font-semibold text-foreground">CardOrbit</strong> is a consumer web
+            app that helps you decide which credit card to use. Add the cards you already own,
+            search merchants, and get a recommendation with estimated rewards. Track offers, travel
+            benefits, and spend insights. You can optionally connect Google to import credit-card
+            transaction alerts from Gmail into your timeline — we use that access only to find card
+            spend emails, not to read your personal mail.
+          </p>
+          <ul className="grid gap-2 text-left text-sm text-muted-foreground sm:grid-cols-2">
+            <li className="rounded-xl border border-border/60 bg-card/40 px-3 py-2.5">
+              Recommend the best card for a merchant and amount
+            </li>
+            <li className="rounded-xl border border-border/60 bg-card/40 px-3 py-2.5">
+              Manage your credit-card portfolio and explore the catalog
+            </li>
+            <li className="rounded-xl border border-border/60 bg-card/40 px-3 py-2.5">
+              Surface rewards, offers, lounge and travel benefits
+            </li>
+            <li className="rounded-xl border border-border/60 bg-card/40 px-3 py-2.5">
+              Optionally sync Gmail credit-card spend alerts
+            </li>
+          </ul>
         </div>
       </section>
 

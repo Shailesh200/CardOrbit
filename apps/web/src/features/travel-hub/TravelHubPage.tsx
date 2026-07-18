@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Plane } from 'lucide-react';
+import { ArrowRight, Building2, CalendarRange, Plane, Ticket } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
 import { notify } from '@lib/app-toast';
 import { formatOfferTitle } from '@features/offers/format-offer-title';
+import { TravelHubSkeleton } from '../../components/feedback/PageSkeletons';
 import {
   formatInr,
   getTravelHubOverview,
@@ -116,31 +117,62 @@ export function TravelHubPage() {
             Portfolio-wide view of lounge access, travel privileges, miles balances, and travel
             spend — plus card-optimized booking and bank portal channels for accelerated rewards.
           </p>
-          <div className="flex flex-col gap-1">
-            <Link
-              to="/account/travel/booking"
-              className="inline-flex text-sm font-medium text-primary hover:underline"
-            >
-              Compare CardOrbit offers & bank portals (HDFC, Axis, Amex, and more) →
-            </Link>
-            <Link
-              to="/account/travel/planner"
-              className="inline-flex text-sm font-medium text-primary hover:underline"
-            >
-              Plan a trip with card recommendations →
-            </Link>
-            <Link
-              to="/account/redemptions"
-              className="inline-flex text-sm font-medium text-primary hover:underline"
-            >
-              Compare flight & hotel redemptions →
-            </Link>
-          </div>
         </div>
       </header>
 
+      <nav className="grid gap-3 sm:grid-cols-3" aria-label="Travel tools">
+        <Link
+          to="/account/travel/booking"
+          className="group flex flex-col gap-2 rounded-2xl border border-border/60 bg-background/50 p-4 transition hover:border-primary/30 hover:bg-primary/5"
+        >
+          <span className="inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Building2 className="size-4" aria-hidden />
+          </span>
+          <span className="font-medium tracking-tight">Booking & portals</span>
+          <span className="text-xs text-muted-foreground">
+            Compare CardOrbit offers with HDFC, Axis, Amex, and more.
+          </span>
+          <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary">
+            Open booking
+            <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" aria-hidden />
+          </span>
+        </Link>
+        <Link
+          to="/account/travel/planner"
+          className="group flex flex-col gap-2 rounded-2xl border border-border/60 bg-background/50 p-4 transition hover:border-primary/30 hover:bg-primary/5"
+        >
+          <span className="inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <CalendarRange className="size-4" aria-hidden />
+          </span>
+          <span className="font-medium tracking-tight">Trip planner</span>
+          <span className="text-xs text-muted-foreground">
+            Plan a trip with card-aware recommendations.
+          </span>
+          <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary">
+            Plan trip
+            <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" aria-hidden />
+          </span>
+        </Link>
+        <Link
+          to="/account/redemptions"
+          className="group flex flex-col gap-2 rounded-2xl border border-border/60 bg-background/50 p-4 transition hover:border-primary/30 hover:bg-primary/5"
+        >
+          <span className="inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Ticket className="size-4" aria-hidden />
+          </span>
+          <span className="font-medium tracking-tight">Redemptions</span>
+          <span className="text-xs text-muted-foreground">
+            Compare flight and hotel redemption value.
+          </span>
+          <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary">
+            Compare value
+            <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" aria-hidden />
+          </span>
+        </Link>
+      </nav>
+
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading travel hub…</p>
+        <TravelHubSkeleton />
       ) : overview ? (
         <>
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

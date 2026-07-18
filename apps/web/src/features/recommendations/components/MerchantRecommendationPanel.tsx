@@ -202,7 +202,7 @@ export function MerchantRecommendationPanel({ merchant }: Props) {
             aria-describedby="merchant-reco-amount-hint"
           />
           <p id="merchant-reco-amount-hint" className="text-xs text-muted-foreground">
-            We compare reward rules across every card in your portfolio.
+            We compare reward rules across your portfolio and top catalog cards.
           </p>
         </div>
         <Button type="submit" className="btn-premium shrink-0 sm:mb-6">
@@ -223,7 +223,7 @@ export function MerchantRecommendationPanel({ merchant }: Props) {
           description={recommendation.message}
           action={
             <Button asChild size="sm" className="btn-premium">
-              <Link to="/account/cards/add">Add a card</Link>
+              <Link to="/account/cards/explore">Browse catalog</Link>
             </Button>
           }
           className="py-8"
@@ -236,7 +236,11 @@ export function MerchantRecommendationPanel({ merchant }: Props) {
             <div className="space-y-1">
               <h3 className="font-display text-sm font-semibold tracking-tight">Your portfolio</h3>
               <p className="text-xs text-muted-foreground">
-                {best ? 'Best card from cards you own' : 'None of your cards earn rewards here'}
+                {best
+                  ? 'Best card from cards you own'
+                  : ready.cardsEvaluated === 0
+                    ? 'No cards in your portfolio yet — catalog picks are below'
+                    : 'None of your cards earn rewards here'}
               </p>
             </div>
 
@@ -424,17 +428,31 @@ export function MerchantRecommendationPanel({ merchant }: Props) {
             ) : (
               <EmptyState
                 icon={CreditCard}
-                title="No portfolio rewards"
-                description={`None of your cards earn rewards for this spend at ${merchant.name}. Try a different amount or add a better-matching card.`}
+                title={
+                  ready.cardsEvaluated === 0 ? 'No portfolio cards yet' : 'No portfolio rewards'
+                }
+                description={
+                  ready.cardsEvaluated === 0
+                    ? `Add a card you own, or pick a catalog recommendation below for ${merchant.name}.`
+                    : `None of your cards earn rewards for this spend at ${merchant.name}. Try a different amount or add a better-matching card.`
+                }
                 action={
                   <Button asChild size="sm" className="btn-premium">
-                    <Link to={addCardHref(catalogBest)}>Add a card</Link>
+                    <Link to={addCardHref(catalogBest)}>
+                      {ready.cardsEvaluated === 0 ? 'Add from catalog' : 'Add a card'}
+                    </Link>
                   </Button>
                 }
                 secondaryAction={
-                  <Button asChild size="sm" variant="outline">
-                    <Link to="/account/cards">View portfolio</Link>
-                  </Button>
+                  ready.cardsEvaluated === 0 ? (
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/account/cards/explore">Browse explore</Link>
+                    </Button>
+                  ) : (
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/account/cards">View portfolio</Link>
+                    </Button>
+                  )
                 }
                 className="py-8"
               />
@@ -444,14 +462,16 @@ export function MerchantRecommendationPanel({ merchant }: Props) {
           {catalog && catalog.cardsEvaluated > 0 ? (
             <section
               className="space-y-3 border-t border-border/60 pt-5"
-              aria-label="Cards to consider"
+              aria-label="Catalog recommendations"
             >
               <div className="space-y-1">
                 <h3 className="font-display text-sm font-semibold tracking-tight">
-                  Cards to consider
+                  From the catalog
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Top catalog cards not in your portfolio yet
+                  {ready.cardsEvaluated === 0
+                    ? 'Top catalog cards for this spend — add one to start tracking rewards'
+                    : 'Top catalog cards not in your portfolio yet'}
                 </p>
               </div>
 

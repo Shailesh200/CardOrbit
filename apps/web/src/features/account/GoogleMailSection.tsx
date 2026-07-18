@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { Button } from '@cardwise/ui';
 
+import { GoogleConnectButton } from '../../components/auth/GoogleSignInButton';
 import { notify, toast } from '../../lib/app-toast';
 import {
   disconnectMailbox,
@@ -26,15 +27,29 @@ function summarizeJobs(statuses: MailSyncJobStatus[]): string {
     (sum, row) => sum + (row.transactionsCreated ?? row.result?.transactionsCreated ?? 0),
     0,
   );
+  const cardsAdded = statuses.reduce((sum, row) => sum + (row.result?.cardsAutoAdded ?? 0), 0);
   const failed = statuses.filter((row) => row.status === 'FAILED' || row.status === 'CANCELLED');
   if (failed.length === statuses.length) {
     return failed[0]?.errorMessage ?? failed[0]?.message ?? 'Gmail sync failed';
   }
-  if (imported > 0) {
-    return `Imported ${imported} transaction${imported === 1 ? '' : 's'} from Gmail`;
+  const parts: string[] = [];
+  if (cardsAdded > 0) {
+    parts.push(`Added ${cardsAdded} card${cardsAdded === 1 ? '' : 's'} from bank alerts`);
   }
+  if (imported > 0) {
+    parts.push(`imported ${imported} transaction${imported === 1 ? '' : 's'}`);
+  }
+  if (parts.length > 0) return parts.join(' · ');
   const note = statuses.map((row) => row.result?.note).find(Boolean);
   return note ?? 'Gmail sync finished — no new transactions';
+}
+
+function mailboxErrorMessage(code: string | null): string {
+  if (!code) return 'Could not connect Google mailbox';
+  if (/access_denied|unverified|verification|403|blocked/i.test(code)) {
+    return 'Google blocked Gmail access — the app is still in Testing. Add your Google account as a test user in Google Cloud Console (OAuth consent screen), then try again via Advanced → Continue.';
+  }
+  return 'Could not connect Google mailbox';
 }
 
 export function GoogleMailSection() {
@@ -73,10 +88,12 @@ export function GoogleMailSection() {
       toast.success('Google mailbox connected');
       void refresh();
     } else if (mailbox === 'error') {
-      toast.error('Could not connect Google mailbox');
+      toast.error(mailboxErrorMessage(params.get('error') ?? params.get('reason')));
     }
     const next = new URLSearchParams(params);
     next.delete('mailbox');
+    next.delete('error');
+    next.delete('reason');
     setParams(next, { replace: true });
   }, [params, setParams]);
 
@@ -149,8 +166,20 @@ export function GoogleMailSection() {
       <div>
         <h2 className="text-lg font-semibold">Google mail</h2>
         <p className="text-sm text-muted-foreground">
-          Connect Gmail to import credit-card spend alerts into your timeline. Your sign-in Google
-          account is the primary mailbox; you can add one alternate inbox.
+          Connect Gmail to import credit-card spend alerts into your timeline. CardOrbit can also
+          detect banks from those alerts and add matching catalog cards to your portfolio. Your
+          sign-in Google account is the primary mailbox; you can add one alternate inbox.
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">Gmail access is in Google Testing</p>
+        <p className="mt-1">
+          Until CardOrbit completes Google verification, only listed{' '}
+          <span className="text-foreground">test users</span> can grant{' '}
+          <code className="text-xs">gmail.readonly</code>. Add your address in Google Cloud → OAuth
+          consent screen → Test users. If you see “Google hasn’t verified this app”, open{' '}
+          <span className="text-foreground">Advanced</span> → continue (test users only).
         </p>
       </div>
 
@@ -164,11 +193,9 @@ export function GoogleMailSection() {
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : mailboxes.length === 0 ? (
-        <div className="space-y-3">
+        <div className="max-w-sm space-y-3">
           <p className="text-sm text-muted-foreground">No Google mailbox connected yet.</p>
-          <Button type="button" onClick={() => void onConnect()}>
-            Connect Google
-          </Button>
+          <GoogleConnectButton label="Connect with Google" onClick={() => void onConnect()} />
         </div>
       ) : (
         <ul className="max-w-xl space-y-3">
@@ -193,14 +220,11 @@ export function GoogleMailSection() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {mailbox.status === 'NEEDS_REAUTH' ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
+                  <GoogleConnectButton
+                    label="Reconnect Google"
                     onClick={() => void onConnect()}
-                  >
-                    Reconnect
-                  </Button>
+                    className="h-9 w-auto px-3 text-xs"
+                  />
                 ) : (
                   <Button
                     type="button"
@@ -228,9 +252,26 @@ export function GoogleMailSection() {
       )}
 
       {canAddMore && mailboxes.length > 0 ? (
-        <Button type="button" variant="outline" onClick={() => void onConnect()}>
-          Add another Google mailbox
-        </Button>
+        <div className="max-w-sm">
+          <GoogleConnectButton
+            label="Add another Google mailbox"
+            onClick={() => void onConnect()}
+          />
+        </div>
+      ) : null}
+
+      {mailboxes.length > 0 ? (
+        <p className="text-xs text-muted-foreground">
+          After sync, review auto-added cards on{' '}
+          <Link to="/account/cards" className="font-medium text-primary hover:underline">
+            Cards
+          </Link>{' '}
+          and imported spend on{' '}
+          <Link to="/account/transactions" className="font-medium text-primary hover:underline">
+            Transactions
+          </Link>
+          .
+        </p>
       ) : null}
     </section>
   );

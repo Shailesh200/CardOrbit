@@ -1,6 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
-import { Button } from '@cardwise/ui';
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@cardwise/ui';
 import { Building2, ExternalLink, Plane } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
@@ -510,16 +517,20 @@ export function BookingHubPage() {
             </label>
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Cabin</span>
-              <select
-                className="w-full rounded-xl border border-border bg-background px-3 py-2"
+              <Select
                 value={cabinClass}
-                onChange={(e) => setCabinClass(e.target.value as BookingCabinClass)}
+                onValueChange={(value) => setCabinClass(value as BookingCabinClass)}
               >
-                <option value="ECONOMY">Economy</option>
-                <option value="PREMIUM_ECONOMY">Premium economy</option>
-                <option value="BUSINESS">Business</option>
-                <option value="FIRST">First</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ECONOMY">Economy</SelectItem>
+                  <SelectItem value="PREMIUM_ECONOMY">Premium economy</SelectItem>
+                  <SelectItem value="BUSINESS">Business</SelectItem>
+                  <SelectItem value="FIRST">First</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Adults</span>
@@ -534,28 +545,36 @@ export function BookingHubPage() {
             </label>
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Max stops</span>
-              <select
-                className="w-full rounded-xl border border-border bg-background px-3 py-2"
-                value={maxStops === '' ? '' : String(maxStops)}
-                onChange={(e) => setMaxStops(e.target.value === '' ? '' : Number(e.target.value))}
+              <Select
+                value={maxStops === '' ? 'any' : String(maxStops)}
+                onValueChange={(value) => setMaxStops(value === 'any' ? '' : Number(value))}
               >
-                <option value="">Any</option>
-                <option value="0">Nonstop</option>
-                <option value="1">1 stop</option>
-                <option value="2">2 stops</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any</SelectItem>
+                  <SelectItem value="0">Nonstop</SelectItem>
+                  <SelectItem value="1">1 stop</SelectItem>
+                  <SelectItem value="2">2 stops</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Sort</span>
-              <select
-                className="w-full rounded-xl border border-border bg-background px-3 py-2"
+              <Select
                 value={flightSortBy}
-                onChange={(e) => setFlightSortBy(e.target.value as typeof flightSortBy)}
+                onValueChange={(value) => setFlightSortBy(value as typeof flightSortBy)}
               >
-                <option value="BEST">Best overall</option>
-                <option value="EFFECTIVE_COST">Effective cost</option>
-                <option value="DURATION">Duration</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BEST">Best overall</SelectItem>
+                  <SelectItem value="EFFECTIVE_COST">Effective cost</SelectItem>
+                  <SelectItem value="DURATION">Duration</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
             <div className="flex items-end lg:col-span-4">
               <Button type="submit" disabled={searching} className="w-full sm:w-auto">
@@ -624,31 +643,37 @@ export function BookingHubPage() {
             </label>
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Min stars</span>
-              <select
-                className="w-full rounded-xl border border-border bg-background px-3 py-2"
-                value={minStarRating === '' ? '' : String(minStarRating)}
-                onChange={(e) =>
-                  setMinStarRating(e.target.value === '' ? '' : Number(e.target.value))
-                }
+              <Select
+                value={minStarRating === '' ? 'any' : String(minStarRating)}
+                onValueChange={(value) => setMinStarRating(value === 'any' ? '' : Number(value))}
               >
-                <option value="">Any</option>
-                <option value="3">3+</option>
-                <option value="4">4+</option>
-                <option value="5">5</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any</SelectItem>
+                  <SelectItem value="3">3+</SelectItem>
+                  <SelectItem value="4">4+</SelectItem>
+                  <SelectItem value="5">5</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
             <label className="space-y-1 text-sm">
               <span className="text-muted-foreground">Sort</span>
-              <select
-                className="w-full rounded-xl border border-border bg-background px-3 py-2"
+              <Select
                 value={hotelSortBy}
-                onChange={(e) => setHotelSortBy(e.target.value as typeof hotelSortBy)}
+                onValueChange={(value) => setHotelSortBy(value as typeof hotelSortBy)}
               >
-                <option value="BEST">Best overall</option>
-                <option value="EFFECTIVE_COST">Effective cost</option>
-                <option value="STAR_RATING">Star rating</option>
-                <option value="LOYALTY">Loyalty points</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BEST">Best overall</SelectItem>
+                  <SelectItem value="EFFECTIVE_COST">Effective cost</SelectItem>
+                  <SelectItem value="STAR_RATING">Star rating</SelectItem>
+                  <SelectItem value="LOYALTY">Loyalty points</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
             <div className="flex items-end lg:col-span-4">
               <Button type="submit" disabled={searching} className="w-full sm:w-auto">

@@ -118,7 +118,7 @@ export function AppShell() {
 
       <footer className={cn('consumer-footer', authed && 'hidden lg:block')}>
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-10 text-center sm:flex-row sm:text-left">
-          <HeroLogo size="sm" tone="light" linked={false} />
+          <HeroLogo size="sm" tone="dark" linked={false} />
           <nav className="flex flex-wrap justify-center gap-5" aria-label="Legal">
             <Link className="consumer-footer-link" to="/privacy">
               Privacy

@@ -76,6 +76,40 @@ export function RecommendationPanelSkeleton() {
   );
 }
 
+export function MerchantDetailSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Loading merchant">
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-8 w-56 max-w-full" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+      <div className="rounded-2xl border border-border bg-card/50 p-5">
+        <RecommendationPanelSkeleton />
+      </div>
+      <div className="space-y-3 rounded-2xl border border-border bg-card/50 p-5">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    </div>
+  );
+}
+
+export function TravelHubSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Loading travel hub">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 rounded-2xl" />
+        ))}
+      </div>
+      <Skeleton className="h-40 rounded-2xl" />
+      <Skeleton className="h-48 rounded-2xl" />
+    </div>
+  );
+}
+
 export function DashboardHomeSkeleton() {
   return (
     <div className="space-y-8" aria-busy="true" aria-label="Loading your home">

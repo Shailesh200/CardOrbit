@@ -269,12 +269,7 @@ export class RecommendationsService {
       orderBy: [{ isFavorite: 'desc' }, { addedAt: 'asc' }],
     });
 
-    if (portfolio.length === 0) {
-      throw new BadRequestException(
-        'Add at least one card to your portfolio to get recommendations',
-      );
-    }
-
+    // Empty portfolio is allowed — callers still receive catalogRecommendation.
     const candidates = await this.evaluateCandidates(
       portfolio.map((row) => ({
         userCardId: row.id,

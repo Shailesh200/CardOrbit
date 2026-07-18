@@ -20,6 +20,8 @@ export type GmailStatementSyncProgress = {
 export type GmailStatementSyncResult = {
   messagesScanned: number;
   transactionsCreated: number;
+  /** Catalog cards auto-added from bank hints in alerts. */
+  cardsAutoAdded?: number;
   note?: string;
 };
 

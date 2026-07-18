@@ -29,6 +29,7 @@ export type MailSyncJobStatus = {
   result: {
     messagesScanned?: number;
     transactionsCreated?: number;
+    cardsAutoAdded?: number;
     note?: string;
   } | null;
   errorMessage: string | null;

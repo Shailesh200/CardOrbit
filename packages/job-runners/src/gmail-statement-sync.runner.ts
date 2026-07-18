@@ -135,6 +135,84 @@ function pickUserCard(
   return cards[0] ?? null;
 }
 
+/** When a bank alert arrives for a bank not yet in the portfolio, add one catalog card. */
+async function ensureCardForBankHint(
+  prisma: PrismaClient,
+  userId: string,
+  bankHint: string,
+  cards: PortfolioCard[],
+): Promise<{ card: PortfolioCard | null; added: boolean }> {
+  const existing = pickUserCard(cards, { bankHint, preferredUserCardId: undefined });
+  if (existing) return { card: existing, added: false };
+
+  const hint = bankHint.toLowerCase();
+  const creditCard = await prisma.creditCard.findFirst({
+    where: {
+      deletedAt: null,
+      active: true,
+      bank: {
+        OR: [
+          { slug: { equals: hint, mode: 'insensitive' } },
+          { slug: { contains: hint, mode: 'insensitive' } },
+          { name: { contains: hint, mode: 'insensitive' } },
+        ],
+      },
+    },
+    include: { bank: true },
+    orderBy: [{ name: 'asc' }],
+  });
+  if (!creditCard) return { card: null, added: false };
+
+  try {
+    const created = await prisma.userCard.create({
+      data: {
+        userId,
+        creditCardId: creditCard.id,
+        status: 'ACTIVE',
+        nickname: `${creditCard.bank.name} (from Gmail)`,
+      },
+      include: { creditCard: { include: { bank: true } } },
+    });
+    const card: PortfolioCard = {
+      id: created.id,
+      bankName: created.creditCard.bank.name,
+      bankSlug: created.creditCard.bank.slug,
+      cardName: created.nickname ?? created.creditCard.name,
+    };
+    cards.push(card);
+    return { card, added: true };
+  } catch {
+    const existingRow = await prisma.userCard.findUnique({
+      where: { userId_creditCardId: { userId, creditCardId: creditCard.id } },
+      include: { creditCard: { include: { bank: true } } },
+    });
+    if (!existingRow) return { card: null, added: false };
+    if (existingRow.status === 'REMOVED') {
+      const restored = await prisma.userCard.update({
+        where: { id: existingRow.id },
+        data: { status: 'ACTIVE', removedAt: null, nickname: `${creditCard.bank.name} (from Gmail)` },
+        include: { creditCard: { include: { bank: true } } },
+      });
+      const card: PortfolioCard = {
+        id: restored.id,
+        bankName: restored.creditCard.bank.name,
+        bankSlug: restored.creditCard.bank.slug,
+        cardName: restored.nickname ?? restored.creditCard.name,
+      };
+      cards.push(card);
+      return { card, added: true };
+    }
+    const card: PortfolioCard = {
+      id: existingRow.id,
+      bankName: existingRow.creditCard.bank.name,
+      bankSlug: existingRow.creditCard.bank.slug,
+      cardName: existingRow.nickname ?? existingRow.creditCard.name,
+    };
+    if (!cards.some((row) => row.id === card.id)) cards.push(card);
+    return { card, added: false };
+  }
+}
+
 /**
  * Sync credit-card transaction alerts from Gmail into the user's transaction timeline.
  */
@@ -163,14 +241,12 @@ export async function runGmailStatementSync(
     cardName: row.nickname ?? row.creditCard.name,
   }));
 
-  if (cards.length === 0) {
-    const message = 'Add a credit card to your portfolio before syncing Gmail transactions';
-    await prisma.mailSyncMailbox.update({
-      where: { id: mailbox.id },
-      data: { lastSyncAt: new Date(), lastSyncError: message },
-    });
-    throw new Error(message);
-  }
+  await onProgress?.({
+    message:
+      cards.length === 0
+        ? 'No portfolio cards yet — will detect banks from Gmail alerts'
+        : 'Refreshing Google access token',
+  });
 
   await onProgress?.({ message: 'Refreshing Google access token' });
 
@@ -237,6 +313,7 @@ export async function runGmailStatementSync(
   let transactionsCreated = 0;
   let messagesProcessed = 0;
   let parseFailures = 0;
+  let cardsAutoAdded = 0;
 
   for (const messageId of messageIds) {
     messagesProcessed += 1;
@@ -248,10 +325,20 @@ export async function runGmailStatementSync(
         continue;
       }
 
-      const card = pickUserCard(cards, {
+      let card = pickUserCard(cards, {
         preferredUserCardId: payload.userCardId,
         bankHint: parsed.bankHint,
       });
+      if (!card && parsed.bankHint) {
+        const ensured = await ensureCardForBankHint(
+          prisma,
+          payload.userId,
+          parsed.bankHint,
+          cards,
+        );
+        card = ensured.card;
+        if (ensured.added) cardsAutoAdded += 1;
+      }
       if (!card) continue;
 
       const externalRef = `gmail:${messageId}`;
@@ -300,18 +387,30 @@ export async function runGmailStatementSync(
     },
   });
 
+  const parts: string[] = [];
+  if (cardsAutoAdded > 0) {
+    parts.push(
+      `Added ${cardsAutoAdded} card${cardsAutoAdded === 1 ? '' : 's'} from bank alerts`,
+    );
+  }
+  if (transactionsCreated > 0) {
+    parts.push(
+      `imported ${transactionsCreated} transaction${transactionsCreated === 1 ? '' : 's'}`,
+    );
+  }
   const note =
     messagesScanned === 0
       ? 'No recent card transaction emails matched.'
-      : transactionsCreated > 0
-        ? `Imported ${transactionsCreated} transaction${transactionsCreated === 1 ? '' : 's'} from Gmail.`
+      : parts.length > 0
+        ? `${parts.join(' · ')} from Gmail.`
         : parseFailures === messagesScanned
           ? 'Messages found, but none looked like parseable card spends. Forward bank alerts to this inbox or import a CSV.'
-          : 'No new transactions to import (duplicates skipped or unmatched).';
+          : 'No new transactions to import (duplicates skipped or unmatched banks).';
 
   return {
     messagesScanned,
     transactionsCreated,
+    cardsAutoAdded,
     note,
   };
 }

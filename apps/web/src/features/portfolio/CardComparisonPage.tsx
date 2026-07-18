@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@cardwise/ui';
 import { ArrowLeftRight, Sparkles, Star } from 'lucide-react';
 
 import { MiniCreditCard } from '@brand/MiniCreditCard';
@@ -323,15 +324,16 @@ export function CardComparisonPage() {
             </label>
             <label className="flex items-center gap-2 text-sm">
               Sort columns
-              <select
-                className="rounded-md border border-border/60 bg-background px-2 py-1 text-sm"
-                value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
-              >
-                <option value="portfolio">Selection order</option>
-                <option value="fee-asc">Lowest annual fee</option>
-                <option value="reward-desc">Highest reward rate</option>
-              </select>
+              <Select value={sortMode} onValueChange={(value) => setSortMode(value as SortMode)}>
+                <SelectTrigger className="w-[11.5rem]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="portfolio">Selection order</SelectItem>
+                  <SelectItem value="fee-asc">Lowest annual fee</SelectItem>
+                  <SelectItem value="reward-desc">Highest reward rate</SelectItem>
+                </SelectContent>
+              </Select>
             </label>
           </div>
           <ComparisonTable result={sortedResult} differencesOnly={differencesOnly} />

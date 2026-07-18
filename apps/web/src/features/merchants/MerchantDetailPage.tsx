@@ -6,6 +6,7 @@ import { Star } from 'lucide-react';
 import { PageBackLink } from '@layout/PageBackLink';
 import { notify, toast } from '@lib/app-toast';
 import { MerchantRecommendationPanel } from '@features/recommendations/components/MerchantRecommendationPanel';
+import { MerchantDetailSkeleton } from '../../components/feedback/PageSkeletons';
 import { MerchantOffersPanel } from './components/MerchantOffersPanel';
 import { AiVisual } from '../ai/components/AiVisual';
 import { useAiFeatures } from '../ai/use-ai-features';
@@ -74,7 +75,7 @@ export function MerchantDetailPage() {
   }
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading merchant…</p>;
+    return <MerchantDetailSkeleton />;
   }
 
   if (!merchant) {
