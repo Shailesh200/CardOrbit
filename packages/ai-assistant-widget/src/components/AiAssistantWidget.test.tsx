@@ -35,13 +35,13 @@ describe('AiAssistantWidget', () => {
       />,
     );
 
-    const fab = await screen.findByRole('button', { name: 'Open AI assistant' });
+    const fab = await screen.findByRole('button', { name: 'Open Nova' });
     await user.click(fab);
 
-    expect(await screen.findByRole('dialog', { name: 'AI Assistant' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Nova' })).toBeInTheDocument();
     expect(screen.getByText(/read-only with sources cited/i)).toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText(/ask about cards, rewards/i), '0% forex{enter}');
+    await user.type(screen.getByPlaceholderText(/ask nova about cards/i), '0% forex{enter}');
 
     await waitFor(() => {
       expect(sendMessage).toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe('AiAssistantWidget', () => {
     );
 
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: 'Open AI assistant' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Open Nova' })).not.toBeInTheDocument();
     });
   });
 });
