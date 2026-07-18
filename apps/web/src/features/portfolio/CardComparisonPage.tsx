@@ -159,7 +159,12 @@ export function CardComparisonPage() {
         setResult(data);
       } catch (error) {
         setResult(null);
-        notify.fromError(error, 'Comparison failed');
+        notify.fromError(
+          error,
+          catalogMode
+            ? 'Catalog compare failed — the API may still need redeploy for catalogIds support'
+            : 'Comparison failed',
+        );
       } finally {
         setComparing(false);
       }

@@ -190,6 +190,7 @@ export const ADMIN_PORTAL_CONFIG: AdminPortalConfig = {
   nav: [
     { id: 'insights', label: 'Insights', path: '/insights', icon: 'chart-bar', section: 'Overview' },
     { id: 'sync', label: 'Data sync', path: '/sync', icon: 'refresh-cw', section: 'Operations' },
+    { id: 'import', label: 'Import Center', path: '/import', icon: 'inbox', section: 'Operations' },
     { id: 'catalog', label: 'Catalog', path: '/catalog', icon: 'layers', section: 'Operations' },
     { id: 'cards', label: 'Credit cards', path: '/cards', icon: 'credit-card', section: 'Catalog' },
     { id: 'rules', label: 'Rules', path: '/rules', icon: 'scale', section: 'Catalog' },
@@ -272,17 +273,33 @@ export const ADMIN_PORTAL_CONFIG: AdminPortalConfig = {
           type: 'tabs',
           tabs: [
             {
+              id: 'import',
+              label: 'Import Center',
+              blocks: [{ type: 'import-queue', dataSource: 'admin.catalog-import.items' }],
+            },
+            {
               id: 'assets',
               label: 'Live assets',
               blocks: [{ type: 'asset-manager', dataSource: 'admin.assets.list' }],
             },
-            {
-              id: 'import',
-              label: 'Import queue',
-              blocks: [{ type: 'import-queue', dataSource: 'admin.catalog-import.items' }],
-            },
           ],
         },
+      ],
+    },
+    {
+      id: 'import',
+      path: '/import',
+      title: 'Import Center',
+      description: 'Review staged crawls, grounding scores, approve, and publish to the live catalog.',
+      icon: 'inbox',
+      blocks: [
+        {
+          type: 'hero',
+          title: 'Import Center',
+          description:
+            'Grounding scores, source provenance, and publish controls for AI/crawl catalog sync.',
+        },
+        { type: 'import-queue', dataSource: 'admin.catalog-import.items' },
       ],
     },
     {

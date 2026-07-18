@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  cn,
 } from '@cardwise/ui';
 import { ExternalLink } from 'lucide-react';
 
@@ -493,6 +494,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
             <tr>
               <th>Key</th>
               <th>Summary</th>
+              <th>Grounding</th>
               <th>Source</th>
               <th>Status</th>
               <th>Actions</th>
@@ -501,79 +503,104 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="admin-empty">
+                <td colSpan={6} className="admin-empty">
                   No items in this view.
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
-                <tr key={item.id} className="border-t border-border/60">
-                  <td className="px-3 py-2">{item.entityKey}</td>
-                  <td className="max-w-xs px-3 py-2 text-muted-foreground">{item.summary}</td>
-                  <td className="px-3 py-2">
-                    {item.sourceUrl ? (
-                      <a
-                        href={item.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline"
-                      >
-                        Official <ExternalLink className="size-3" aria-hidden />
-                      </a>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    {STATUS_LABEL[item.reviewStatus] ?? item.reviewStatus}
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={busy}
-                        onClick={() => openDetail(item.id)}
-                      >
-                        View
-                      </Button>
-                      {item.reviewStatus === 'PENDING_REVIEW' ? (
-                        <>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            disabled={busy}
-                            onClick={() => onApprove(item.id)}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            disabled={busy}
-                            onClick={() => onReject(item.id)}
-                          >
-                            Reject
-                          </Button>
-                        </>
-                      ) : null}
-                      {item.reviewStatus === 'APPROVED' ? (
+              items.map((item) => {
+                const listMeta = unwrapImportPayload(item.payload).ingestMeta;
+                const grounding = listMeta?.grounding;
+                const groundingTone =
+                  grounding == null
+                    ? 'text-muted-foreground'
+                    : grounding.critical || grounding.score < 0.9
+                      ? 'text-destructive'
+                      : 'text-primary';
+                return (
+                  <tr key={item.id} className="border-t border-border/60">
+                    <td className="px-3 py-2">{item.entityKey}</td>
+                    <td className="max-w-xs px-3 py-2 text-muted-foreground">{item.summary}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {grounding ? (
+                        <div className="space-y-0.5">
+                          <p className={cn('font-semibold', groundingTone)}>
+                            {(grounding.score * 100).toFixed(0)}%
+                            {grounding.critical ? ' · critical' : ''}
+                          </p>
+                          {listMeta?.candidateOnly ? (
+                            <p className="text-muted-foreground">candidate</p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      {item.sourceUrl ? (
+                        <a
+                          href={item.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline"
+                        >
+                          Official <ExternalLink className="size-3" aria-hidden />
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      {STATUS_LABEL[item.reviewStatus] ?? item.reviewStatus}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-wrap gap-1">
                         <Button
                           type="button"
                           size="sm"
+                          variant="outline"
                           disabled={busy}
-                          onClick={() => onPublish(item.id)}
+                          onClick={() => openDetail(item.id)}
                         >
-                          Publish
+                          View
                         </Button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                        {item.reviewStatus === 'PENDING_REVIEW' ? (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={busy}
+                              onClick={() => onApprove(item.id)}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              disabled={busy}
+                              onClick={() => onReject(item.id)}
+                            >
+                              Reject
+                            </Button>
+                          </>
+                        ) : null}
+                        {item.reviewStatus === 'APPROVED' ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={busy}
+                            onClick={() => onPublish(item.id)}
+                          >
+                            Publish
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

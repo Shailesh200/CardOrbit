@@ -21,6 +21,7 @@ export function App() {
             <Route index element={<Navigate to="/insights" replace />} />
             <Route path="insights" element={<SduiRoutePage pageId="insights" />} />
             <Route path="sync" element={<SduiRoutePage pageId="sync" />} />
+            <Route path="import" element={<SduiRoutePage pageId="import" />} />
             <Route path="catalog" element={<SduiRoutePage pageId="catalog" />} />
             <Route path="cards" element={<SduiRoutePage pageId="cards" />} />
             <Route path="rules" element={<SduiRoutePage pageId="rules" />} />
@@ -31,7 +32,6 @@ export function App() {
             <Route path="experiments" element={<ExperimentsPage />} />
             <Route path="analytics-events" element={<AnalyticsEventsPage />} />
             {/* Legacy redirects */}
-            <Route path="import" element={<Navigate to="/catalog" replace />} />
             <Route path="assets" element={<Navigate to="/catalog" replace />} />
             <Route path="merchants" element={<Navigate to="/catalog" replace />} />
             <Route path="merchants/intelligence" element={<Navigate to="/insights" replace />} />

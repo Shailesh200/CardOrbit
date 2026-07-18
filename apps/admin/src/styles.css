@@ -586,6 +586,11 @@ body {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  /* Deep Space canvas — admin is dark-only (see admin-theme.css) */
+  background:
+    radial-gradient(ellipse 55% 45% at 8% -5%, rgb(79 140 255 / 0.18), transparent 55%),
+    radial-gradient(ellipse 45% 40% at 92% 8%, rgb(124 92 255 / 0.14), transparent 50%),
+    #050816;
 }
 
 .admin-login__glow {

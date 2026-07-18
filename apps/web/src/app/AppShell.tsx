@@ -34,7 +34,7 @@ function DeferredConsentBanner() {
 
 const authedNavLinksBase = [
   { to: DASHBOARD_PATH, label: 'Home', end: true },
-  { to: '/account/cards', label: 'Cards', end: false },
+  { to: '/account/cards', label: 'Cards', end: true },
   { to: '/account/merchants', label: 'Merchants', end: false },
   { to: '/account/profile', label: 'Account', end: false },
 ] as const;

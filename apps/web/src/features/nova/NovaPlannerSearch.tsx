@@ -57,7 +57,7 @@ export function NovaPlannerSearch() {
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Try: plan an itinerary for Delhi…"
           aria-label="Ask Nova"
-          className="h-11 flex-1 border-primary/20 bg-background/90"
+          className="h-11 flex-1 border-primary/25 bg-background shadow-sm"
         />
         <Button type="submit" className="btn-premium h-11 shrink-0">
           Ask Nova

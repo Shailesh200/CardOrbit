@@ -53,6 +53,41 @@ body::before {
   border: 1px solid rgb(255 255 255 / 0.08);
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(20px);
+  color: var(--foreground);
+}
+
+/* Login lives outside .admin-app — keep Deep Space even if light tokens leak */
+.admin-login {
+  color-scheme: dark;
+  background: #050816;
+  color: #f9fafb;
+}
+
+.admin-login .glass-panel,
+.admin-login .admin-login__card {
+  background: rgb(17 24 39 / 0.92);
+  border-color: rgb(255 255 255 / 0.1);
+  color: #f9fafb;
+}
+
+.admin-login [data-slot='card-title'],
+.admin-login [data-slot='card-description'],
+.admin-login .admin-field > span {
+  color: #e2e8f0;
+}
+
+.admin-login [data-slot='card-description'] {
+  color: #94a3b8;
+}
+
+.admin-login [data-slot='input'] {
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: #0b1023;
+  color: #f8fafc;
+}
+
+.admin-login [data-slot='input']::placeholder {
+  color: rgb(148 163 184 / 0.7);
 }
 
 .btn-premium {

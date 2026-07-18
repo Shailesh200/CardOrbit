@@ -272,7 +272,7 @@ export function AiAssistantChat({
               >
                 <div
                   className={cn(
-                    'rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed',
+                    'rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap',
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'border border-border/60 bg-muted/40 text-foreground',
@@ -281,7 +281,7 @@ export function AiAssistantChat({
                   {message.content}
                 </div>
                 {message.role === 'assistant' ? (
-                  <div className="mt-1.5 space-y-1.5">
+                  <div className="mt-1.5 space-y-2">
                     {message.results && message.results.length > 0 ? (
                       <AiAssistantResultCards
                         results={message.results}
@@ -290,9 +290,37 @@ export function AiAssistantChat({
                         onNavigate={onNavigate}
                       />
                     ) : null}
-                    {message.confidence ? (
-                      <ConfidenceBadge confidence={message.confidence} />
+                    {message.citations && message.citations.length > 0 ? (
+                      <div className="rounded-xl border border-border/50 bg-background/60 px-2.5 py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                          Sources cited
+                        </p>
+                        <ul className="mt-1 space-y-0.5">
+                          {message.citations.slice(0, 5).map((citation) => (
+                            <li
+                              key={`${citation.entityType}-${citation.id}`}
+                              className="text-[11px] text-muted-foreground"
+                            >
+                              {citation.label}
+                              <span className="text-muted-foreground/70">
+                                {' '}
+                                · {citation.entityType}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ) : null}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {message.confidence ? (
+                        <ConfidenceBadge confidence={message.confidence} />
+                      ) : null}
+                      {message.toolsUsed && message.toolsUsed.length > 0 ? (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Used {message.toolsUsed.join(' · ')}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 ) : null}
               </div>

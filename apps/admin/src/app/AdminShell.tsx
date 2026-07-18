@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   BarChart3,
   CreditCard,
+  Inbox,
   Layers,
   Menu,
   RefreshCw,
@@ -30,6 +31,7 @@ export type AdminShellContext = {
 const ICONS: Record<string, LucideIcon> = {
   'chart-bar': BarChart3,
   'refresh-cw': RefreshCw,
+  inbox: Inbox,
   layers: Layers,
   'credit-card': CreditCard,
   scale: Scale,

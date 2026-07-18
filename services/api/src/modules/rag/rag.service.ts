@@ -206,16 +206,36 @@ export class RagService {
   }
 
   private formatCardExcerpt(
-    card: { bank: { name: string }; network: { name: string }; benefitCount: number },
+    card: {
+      bank: { name: string };
+      network: { name: string };
+      benefitCount: number;
+      annualFeeInr?: string | null;
+      joiningFeeInr?: string | null;
+    },
     benefits: Array<{ title: string; description: string | null }>,
     query: string,
   ): string {
     const header = `${card.bank.name} · ${card.network.name}`;
+    const feeBits: string[] = [];
+    if (card.annualFeeInr != null) {
+      const annual = Number(card.annualFeeInr);
+      feeBits.push(
+        Number.isFinite(annual) && annual === 0
+          ? 'Lifetime free / ₹0 annual fee'
+          : `Annual fee ₹${card.annualFeeInr}`,
+      );
+    }
+    if (card.joiningFeeInr != null && card.joiningFeeInr !== card.annualFeeInr) {
+      feeBits.push(`Joining fee ₹${card.joiningFeeInr}`);
+    }
     const highlights = this.selectBenefitHighlights(benefits, query);
     if (highlights.length === 0) {
-      return `${header} · ${card.benefitCount} benefits`;
+      if (feeBits.length > 0) return `${header} · ${feeBits.join(' · ')}`;
+      if (card.benefitCount > 0) return `${header} · ${card.benefitCount} catalog benefits`;
+      return `${header} · Fees and rewards still syncing from issuer sources`;
     }
-    return `${header} · ${highlights.join(' · ')}`;
+    return `${header} · ${[...feeBits.slice(0, 1), ...highlights].join(' · ')}`;
   }
 
   private async buildChunks(

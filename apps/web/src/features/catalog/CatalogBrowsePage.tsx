@@ -117,7 +117,7 @@ export function CatalogBrowsePage() {
               value={q}
               onChange={(event) => setQ(event.target.value)}
               placeholder="Millennia, lounge, forex…"
-              className="pl-9"
+              className="consumer-input-with-icon"
             />
           </div>
         </div>

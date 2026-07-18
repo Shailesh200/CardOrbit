@@ -1306,6 +1306,6 @@ function parseCardHighlights(excerpt: string): string[] {
     .split(' · ')
     .map((part) => part.trim())
     .filter(Boolean);
-  if (parts.length <= 2) return parts.slice(1);
-  return parts.slice(2);
+  const highlights = parts.length <= 2 ? parts.slice(1) : parts.slice(2);
+  return highlights.filter((line) => !/^\d+\s+benefits?$/i.test(line));
 }

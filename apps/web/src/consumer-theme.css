@@ -874,3 +874,98 @@ button.consumer-link--muted:disabled {
   background: linear-gradient(180deg, #161d33 0%, #111827 100%) !important;
   box-shadow: var(--shadow-sm);
 }
+
+/* Search fields with leading icon — beat shell input padding */
+.shell [data-slot='input'].consumer-input-with-icon {
+  padding-inline-start: 2.5rem;
+}
+
+/* —— Light theme: replace hardcoded Deep Space chrome —— */
+html:not(.dark) .shell [data-slot='label'] {
+  color: #475569;
+}
+
+html:not(.dark) .shell [data-slot='input'] {
+  border: 1px solid rgb(15 23 42 / 0.12);
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+html:not(.dark) .shell [data-slot='input']::placeholder {
+  color: rgb(100 116 139 / 0.75);
+}
+
+html:not(.dark) .shell [data-slot='input']:hover:not(:disabled):not(:focus-visible) {
+  border-color: rgb(59 111 224 / 0.45);
+}
+
+html:not(.dark) .shell [data-slot='input']:focus-visible {
+  border-color: #3b6fe0;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 3px rgb(59 111 224 / 0.18),
+    inset 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+html:not(.dark) .shell [data-slot='input']:disabled {
+  background: #eef2f8;
+  opacity: 0.8;
+}
+
+html:not(.dark) .shell [data-slot='button'][data-variant='outline']:not(.home-btn-secondary) {
+  border: 1px solid rgb(15 23 42 / 0.12);
+  background: #ffffff;
+  color: #0f172a;
+}
+
+html:not(.dark)
+  .shell
+  [data-slot='button'][data-variant='outline']:not(.home-btn-secondary):hover:not(:disabled) {
+  border-color: rgb(59 111 224 / 0.4);
+  background: #eef2f8;
+  color: #0f172a;
+}
+
+html:not(.dark) .consumer-surface {
+  border: 1px solid rgb(15 23 42 / 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+html:not(.dark) .consumer-surface:hover {
+  border-color: rgb(15 23 42 / 0.12);
+}
+
+html:not(.dark) .consumer-surface--glass {
+  background: rgb(255 255 255 / 0.86);
+  backdrop-filter: blur(16px);
+}
+
+html:not(.dark) .consumer-sidebar {
+  border: 1px solid rgb(15 23 42 / 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+html:not(.dark) .consumer-sidebar-link.is-active {
+  color: #0f172a;
+}
+
+html:not(.dark) .dashboard-reco-panel {
+  border-color: rgb(15 23 42 / 0.08) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+}
+
+html:not(.dark) .consumer-surface .merchant-mark__logo {
+  background: #eef2f8;
+}
+
+html:not(.dark) .site-header {
+  background: color-mix(in srgb, #ffffff 88%, transparent);
+  border-bottom-color: rgb(15 23 42 / 0.08);
+}
+
+html:not(.dark) .auth-panel,
+html:not(.dark) .consumer-surface.auth-panel {
+  border-color: rgb(15 23 42 / 0.1);
+}

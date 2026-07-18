@@ -53,7 +53,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'Cards & spend',
     items: [
-      { to: '/account/cards', label: 'Cards', icon: CreditCard },
+      { to: '/account/cards', label: 'Cards', icon: CreditCard, end: true },
       { to: '/account/cards/explore', label: 'Explore', icon: Library },
       { to: '/account/cards/compare', label: 'Compare', icon: GitCompareArrows },
       { to: '/account/merchants', label: 'Merchants', icon: Store },

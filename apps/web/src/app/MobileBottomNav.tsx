@@ -32,7 +32,7 @@ const primaryTabs: Array<{
   end?: boolean;
 }> = [
   { id: 'dashboard', to: DASHBOARD_PATH, label: 'Home', icon: LayoutDashboard, end: true },
-  { id: 'cards', to: '/account/cards', label: 'Cards', icon: CreditCard },
+  { id: 'cards', to: '/account/cards', label: 'Cards', icon: CreditCard, end: true },
   { id: 'merchants', to: '/account/merchants', label: 'Merchants', icon: Store },
   { id: 'more', label: 'More', icon: Menu },
 ];
