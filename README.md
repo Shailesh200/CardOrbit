@@ -1,41 +1,114 @@
-# CardWise
+# CardOrbit (CardWise)
 
 **Financial Decision Intelligence Platform** — answers: *"Which card should I use right now?"*
 
-CardWise is a milestone-driven platform for Indian credit card optimization, evolving from recommendation intelligence into a full financial operating system for rewards, travel, and AI-assisted optimization.
+Product brand: **CardOrbit** · Domain: **[cardorbit.in](https://cardorbit.in)**  
+Internal monorepo / npm scope: `@cardwise/*` (legacy name kept for packages).
 
-## Repository Structure
+CardOrbit is a milestone-driven platform for Indian credit card optimization — recommendations, rewards, travel, and AI-assisted decisioning.
+
+---
+
+## Production (live)
+
+| Surface | URL |
+|---------|-----|
+| Landing | https://cardorbit.in |
+| Consumer app | https://app.cardorbit.in |
+| Admin CMS | https://admin.cardorbit.in |
+| API health | https://api.cardorbit.in/health |
+| API (base) | https://api.cardorbit.in/api/v1 |
+
+### Infrastructure links
+
+| System | Link / location | Role |
+|--------|-----------------|------|
+| **GitHub** | https://github.com/Shailesh200/CardOrbit | Source of truth (`main`) |
+| **Vercel — web** | Vercel dashboard → `cardorbit-web` · root `apps/web` | Landing + consumer SPA |
+| **Vercel — admin** | Vercel dashboard → `card-orbit-admin` · root `apps/admin` | Admin CMS SPA |
+| **Coolify** | http://167.233.223.123:8000 | Deploy/manage API stack on VPS |
+| **Coolify app** | Coolify → project → application `hoci5uux0n03wivuoxcj9awv` | Compose: api, worker, scheduler, postgres, redis |
+| **Hetzner VPS** | `167.233.223.123` (SSH: `~/.ssh/cardorbit_hetzner`) | Docker host for Coolify |
+| **Cloudflare** | https://dash.cloudflare.com → `cardorbit.in` | DNS / CDN |
+| **Resend** | https://resend.com/domains · domain `cardorbit.in` | Transactional email (SMTP) |
+| **Google Cloud OAuth** | https://console.cloud.google.com/apis/credentials | Google sign-in + Gmail scopes |
+| **Gemini / AI Studio** | https://aistudio.google.com/apikey | `GEMINI_API_KEY` for API/worker |
+| **GHCR images** | `ghcr.io/shailesh200/cardorbit-{api,worker,scheduler}` | Production container images |
+
+### Host map
+
+```text
+cardorbit.in / www     → Vercel (landing)
+app.cardorbit.in       → Vercel (consumer app)
+admin.cardorbit.in     → Vercel (admin)
+api.cardorbit.in       → Hetzner / Coolify / Traefik → API :3000
+assets.cardorbit.in    → Cloudflare R2 (when configured)
+```
+
+### Production ops docs
+
+| Doc | Purpose |
+|-----|---------|
+| [`docs/14_DEPLOYMENT_STRATEGY.md`](docs/14_DEPLOYMENT_STRATEGY.md) | Canonical MVP deploy architecture |
+| [`docs/14C_COOLIFY_SETUP.md`](docs/14C_COOLIFY_SETUP.md) | Coolify + Traefik HTTPS fix |
+| [`docs/14E_ENVIRONMENT_CONFIGURATION.md`](docs/14E_ENVIRONMENT_CONFIGURATION.md) | Env var map |
+| [`docs/14J_OPERATIONAL_RUNBOOK.md`](docs/14J_OPERATIONAL_RUNBOOK.md) | Incidents / smoke tests |
+| [`plans/PRODUCTION_DEPLOYMENT_CHECKLIST.md`](plans/PRODUCTION_DEPLOYMENT_CHECKLIST.md) | Step-by-step go-live checklist |
+| [`.env.production.example`](.env.production.example) | Coolify env template (no secrets) |
+| [`infra/docker/docker-compose.production.yml`](infra/docker/docker-compose.production.yml) | Production compose |
+| [`infra/docker/scripts/patch-coolify-traefik.py`](infra/docker/scripts/patch-coolify-traefik.py) | Re-apply Traefik labels after Coolify recreate |
+
+### Coolify / VPS quick commands
+
+```bash
+# SSH
+ssh -i ~/.ssh/cardorbit_hetzner root@167.233.223.123
+
+# API health (public)
+curl -sS https://api.cardorbit.in/health
+
+# If HTTPS to api.* times out after Coolify recreate:
+python3 /opt/cardorbit-src/infra/docker/scripts/patch-coolify-traefik.py
+cd /data/coolify/applications/hoci5uux0n03wivuoxcj9awv
+docker compose up -d --force-recreate --no-deps api
+```
+
+Coolify UI: **http://167.233.223.123:8000**  
+Compose data dir: `/data/coolify/applications/hoci5uux0n03wivuoxcj9awv/`
+
+---
+
+## Repository structure
 
 ```text
 CardWise/
-├── apps/                 # Client applications (web, admin, extension, mobile)
-├── services/             # Backend services (API modular monolith)
-├── packages/             # Shared libraries (@cardwise/*)
-├── infra/                # Docker, Terraform, Kubernetes
-├── scripts/              # Setup, seed, codegen automation
-├── docs/                 # Product and architecture documentation
-├── plans/                # Master Development Plan (execution roadmap)
-├── .github/              # CI/CD workflows (M-002+)
-├── turbo.json            # Turborepo pipeline
-├── lefthook.yml          # Git hooks (pre-commit quality gates)
-├── .oxlintrc.json        # Oxlint configuration (root)
-├── .oxfmtrc.json         # Oxfmt configuration (root)
-└── package.json          # Bun workspaces + root scripts
+├── apps/                 # web, admin, extension, mobile
+├── services/             # API (Nest/Fastify), worker, scheduler
+├── packages/             # Shared @cardwise/* libraries
+├── infra/                # Docker, Coolify helpers, Terraform (future)
+├── scripts/              # Setup / seed / codegen
+├── docs/                 # Product + architecture
+├── plans/                # Master development plan + deploy checklist
+├── .github/              # CI / deploy workflows
+├── turbo.json
+└── package.json          # Bun workspaces
 ```
 
-## Technology Stack
+## Technology stack
 
 | Layer | Choice |
 |-------|--------|
 | Frontend | Vite 6 + React 19 + React Router v7 + Zustand + TanStack Query + shadcn/ui |
 | Backend | NestJS 11 on Fastify + Prisma + PostgreSQL 16 + Redis + BullMQ |
-| Analytics / Flags | PostHog Cloud |
-| Cloud | AWS (ap-south-1) |
-| Monorepo | **Bun workspaces + Turborepo** |
-| Lint / Format | **Oxlint + Oxfmt** (Oxc toolchain) |
-| Git Hooks | **Lefthook** |
+| AI | Google Gemini (`packages/ai`) |
+| Analytics / flags | PostHog (optional in prod) |
+| Email | Resend SMTP |
+| **Prod hosting (MVP)** | **Vercel** (web/admin) · **Hetzner + Coolify** (API stack) · **Cloudflare** (DNS) |
+| Monorepo | Bun workspaces + Turborepo |
+| Lint / format | Oxlint + Oxfmt |
+| Git hooks | Lefthook |
 
-> Toolchain change documented in `docs/adr/ADR-048-monorepo-toolchain-bun-oxc.md`.
+> Long-term AWS/EKS notes remain in older docs; **MVP production path is Coolify/Vercel** — see [`docs/14_DEPLOYMENT_STRATEGY.md`](docs/14_DEPLOYMENT_STRATEGY.md).
 
 ## Prerequisites
 
@@ -43,43 +116,34 @@ CardWise/
 - **Docker** — [Colima](https://github.com/abiosoft/colima) + Docker CLI, or Docker Desktop
 - **Node.js** 22+ (for NestJS/Vite runtime; see `.nvmrc`)
 
-## Getting Started
+## Getting started
 
 ### macOS without Docker Desktop (Colima)
 
 ```bash
 brew install colima docker docker-compose
 colima start --cpu 4 --memory 6
-# Ensure compose plugin path (one-time):
-# Add "/opt/homebrew/lib/docker/cli-plugins" to ~/.docker/config.json → cliPluginsExtraDirs
 ```
 
 ### First-time setup
 
 ```bash
-# Full setup (install, .env.local, Docker infra, verify)
 bun run setup
 
-# Or manual steps:
+# Or manual:
 bun install
 cp .env.example .env.local   # edit if needed
 bun run docker:up
 
-# Quality checks
 bun run verify:milestone
 bun run verify:web          # Lighthouse + SEO (when working on apps/web)
 ```
-
-### Consumer web design system (locked M-014b)
-
-All `apps/web` UI follows **`docs/design/WEB_CONSUMER_DESIGN_SYSTEM.md`** — Bricolage Grotesque + DM Sans, light glass chrome, dark hero panels, `HeroLogo`, teal CTAs. Cursor rule: `.cursor/rules/web-consumer-design-system.mdc`.
-
 
 ### Local services (after `docker:up`)
 
 | Service | URL / Port |
 |---------|------------|
-| PostgreSQL | `localhost:5433` — database `cardwise_dev` (Docker; avoids host Postgres on 5432) |
+| PostgreSQL | `localhost:5433` — database `cardwise_dev` |
 | Redis | `localhost:6379` |
 | Mailpit UI | http://localhost:8025 |
 | API | http://localhost:3000 — `bun run dev:api` |
@@ -88,43 +152,23 @@ All `apps/web` UI follows **`docs/design/WEB_CONSUMER_DESIGN_SYSTEM.md`** — Br
 | Admin | http://localhost:5174 — `bun run dev:admin` |
 
 ```bash
-bun run db:migrate   # Phase 0 Prisma schema
-bun run dev          # Infra + all apps/services (API, web, admin)
+bun run db:migrate
+bun run dev          # Infra + API, web, admin
 ```
 
-> Phase 0 foundation (G-0): monorepo, Docker, design system, analytics/flags, API + web shell, privacy stubs. See `plans/00_MASTER_DEVELOPMENT_PLAN.md`.
+## Development governance
 
-## Production deployment (MVP)
-
-Canonical guide: **[`docs/14_DEPLOYMENT_STRATEGY.md`](docs/14_DEPLOYMENT_STRATEGY.md)**
-
-| Layer | Target |
-|-------|--------|
-| Web / Admin | Vercel |
-| API / Worker / Scheduler / Postgres / Redis | Hetzner VPS + Coolify + Docker |
-| Assets | Cloudflare R2 |
-| DNS / CDN | Cloudflare |
-| Email | Resend |
-| CI | GitHub Actions → GHCR → Coolify |
-
-Env template: [`.env.production.example`](.env.production.example)  
-Compose: [`infra/docker/docker-compose.production.yml`](infra/docker/docker-compose.production.yml)
-
-## Development Governance
-
-- **Roadmap:** `plans/00_MASTER_DEVELOPMENT_PLAN.md` (92 milestones, M-001–M-092)
-- **Bootstrap:** `docs/23_CURSOR_PROJECT_BOOTSTRAP_PLAN.md` (stack and sprint definitions)
-- **Toolchain ADR:** `docs/adr/ADR-048-monorepo-toolchain-bun-oxc.md`
-- **Rules:** One milestone at a time; dependencies must be Verified before proceeding
+- **Roadmap:** [`plans/00_MASTER_DEVELOPMENT_PLAN.md`](plans/00_MASTER_DEVELOPMENT_PLAN.md)
+- **Bootstrap:** [`docs/23_CURSOR_PROJECT_BOOTSTRAP_PLAN.md`](docs/23_CURSOR_PROJECT_BOOTSTRAP_PLAN.md)
+- **Toolchain ADR:** [`docs/adr/ADR-048-monorepo-toolchain-bun-oxc.md`](docs/adr/ADR-048-monorepo-toolchain-bun-oxc.md)
 
 ### Git workflow
 
 - **Pre-commit (Lefthook):** oxlint fix, oxfmt, typecheck on staged files
-- **Commit-msg:** subject line ≤ 100 characters; include milestone ID (e.g. `M-001: description`)
-- **Milestone gate:** engineering runs `bun run verify:milestone` before final review (includes web SEO baseline; Lighthouse when `apps/web` changed); you approve → commit → Verified → next milestone
-- **Hooks install:** automatic on `bun install` when inside a git repository
+- **Commit-msg:** subject line ≤ 100 characters
+- **Milestone gate:** `bun run verify:milestone` before shipping a milestone
 
-## Package Naming
+## Package naming
 
 - npm scope: `@cardwise/*`
 - Apps: `@cardwise/web`, `@cardwise/admin`, `@cardwise/extension`
