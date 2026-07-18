@@ -6,7 +6,7 @@ import { PasswordInput } from '@/components/auth/PasswordInput';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { AuthPanel } from '@layout/AuthPanel';
 import { login } from '@lib/auth-api';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import { consumerLink, consumerLinkSm } from '@lib/consumer-link';
 import { resolvePostAuthPath } from '@lib/post-auth-redirect';
 
@@ -19,20 +19,33 @@ export function LoginPage() {
 
   useEffect(() => {
     const authMessage = (location.state as { authMessage?: string } | null)?.authMessage;
-    if (!authMessage) return;
-    toast.error(authMessage);
-    navigate('/login', { replace: true, state: {} });
-  }, [location.state, navigate]);
+    const params = new URLSearchParams(location.search);
+    const oauthError = params.get('error');
+    if (authMessage) {
+      notify.error(authMessage);
+      navigate('/login', { replace: true, state: {} });
+      return;
+    }
+    if (oauthError === 'oauth_failed') {
+      notify.error('Google sign-in did not complete. Please try again.');
+      navigate('/login', { replace: true });
+    }
+  }, [location.state, location.search, navigate]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
     try {
       await login(email, password);
-      toast.success('Signed in');
-      navigate(await resolvePostAuthPath());
+      notify.success('Signed in');
+      const from = (location.state as { from?: string } | null)?.from;
+      if (from && from.startsWith('/') && !from.startsWith('//')) {
+        navigate(from, { replace: true });
+      } else {
+        navigate(await resolvePostAuthPath());
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed');
+      notify.fromError(error, 'Login failed');
     } finally {
       setBusy(false);
     }

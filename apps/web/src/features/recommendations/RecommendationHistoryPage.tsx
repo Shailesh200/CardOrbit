@@ -4,7 +4,7 @@ import { Button } from '@cardwise/ui';
 import { History } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 
 import {
   listRecommendationHistory,
@@ -40,7 +40,7 @@ export function RecommendationHistoryPage() {
         setItems(response.items);
         setTotal(response.total);
       })
-      .catch((error: Error) => toast.error(error.message))
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoading(false));
   }, []);
 

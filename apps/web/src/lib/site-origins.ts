@@ -11,7 +11,9 @@ function normalizeHost(hostname: string): string {
   return hostname.replace(/^www\./, '').toLowerCase();
 }
 
-export function isLocalDevHost(hostname = typeof window !== 'undefined' ? window.location.hostname : ''): boolean {
+export function isLocalDevHost(
+  hostname = typeof window !== 'undefined' ? window.location.hostname : '',
+): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local');
 }
 

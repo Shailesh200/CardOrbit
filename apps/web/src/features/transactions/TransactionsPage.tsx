@@ -13,7 +13,7 @@ import {
 import { ArrowDownToLine, CreditCard, Plus, Receipt } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import {
   enqueueMailSync,
   listMailboxes,
@@ -115,7 +115,7 @@ export function TransactionsPage() {
         setAddDraft((current) => ({ ...current, userCardId: portfolio[0]!.id }));
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not load transactions');
+      notify.fromError(error, 'Could not load transactions');
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,7 @@ export function TransactionsPage() {
       setShowImport(false);
       await load();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Import failed');
+      notify.fromError(error, 'Import failed');
     } finally {
       setImporting(false);
     }
@@ -172,7 +172,7 @@ export function TransactionsPage() {
       setAddDraft((current) => ({ ...current, merchantName: '', amountInr: '' }));
       await load();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not add transaction');
+      notify.fromError(error, 'Could not add transaction');
     } finally {
       setSaving(false);
     }
@@ -215,7 +215,7 @@ export function TransactionsPage() {
       await load();
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
-      toast.error(error instanceof Error ? error.message : 'Sync failed to start');
+      notify.fromError(error, 'Sync failed to start');
     } finally {
       setSyncing(false);
       setSyncProgress(null);

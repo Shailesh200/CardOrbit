@@ -1,6 +1,15 @@
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { Button, cn } from '@cardwise/ui';
 
+import { LoadErrorState } from '../components/feedback/LoadErrorState';
+import { TableSkeleton } from '../components/feedback/PageSkeleton';
 import {
   fetchAdminFeatureFlags,
   updateAdminFeatureFlag,
@@ -12,6 +21,7 @@ import {
   AI_FEATURE_FLAG_HINTS,
   isAiFeatureFlagKey,
 } from '../lib/ai-feature-flags';
+import { notify, safeMessage } from '../lib/notify';
 
 function formatKey(key: string): string {
   return key.replace(/_/g, ' ');
@@ -153,8 +163,10 @@ export function FeatureFlagsPage() {
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void fetchAdminFeatureFlags()
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    return fetchAdminFeatureFlags()
       .then((definitions) => {
         setRows(definitions);
         setDrafts(
@@ -166,9 +178,17 @@ export function FeatureFlagsPage() {
           ),
         );
       })
-      .catch((err: Error) => setError(err.message))
+      .catch((err: unknown) => {
+        setError(
+          safeMessage(err instanceof Error ? err.message : '', 'Failed to load feature flags.'),
+        );
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const dirtyKeys = useMemo(() => {
     return rows
@@ -200,15 +220,34 @@ export function FeatureFlagsPage() {
     try {
       const updated = await updateAdminFeatureFlag(key, draft);
       setRows((current) => current.map((row) => (row.key === key ? updated : row)));
+      notify.success(`${aiFeatureFlagLabel(key)} updated`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save feature flag');
+      notify.fromError(err, 'Failed to save feature flag. Please try again.');
     } finally {
       setSavingKey(null);
     }
   }
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading feature flags…</p>;
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">Feature flags</h1>
+        </div>
+        <TableSkeleton />
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (error && rows.length === 0) {
+    return (
+      <LoadErrorState
+        title="Could not load feature flags"
+        description={error}
+        onRetry={() => void load()}
+      />
+    );
   }
 
   const tableProps = {

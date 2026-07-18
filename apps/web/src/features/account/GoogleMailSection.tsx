@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { Button } from '@cardwise/ui';
 
-import { toast } from '../../lib/app-toast';
+import { notify, toast } from '../../lib/app-toast';
 import {
   disconnectMailbox,
   enqueueMailSync,
@@ -53,7 +53,7 @@ export function GoogleMailSection() {
       setMailboxes(response.items);
       setCanAddMore(response.canAddMore);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load mailboxes');
+      notify.fromError(error, 'Failed to load mailboxes');
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export function GoogleMailSection() {
       const { url } = await getLinkMailboxUrl();
       window.location.href = url;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not start Google connect');
+      notify.fromError(error, 'Could not start Google connect');
     }
   }
 
@@ -96,7 +96,7 @@ export function GoogleMailSection() {
       toast.success('Mailbox disconnected');
       await refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Disconnect failed');
+      notify.fromError(error, 'Disconnect failed');
     } finally {
       setBusyId(null);
     }
@@ -137,7 +137,7 @@ export function GoogleMailSection() {
       await refresh();
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
-      toast.error(error instanceof Error ? error.message : 'Sync failed to start');
+      notify.fromError(error, 'Sync failed to start');
     } finally {
       setBusyId(null);
       setSyncProgress(null);

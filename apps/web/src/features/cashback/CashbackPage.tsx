@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Banknote } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import {
   CASHBACK_STATUS_LABELS,
   formatInr,
@@ -88,7 +88,7 @@ export function CashbackPage() {
         setForecast(forecastResponse);
       })
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load cashback data');
+        notify.fromError(error, 'Could not load cashback data');
       })
       .finally(() => setLoading(false));
   }, []);

@@ -1,7 +1,8 @@
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@cardwise/ui';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 
+import { toSafeMessage } from '../lib/sanitize-message';
 import type { SduiActionContext } from '../types';
 
 type JobRow = Record<string, unknown>;
@@ -67,6 +68,7 @@ type SyncHistoryBlockProps = {
 export function SyncHistoryBlock({ ctx, fetchJob, columns }: SyncHistoryBlockProps) {
   const [rows, setRows] = useState<JobRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [logCache, setLogCache] = useState<Record<string, JobLogEntry[]>>({});
@@ -75,11 +77,15 @@ export function SyncHistoryBlock({ ctx, fetchJob, columns }: SyncHistoryBlockPro
 
   const refresh = useCallback(() => {
     setLoading(true);
+    setLoadError(null);
     void ctx
       .fetchData('admin.jobs.recent', { limit: pageSize, offset: page * pageSize })
       .then((data) => {
         const payload = data as { items?: JobRow[] };
         setRows(payload.items ?? []);
+      })
+      .catch((error: unknown) => {
+        setLoadError(toSafeMessage(error instanceof Error ? error.message : '', 'Failed to load sync history.'));
       })
       .finally(() => setLoading(false));
   }, [ctx, page]);
@@ -129,6 +135,17 @@ export function SyncHistoryBlock({ ctx, fetchJob, columns }: SyncHistoryBlockPro
             <span className="admin-loading__dot" />
             <span className="admin-loading__dot" />
             Loading sync history…
+          </div>
+        ) : loadError ? (
+          <div className="admin-error-state" role="alert">
+            <AlertTriangle className="admin-error-state__icon" aria-hidden />
+            <div className="admin-error-state__copy">
+              <p className="admin-error-state__title">Could not load sync history</p>
+              <p className="admin-error-state__desc">{loadError}</p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={refresh}>
+              Try again
+            </Button>
           </div>
         ) : rows.length === 0 ? (
           <p className="admin-empty">No sync runs yet. Start a job above to see history here.</p>
@@ -200,7 +217,11 @@ export function SyncHistoryBlock({ ctx, fetchJob, columns }: SyncHistoryBlockPro
                                         className={`admin-job-log__line ${logLevelClass(entry.level)}`}
                                       >
                                         <span className="admin-job-log__time">{formatTime(entry.at)}</span>
-                                        <span className="admin-job-log__message">{entry.message}</span>
+                                        <span className="admin-job-log__message">
+                                          {entry.level === 'error'
+                                            ? toSafeMessage(entry.message, 'An error occurred during this step.')
+                                            : entry.message}
+                                        </span>
                                       </div>
                                     ))
                                   ) : (

@@ -20,7 +20,7 @@ export const AI_PROMPT_REGISTRY = {
     description: 'Gemini connectivity ping',
   },
   'catalog-structure': {
-    version: 'v1.0.0',
+    version: 'v1.1.0',
     systemPrompt: CATALOG_STRUCTURE_SYSTEM,
     modelTier: 'fast',
     description: 'Structure issuer HTML into IngestCardBundle draft',

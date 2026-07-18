@@ -8,6 +8,41 @@ export type AuthUnauthorizedDetail = {
   message: string;
 };
 
+export type AuthHttpErrorCode =
+  | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
+  | 'NOT_FOUND'
+  | 'VALIDATION'
+  | 'SERVER'
+  | 'NETWORK'
+  | 'UNKNOWN';
+
+export class AuthHttpError extends Error {
+  readonly status: number;
+  readonly code: AuthHttpErrorCode;
+  /** When true, UI must not toast — session redirect owns the message. */
+  readonly silentToast: boolean;
+
+  constructor(
+    message: string,
+    options: { status: number; code: AuthHttpErrorCode; silentToast?: boolean },
+  ) {
+    super(message);
+    this.name = 'AuthHttpError';
+    this.status = options.status;
+    this.code = options.code;
+    this.silentToast = options.silentToast ?? false;
+  }
+}
+
+export function isAuthHttpError(error: unknown): error is AuthHttpError {
+  return error instanceof AuthHttpError;
+}
+
+export function isSilentAuthError(error: unknown): boolean {
+  return isAuthHttpError(error) && error.silentToast;
+}
+
 function notifyAuthSessionChanged(): void {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(AUTH_SESSION_CHANGED));
@@ -59,6 +94,15 @@ function sessionExpiredMessage(apiMessage: string): string {
   return 'Your session has expired. Please sign in again.';
 }
 
+function codeForStatus(status: number): AuthHttpErrorCode {
+  if (status === 401) return 'UNAUTHORIZED';
+  if (status === 403) return 'FORBIDDEN';
+  if (status === 404) return 'NOT_FOUND';
+  if (status === 400 || status === 422) return 'VALIDATION';
+  if (status >= 500) return 'SERVER';
+  return 'UNKNOWN';
+}
+
 export async function authFetch<T>(path: string, init: RequestInit = {}, apiBase = ''): Promise<T> {
   const headers = new Headers(init.headers);
   if (!headers.has('Content-Type') && init.body) {
@@ -68,7 +112,17 @@ export async function authFetch<T>(path: string, init: RequestInit = {}, apiBase
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  const response = await fetch(`${apiBase}${path}`, { ...init, headers });
+
+  let response: Response;
+  try {
+    response = await fetch(`${apiBase}${path}`, { ...init, headers });
+  } catch {
+    throw new AuthHttpError('Network error — check your connection and try again.', {
+      status: 0,
+      code: 'NETWORK',
+    });
+  }
+
   if (!response.ok) {
     const text = await response.text();
     let message = text || `Request failed (${response.status})`;
@@ -95,15 +149,25 @@ export async function authFetch<T>(path: string, init: RequestInit = {}, apiBase
       // keep raw text or fallback above
     }
 
-    if (response.status === 401 && token && !isCredentialAuthPath(path)) {
+    const sessionExpiry = response.status === 401 && Boolean(token) && !isCredentialAuthPath(path);
+    if (sessionExpiry) {
       clearAuthTokens();
-      const detail: AuthUnauthorizedDetail = { message: sessionExpiredMessage(message) };
+      const friendly = sessionExpiredMessage(message);
+      const detail: AuthUnauthorizedDetail = { message: friendly };
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent(AUTH_UNAUTHORIZED, { detail }));
       }
+      throw new AuthHttpError(friendly, {
+        status: 401,
+        code: 'UNAUTHORIZED',
+        silentToast: true,
+      });
     }
 
-    throw new Error(message);
+    throw new AuthHttpError(message, {
+      status: response.status,
+      code: codeForStatus(response.status),
+    });
   }
   if (response.status === 204) {
     return undefined as T;

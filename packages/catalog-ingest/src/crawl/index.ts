@@ -1,8 +1,9 @@
 import type { IngestCardBundle } from '@cardwise/validation';
 
 import { INDIA_BANK_SOURCES } from '../india/bank-sources';
-import { discoverGenericBankCardUrls, bankCatalogListingUrl } from './generic-discovery';
-import { crawlIdfcFirstBank, discoverIdfcFirstCardPaths } from './idfc-first';
+import { getBankCrawlerAdapter } from './adapters/registry';
+import { fetchText } from './http';
+import { crawlIdfcFirstBank } from './idfc-first';
 
 export type CatalogIngestPayload = {
   entityType: 'CARD_BUNDLE';
@@ -12,7 +13,13 @@ export type CatalogIngestPayload = {
   summary: string;
 };
 
-export const SUPPORTED_BANK_CRAWLERS = ['idfc-first'] as const;
+/**
+ * Deep crawler adapters exist for every India bank in `INDIA_BANK_SOURCES` (see
+ * `crawl/adapters/registry.ts`): `idfc-first` uses a dedicated deep implementation, every
+ * other bank uses the hardened generic discovery + product-page parser until a
+ * bank-specific deep implementation is written.
+ */
+export const SUPPORTED_BANK_CRAWLERS = INDIA_BANK_SOURCES.map((bank) => bank.slug);
 export const SUPPORTED_BANK_AI_INGEST = INDIA_BANK_SOURCES.map((bank) => bank.slug);
 export type SupportedBankSlug = (typeof SUPPORTED_BANK_CRAWLERS)[number];
 export type SupportedAiIngestBankSlug = (typeof SUPPORTED_BANK_AI_INGEST)[number];
@@ -25,32 +32,55 @@ export function isSupportedBankSlug(value: string): value is SupportedBankSlug {
   return (SUPPORTED_BANK_CRAWLERS as readonly string[]).includes(value);
 }
 
+/** Discover per-bank product page URLs via the registered `BankCrawlerAdapter`. */
 export async function discoverBankCardUrls(bankSlug: SupportedAiIngestBankSlug): Promise<string[]> {
-  switch (bankSlug) {
-    case 'idfc-first': {
-      const paths = await discoverIdfcFirstCardPaths();
-      return paths.map((path) => `https://www.idfcfirst.bank.in${path}`);
-    }
-    default:
-      return discoverGenericBankCardUrls(bankSlug);
-  }
+  const adapter = getBankCrawlerAdapter(bankSlug);
+  return adapter.discoverCardUrls();
 }
 
+function summarizeBundle(bundle: IngestCardBundle, sourceUrl: string): string {
+  return `${bundle.name} — ${bundle.highlights.length} highlights, ${bundle.structuredFees.length} fee rows · ${sourceUrl}`;
+}
+
+/**
+ * Rule-based (non-AI) crawl for a bank's full card catalog, used by the admin "Crawl bank"
+ * action. IDFC FIRST uses its dedicated deep crawler; every other bank crawls via its
+ * registered generic `BankCrawlerAdapter` (discover → fetch → parseProductPage).
+ */
 export async function crawlBankCards(bankSlug: SupportedBankSlug): Promise<CatalogIngestPayload[]> {
-  switch (bankSlug) {
-    case 'idfc-first': {
-      const cards = await crawlIdfcFirstBank();
-      return cards.map(({ bundle, sourceUrl }) => ({
-        entityType: 'CARD_BUNDLE' as const,
+  if (bankSlug === 'idfc-first') {
+    const cards = await crawlIdfcFirstBank();
+    return cards.map(({ bundle, sourceUrl }) => ({
+      entityType: 'CARD_BUNDLE' as const,
+      entityKey: bundle.slug,
+      sourceUrl,
+      payload: bundle,
+      summary: summarizeBundle(bundle, sourceUrl),
+    }));
+  }
+
+  const adapter = getBankCrawlerAdapter(bankSlug);
+  const sourceUrls = await adapter.discoverCardUrls();
+  const payloadsBySlug = new Map<string, CatalogIngestPayload>();
+
+  for (const sourceUrl of sourceUrls) {
+    try {
+      const html = await fetchText(sourceUrl);
+      const bundle = await adapter.parseProductPage({ sourceUrl, html });
+      if (!bundle) continue;
+      payloadsBySlug.set(bundle.slug, {
+        entityType: 'CARD_BUNDLE',
         entityKey: bundle.slug,
         sourceUrl,
         payload: bundle,
-        summary: `${bundle.name} — ${bundle.highlights.length} highlights, ${bundle.structuredFees.length} fee rows · ${sourceUrl}`,
-      }));
+        summary: summarizeBundle(bundle, sourceUrl),
+      });
+    } catch {
+      // Skip pages that fail to fetch or parse.
     }
-    default:
-      throw new Error(`Unsupported bank slug: ${bankSlug satisfies never}`);
   }
+
+  return [...payloadsBySlug.values()].sort((a, b) => a.payload.name.localeCompare(b.payload.name));
 }
 
 export {
@@ -65,4 +95,14 @@ export {
 export { discoverGenericBankCardUrls, bankCatalogListingUrl } from './generic-discovery';
 export { parseGenericCardPage } from './generic-card-page';
 
-export { fetchText, fetchHtml, type FetchHtmlResult } from './http';
+export { fetchText, fetchHtml, fetchPdf, type FetchHtmlResult, type FetchPdfResult } from './http';
+export { extractPdfText, fetchAndExtractPdfText } from './pdf';
+export { extractSourceDocumentLinks, mergeSourceDocuments } from './source-documents';
+
+export type { BankCrawlerAdapter, ProductPageInput } from './adapter';
+export { createGenericBankAdapter } from './adapters/generic';
+export {
+  BANK_CRAWLER_ADAPTERS,
+  getBankCrawlerAdapter,
+  listRegisteredBankCrawlerAdapters,
+} from './adapters/registry';

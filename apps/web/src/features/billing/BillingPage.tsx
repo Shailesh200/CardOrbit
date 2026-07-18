@@ -13,7 +13,7 @@ import {
 import { CalendarDays, FileText, Receipt } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import { listPortfolio, type PortfolioCardSummary } from '../portfolio/portfolio-api';
 import {
   BILL_STATUS_LABELS,
@@ -81,7 +81,7 @@ export function BillingPage() {
         setStatementDraft((current) => ({ ...current, userCardId: portfolio[0]!.id }));
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Billing data unavailable');
+      notify.fromError(error, 'Billing data unavailable');
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ export function BillingPage() {
       const response = await getBillingCalendar(calendarMonth.year, calendarMonth.month);
       setCalendarDays(response.days);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Calendar unavailable');
+      notify.fromError(error, 'Calendar unavailable');
       setCalendarDays(null);
     }
   }, [calendarMonth.month, calendarMonth.year]);
@@ -134,7 +134,7 @@ export function BillingPage() {
       await load();
       setTab('statements');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not save statement');
+      notify.fromError(error, 'Could not save statement');
     } finally {
       setSaving(false);
     }
@@ -159,7 +159,7 @@ export function BillingPage() {
       setPaymentAmount('');
       await load();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not record payment');
+      notify.fromError(error, 'Could not record payment');
     } finally {
       setSaving(false);
     }

@@ -52,6 +52,18 @@ export type RecommendationCalculationBreakdown = {
   rankingVersion: 'v1' | 'v2' | 'v3';
 };
 
+export type CatalogRecommendation = {
+  recommendedCard: RecommendationCard | null;
+  alternatives: RecommendationCard[];
+  explanation: string;
+  explanationSource?: 'ai' | 'template';
+  shortSummary?: string;
+  bulletReasons?: string[];
+  calculationBreakdown?: RecommendationCalculationBreakdown | null;
+  citations?: RecommendationCitation[];
+  cardsEvaluated: number;
+};
+
 export type LiveRecommendation = {
   source: 'showcase' | 'portfolio';
   recommendationId: string;
@@ -68,6 +80,8 @@ export type LiveRecommendation = {
   aiModel?: string;
   cardsEvaluated: number;
   rankingVersion: 'v1' | 'v2' | 'v3';
+  /** Unowned catalog picks ranked for the same merchant + amount (portfolio best-card only). */
+  catalogRecommendation: CatalogRecommendation | null;
 };
 
 export const LIVE_RECOMMENDATION_SCENARIO = {
@@ -92,6 +106,7 @@ export async function fetchRecommendationShowcase(): Promise<LiveRecommendation>
     explanationSource: payload.explanationSource ?? 'template',
     citations: payload.citations ?? [],
     calculationBreakdown: payload.calculationBreakdown ?? null,
+    catalogRecommendation: payload.catalogRecommendation ?? null,
   };
 }
 
@@ -136,6 +151,7 @@ export async function fetchBestCardRecommendation(input: {
     explanationSource: result.explanationSource ?? 'template',
     citations: result.citations ?? [],
     calculationBreakdown: result.calculationBreakdown ?? null,
+    catalogRecommendation: result.catalogRecommendation ?? null,
   };
 }
 
@@ -158,7 +174,10 @@ export async function fetchLiveRecommendation(
   return withTimeout(fetchRecommendationShowcase(), 5_000);
 }
 
-export function formatRewardHighlight(recommendation: LiveRecommendation): string {
+export function formatRewardHighlight(recommendation: {
+  recommendedCard: RecommendationCard | null;
+  shortSummary?: string;
+}): string {
   if (recommendation.shortSummary?.trim()) {
     return recommendation.shortSummary.trim();
   }
@@ -171,6 +190,15 @@ export function formatRewardHighlight(recommendation: LiveRecommendation): strin
   }
 
   return card.explanation;
+}
+
+/** Deep-link into Add card with catalog slug/name prefilled when available. */
+export function addCardHref(
+  card?: Pick<RecommendationCard, 'cardSlug' | 'cardName'> | null,
+): string {
+  if (!card) return '/account/cards/add';
+  const q = card.cardSlug || card.cardName;
+  return `/account/cards/add?q=${encodeURIComponent(q)}`;
 }
 
 export function formatInr(amount: number): string {

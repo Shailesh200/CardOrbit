@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Crown, TrendingUp } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import {
   formatInr,
   getPremiumDashboardOverview,
@@ -98,7 +98,7 @@ export function PremiumDashboardPage() {
     void getPremiumDashboardOverview()
       .then(setOverview)
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load premium dashboard');
+        notify.fromError(error, 'Could not load premium dashboard');
       })
       .finally(() => setLoading(false));
   }, []);

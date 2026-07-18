@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Button } from '@cardwise/ui';
 
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 
 import { formatOfferTitle } from '@features/offers/format-offer-title';
 import { listMatchedOffers, type MatchedOffer } from '@features/offers/offers-api';
@@ -19,7 +19,7 @@ export function MerchantOffersPanel({ merchantSlug, defaultAmountInr = 2500 }: P
   useEffect(() => {
     listMatchedOffers({ merchantSlug, amountInr: defaultAmountInr, limit: 6 })
       .then((response) => setOffers(response.items))
-      .catch((error: Error) => toast.error(error.message))
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoading(false));
   }, [defaultAmountInr, merchantSlug]);
 

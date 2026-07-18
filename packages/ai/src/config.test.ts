@@ -119,7 +119,7 @@ describe('@cardwise/ai run logger', () => {
 
 describe('@cardwise/ai prompt registry', () => {
   it('exposes stable prompt versions', () => {
-    expect(getPromptVersion('catalog-structure')).toBe('v1.0.0');
+    expect(getPromptVersion('catalog-structure')).toBe('v1.1.0');
     expect(getPromptVersion('reco-explain')).toBe('v1.0.0');
     expect(getPromptVersion('ping')).toBe('v1.0.0');
   });

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { MapPin, Plane } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import {
   createTripPlan,
   formatInr,
@@ -109,7 +109,7 @@ export function TripPlannerPage() {
       const result = await createTripPlan(payload);
       setPlan(result);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not create trip plan');
+      notify.fromError(error, 'Could not create trip plan');
     } finally {
       setLoading(false);
     }

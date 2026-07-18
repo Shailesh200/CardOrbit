@@ -1,7 +1,8 @@
 import { ChangeEvent, useRef, useState } from 'react';
-import { Button, Input, toast } from '@cardwise/ui';
+import { Button, Input } from '@cardwise/ui';
 
 import { uploadAssetFile } from '../lib/api';
+import { notify } from '../lib/notify';
 
 type Props = {
   label?: string;
@@ -32,9 +33,9 @@ export function AssetUrlField({
     try {
       const result = await uploadAssetFile(file, entityType, slugHint);
       onChange(result.url);
-      toast.success('Image uploaded');
+      notify.success('Image uploaded');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Upload failed');
+      notify.fromError(error, 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }

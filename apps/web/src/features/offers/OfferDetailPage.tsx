@@ -6,7 +6,7 @@ import { Tag } from 'lucide-react';
 import { PageBackLink } from '@layout/PageBackLink';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { AccountRouteSkeleton } from '../../components/feedback/PageSkeletons';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 
 import { formatOfferTitle } from './format-offer-title';
 import { getOfferDetail, type MatchedOffer } from './offers-api';
@@ -34,7 +34,7 @@ export function OfferDetailPage() {
         setNotFound(false);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not load offer');
+      notify.fromError(error, 'Could not load offer');
       setNotFound(true);
     } finally {
       setLoading(false);

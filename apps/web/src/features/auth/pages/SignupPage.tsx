@@ -7,8 +7,9 @@ import { PasswordInput } from '@/components/auth/PasswordInput';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { AuthPanel } from '@layout/AuthPanel';
 import { resendVerification, signup } from '@lib/auth-api';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import { consumerLink } from '@lib/consumer-link';
+import { fieldDescribedBy } from '@lib/field-error';
 
 export function SignupPage() {
   const [email, setEmail] = useState('');
@@ -23,7 +24,7 @@ export function SignupPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      notify.error('Passwords do not match');
       return;
     }
     setBusy(true);
@@ -31,7 +32,7 @@ export function SignupPage() {
       await signup({ email, password, firstName, lastName });
       setPendingEmail(email.trim());
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Signup failed');
+      notify.fromError(error, 'Signup failed');
     } finally {
       setBusy(false);
     }
@@ -44,7 +45,7 @@ export function SignupPage() {
       await resendVerification(pendingEmail);
       toast.success('Verification email sent again');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not resend email');
+      notify.fromError(error, 'Could not resend email');
     } finally {
       setResendBusy(false);
     }
@@ -157,9 +158,17 @@ export function SignupPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             aria-invalid={confirmPassword.length > 0 && password !== confirmPassword}
+            aria-describedby={fieldDescribedBy(
+              'signup-confirm-password',
+              confirmPassword.length > 0 && password !== confirmPassword
+                ? 'Passwords do not match'
+                : null,
+            )}
           />
           {confirmPassword.length > 0 && password !== confirmPassword ? (
-            <p className="text-sm text-destructive">Passwords do not match</p>
+            <p id="signup-confirm-password-error" className="text-sm text-destructive">
+              Passwords do not match
+            </p>
           ) : null}
         </div>
         <Button type="submit" disabled={busy} className="btn-premium w-full">

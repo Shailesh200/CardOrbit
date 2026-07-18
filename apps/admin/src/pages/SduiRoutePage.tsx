@@ -3,7 +3,11 @@ import { useOutletContext } from 'react-router';
 import type { AdminPage, AdminPortalConfig } from '@cardwise/admin-config';
 import { SduiPageRenderer, type SduiActionContext } from '@cardwise/admin-sdui';
 
+import type { AdminShellContext } from '../app/AdminShell';
 import { AssetManagerPanel } from '../components/AssetManagerPanel';
+import { EmptyState } from '../components/feedback/EmptyState';
+import { LoadErrorState } from '../components/feedback/LoadErrorState';
+import { PageHeroSkeleton, TableSkeleton } from '../components/feedback/PageSkeleton';
 import { ImportQueuePanel } from '../components/ImportQueuePanel';
 import {
   archiveCreditCard,
@@ -17,10 +21,8 @@ import {
   listActiveAdminJobs,
 } from '../lib/api';
 
-type OutletContext = { config: AdminPortalConfig | null };
-
 export function SduiRoutePage({ pageId }: { pageId: string }) {
-  const { config } = useOutletContext<OutletContext>();
+  const { config, configStatus, configError, retryConfig } = useOutletContext<AdminShellContext>();
   const page = config?.pages.find((p) => p.id === pageId) ?? null;
   const [activeJobId, setActiveJobId] = useState<string | null>(() =>
     sessionStorage.getItem('cardwise.admin.activeJobId'),
@@ -74,8 +76,32 @@ export function SduiRoutePage({ pageId }: { pageId: string }) {
     [config, activeJobId],
   );
 
+  if (configStatus === 'loading') {
+    return (
+      <div className="space-y-6">
+        <PageHeroSkeleton />
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (configStatus === 'error') {
+    return (
+      <LoadErrorState
+        title="Could not load this page"
+        description={configError ?? 'The admin config failed to load. Check your connection.'}
+        onRetry={retryConfig}
+      />
+    );
+  }
+
   if (!page) {
-    return <p className="text-sm text-muted-foreground">Loading page config…</p>;
+    return (
+      <EmptyState
+        title="Page not configured"
+        description="This section isn't defined in the admin config yet."
+      />
+    );
   }
 
   return (

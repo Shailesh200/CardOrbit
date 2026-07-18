@@ -7,7 +7,7 @@ import { DashboardHomeSkeleton } from '../../components/feedback/PageSkeletons';
 import { AiNativeStrip } from '../ai/components/AiNativeStrip';
 
 import { getRecentMerchants } from '../merchants/recent-searches';
-import { toast } from '../../lib/app-toast';
+import { notify } from '../../lib/app-toast';
 import {
   getDashboardSnapshot,
   type DashboardSnapshot,
@@ -56,7 +56,7 @@ export function DashboardPage() {
       setSnapshot(data);
     } catch (error) {
       if (!dashboardCache) {
-        toast.error(error instanceof Error ? error.message : 'Homepage unavailable');
+        notify.fromError(error, 'Homepage unavailable');
       }
     } finally {
       setLoading(false);

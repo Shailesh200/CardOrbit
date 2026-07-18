@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { PieChart } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 
 import {
   DATA_SOURCE_LABELS,
@@ -47,7 +47,7 @@ export function SpendingInsightsPage() {
     void getSpendingInsightsOverview()
       .then(setOverview)
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load spending insights');
+        notify.fromError(error, 'Could not load spending insights');
       })
       .finally(() => setLoading(false));
   }, []);

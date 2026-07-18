@@ -24,7 +24,33 @@ Cron (weekly)
 
 - No auto-publish without admin approval
 - No scraping of sites that prohibit it in ToS
-- No PDF T&C full-text parsing (link + summary only until dedicated parser milestone)
+- No general-purpose PDF parsing — MITC/T&C/fee-schedule PDFs are a **secondary** source
+  only (see below); scanned/image-only PDFs and exotic encodings are not supported
+
+## MITC / PDF as secondary source
+
+Product pages frequently link to a MITC (Most Important Terms & Conditions), T&C, Key Fact
+Statement, or fee-schedule PDF. These links are captured as `sourceDocuments` on the staged
+`IngestCardBundle` (`packages/validation/src/catalog-ingest.ts`) for reviewer corroboration —
+shown in Import Center — but are **not** persisted when a card is published; the HTML product
+page remains the primary source of truth.
+
+- `extractSourceDocumentLinks` (`@cardwise/catalog-ingest`) scans the full product page HTML
+  for MITC/T&C/KFS/fee-schedule/PDF links, independent of the discovery exclusion lists that
+  stop those same URLs from being crawled *as if they were product pages*.
+- `fetchPdf` (`@cardwise/catalog-ingest`, in `crawl/http.ts`) fetches a URL and only treats it
+  as a PDF if the response body starts with the `%PDF-` magic bytes — the `Content-Type`
+  header is informational only, since issuer CDNs sometimes mislabel responses.
+- `extractPdfText` / `fetchAndExtractPdfText` (`crawl/pdf.ts`) is a minimal, dependency-free
+  text extractor (inflates FlateDecode content streams, reads `Tj`/`TJ` text operators) —
+  "good enough" to corroborate fee/reward sentences, not a general PDF parser.
+- The AI ingest runner (`catalog-ai-ingest.runner.ts`) fetches the first MITC/PDF candidate
+  found on the page and passes its extracted text into the **same** AI structuring call as
+  secondary evidence (a combined prompt, not a second AI call), explicitly instructed to use
+  it only to corroborate fees/reward rates already suggested by the HTML page.
+- If AI structuring returns an empty `rewardRules` array but the rule-based fallback parser
+  found one, the fallback's `rewardRules` are merged into the staged bundle rather than
+  shipping an empty array (see `mergeAiRewardRules`).
 
 ## Implementation notes
 

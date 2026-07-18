@@ -4,6 +4,9 @@ import {
   crawlIdfcFirstCard,
   discoverBankCardUrls,
   fetchText,
+  fetchAndExtractPdfText,
+  extractSourceDocumentLinks,
+  mergeSourceDocuments,
   bankCatalogUrl,
   parseGenericCardPage,
   IDFC_FIRST_BANK_SLUG,
@@ -47,6 +50,20 @@ function pathFromUrl(sourceUrl: string): string {
 function labelFromUrl(sourceUrl: string): string {
   const segment = pathFromUrl(sourceUrl).split('/').filter(Boolean).pop();
   return segment ? decodeURIComponent(segment).replace(/-/g, ' ') : sourceUrl;
+}
+
+/**
+ * AI structuring only emits `rewardRules` when the page states an explicit numeric rate,
+ * so it's frequently empty even when the page clearly advertises an earn rate. The
+ * rule-based fallback parser is regex-driven and picks up simple "NX" / "N% cashback"
+ * patterns more reliably, so prefer its rules whenever the AI draft came back empty.
+ */
+export function mergeAiRewardRules(
+  aiRewardRules: IngestCardBundle['rewardRules'],
+  fallbackRewardRules: IngestCardBundle['rewardRules'] | undefined,
+): IngestCardBundle['rewardRules'] {
+  if (aiRewardRules.length > 0) return aiRewardRules;
+  return fallbackRewardRules ?? [];
 }
 
 function buildSummary(bundle: IngestCardBundle, meta: CatalogImportIngestMeta): string {
@@ -329,6 +346,22 @@ async function ingestCardUrl(input: {
   const html = await fetchText(sourceUrl, 30_000, catalogReferer);
   const path = pathFromUrl(sourceUrl);
 
+  // MITC/T&C/fee-schedule links found on the product page — captured as secondary evidence
+  // regardless of ingest method, and optionally fed into the AI prompt as corroborating text.
+  const sourceDocuments = extractSourceDocumentLinks(html, sourceUrl);
+  const PDF_DOCUMENT_KINDS: readonly string[] = new Set(['MITC', 'TNC', 'KFS', 'SCHEDULE_OF_CHARGES', 'PDF']);
+  let pdfExcerpt: string | undefined;
+  const pdfCandidate = sourceDocuments.find((doc) => PDF_DOCUMENT_KINDS.has(doc.kind));
+  if (pdfCandidate) {
+    await onPhase('structuring', 'Fetching MITC/PDF evidence for secondary context');
+    try {
+      const { text } = await fetchAndExtractPdfText(pdfCandidate.url, 15_000, sourceUrl);
+      pdfExcerpt = text || undefined;
+    } catch {
+      // PDF fetch/parse is best-effort secondary evidence; never fail ingest because of it.
+    }
+  }
+
   await onPhase('structuring', 'Running AI structuring on page HTML');
 
   let aiBundle: IngestCardBundle | null = null;
@@ -343,6 +376,7 @@ async function ingestCardUrl(input: {
       bankSourceUrl:
         bankSlug === IDFC_FIRST_BANK_SLUG ? IDFC_FIRST_CATALOG_URL : bankCatalogUrl(bankSlug),
       html,
+      secondaryText: pdfExcerpt,
       systemPrompt: execConfig.systemPrompt,
       modelTier: execConfig.modelTier,
       modelOverride: execConfig.modelOverride,
@@ -360,7 +394,7 @@ async function ingestCardUrl(input: {
   if (bankSlug === IDFC_FIRST_BANK_SLUG) {
     await onPhase('structuring', 'AI miss — trying IDFC rule-based fallback parser');
     try {
-      const crawled = await crawlIdfcFirstCard(path);
+      const crawled = await crawlIdfcFirstCard(path, html);
       if (crawled?.bundle) fallbackBundle = crawled.bundle;
     } catch {
       // optional
@@ -379,11 +413,18 @@ async function ingestCardUrl(input: {
     }
   }
 
+  const mergedSourceDocuments = mergeSourceDocuments(
+    sourceDocuments,
+    fallbackBundle?.sourceDocuments ?? [],
+    aiBundle?.sourceDocuments ?? [],
+  );
+
   let bundle: IngestCardBundle;
   let ingestMeta: CatalogImportIngestMeta;
 
   if (aiBundle) {
-    bundle = aiBundle;
+    const rewardRules = mergeAiRewardRules(aiBundle.rewardRules, fallbackBundle?.rewardRules);
+    bundle = { ...aiBundle, rewardRules, sourceDocuments: mergedSourceDocuments };
     ingestMeta = {
       method: fallbackBundle ? 'ai+fallback' : 'ai',
       model: aiModel,
@@ -392,7 +433,7 @@ async function ingestCardUrl(input: {
       ...(fallbackBundle ? { fallbackBundle } : {}),
     };
   } else if (fallbackBundle) {
-    bundle = fallbackBundle;
+    bundle = { ...fallbackBundle, sourceDocuments: mergedSourceDocuments };
     ingestMeta = { method: 'fallback', fallbackBundle };
   } else {
     const detail = aiError ? `AI: ${aiError}` : 'no structured data extracted';

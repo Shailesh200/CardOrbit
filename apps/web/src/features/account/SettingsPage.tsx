@@ -19,7 +19,7 @@ import {
   Switch,
 } from '@cardwise/ui';
 
-import { toast } from '../../lib/app-toast';
+import { notify, toast } from '../../lib/app-toast';
 import { logout } from '../../lib/auth-api';
 
 import {
@@ -85,7 +85,7 @@ export function SettingsPage() {
         setRewardPrefs(r);
       })
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Failed to load settings');
+        notify.fromError(error, 'Failed to load settings');
       });
   }, []);
 
@@ -97,7 +97,7 @@ export function SettingsPage() {
       setNotifications(saved);
       toast.success('Notification preferences saved');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Save failed');
+      notify.fromError(error, 'Save failed');
     }
   }
 
@@ -109,7 +109,7 @@ export function SettingsPage() {
       setPrivacy(saved);
       toast.success('Privacy preferences saved');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Save failed');
+      notify.fromError(error, 'Save failed');
     }
   }
 
@@ -125,7 +125,7 @@ export function SettingsPage() {
       setRewardPrefs(saved);
       toast.success('Reward preferences saved');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Save failed');
+      notify.fromError(error, 'Save failed');
     }
   }
 
@@ -145,7 +145,7 @@ export function SettingsPage() {
       await logout();
       navigate('/login');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Password change failed');
+      notify.fromError(error, 'Password change failed');
     }
   }
 
@@ -154,7 +154,7 @@ export function SettingsPage() {
       const result = await requestDataExport();
       toast.success(`Export requested (${result.exportId})`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Export failed');
+      notify.fromError(error, 'Export failed');
     }
   }
 
@@ -172,7 +172,7 @@ export function SettingsPage() {
       await logout();
       navigate('/login');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Deletion failed');
+      notify.fromError(error, 'Deletion failed');
     } finally {
       setDeleteBusy(false);
     }

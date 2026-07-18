@@ -38,7 +38,7 @@ export function ErrorFallback({
           ) : null}
           {showHome ? (
             <Button asChild variant="outline">
-              <Link to="/">Go home</Link>
+              <Link to="/account">Go to home</Link>
             </Button>
           ) : null}
         </div>

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -7,11 +7,13 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  toast,
 } from '@cardwise/ui';
 
 import { placeholderFor } from '../lib/placeholders';
 import { AssetUrlField } from '../components/AssetUrlField';
+import { LoadErrorState } from '../components/feedback/LoadErrorState';
+import { TableSkeleton } from '../components/feedback/PageSkeleton';
+import { notify, safeMessage } from '../lib/notify';
 import {
   archiveBank,
   archiveCreditCardAsset,
@@ -144,7 +146,7 @@ function CreateForm({
         });
       }
 
-      toast.success('Created');
+      notify.success('Created');
       setName('');
       setSlug('');
       setLogoUrl('');
@@ -152,7 +154,7 @@ function CreateForm({
       setAnnualFeeInr('');
       await onCreated();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Create failed');
+      notify.fromError(error, 'Could not create. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -320,10 +322,10 @@ function EditRowForm({
         });
       }
 
-      toast.success(`Updated ${name}`);
+      notify.success(`Updated ${name}`);
       await onSaved();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Update failed');
+      notify.fromError(error, 'Update failed. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -465,10 +467,10 @@ function CatalogRow({
       } else {
         await archiveCreditCardAsset(row.id);
       }
-      toast.success(`Archived ${row.name}`);
+      notify.success(`Archived ${row.name}`);
       await onChanged();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Archive failed');
+      notify.fromError(error, 'Archive failed. Please try again.');
     }
   }
 
@@ -526,27 +528,37 @@ export function AssetsPage({ embedded = false }: { embedded?: boolean }) {
   const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  async function refresh(nextPage = page, nextTab = tab, nextQuery = query) {
-    setLoading(true);
-    try {
-      const next = await listAdminAssets({
-        tab: nextTab,
-        page: nextPage,
-        limit: PAGE_SIZE,
-        q: nextQuery,
-      });
-      setData(next);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load assets');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const refresh = useCallback(
+    async (nextPage = page, nextTab = tab, nextQuery = query) => {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const next = await listAdminAssets({
+          tab: nextTab,
+          page: nextPage,
+          limit: PAGE_SIZE,
+          q: nextQuery,
+        });
+        setData(next);
+      } catch (error) {
+        setLoadError(
+          safeMessage(
+            error instanceof Error ? error.message : '',
+            'Failed to load assets. Check your connection and try again.',
+          ),
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, tab, query],
+  );
 
   useEffect(() => {
     void refresh(page, tab, query);
-  }, [page, tab, query]);
+  }, [refresh, page, tab, query]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -658,12 +670,13 @@ export function AssetsPage({ embedded = false }: { embedded?: boolean }) {
           ) : null}
 
           {loading ? (
-            <div className="admin-loading" role="status">
-              <span className="admin-loading__dot" />
-              <span className="admin-loading__dot" />
-              <span className="admin-loading__dot" />
-              Loading…
-            </div>
+            <TableSkeleton rows={4} />
+          ) : loadError ? (
+            <LoadErrorState
+              title="Could not load assets"
+              description={loadError}
+              onRetry={() => void refresh(page, tab, query)}
+            />
           ) : !data || data.items.length === 0 ? (
             <p className="admin-empty">No matching rows.</p>
           ) : (

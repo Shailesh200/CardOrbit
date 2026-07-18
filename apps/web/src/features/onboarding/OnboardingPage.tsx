@@ -7,7 +7,7 @@ import { OnboardingProgress, stepToIndex } from '../../components/onboarding/Onb
 import { OnboardingRail } from '../../components/onboarding/OnboardingRail';
 import { ErrorFallback } from '../../components/feedback/ErrorFallback';
 import { logout } from '../../lib/auth-api';
-import { toast } from '../../lib/app-toast';
+import { notify, toast } from '../../lib/app-toast';
 import {
   completeOnboarding,
   getOnboardingState,
@@ -74,7 +74,7 @@ export function OnboardingPage() {
       setCategories(next.answers.categories ?? []);
       return next;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Something went wrong');
+      notify.fromError(error, 'Something went wrong');
       throw error;
     } finally {
       setBusy(false);

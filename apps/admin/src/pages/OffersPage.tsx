@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -7,10 +7,14 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  toast,
 } from '@cardwise/ui';
+import { Tag } from 'lucide-react';
 
+import { EmptyState } from '../components/feedback/EmptyState';
+import { LoadErrorState } from '../components/feedback/LoadErrorState';
+import { TableSkeleton } from '../components/feedback/PageSkeleton';
 import { createOffer, listOffers } from '../lib/api';
+import { notify, safeMessage } from '../lib/notify';
 
 type OfferRow = {
   id: string;
@@ -26,25 +30,34 @@ export function OffersPage() {
   const [slug, setSlug] = useState('');
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await listOffers();
       setRows(data as OfferRow[]);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load offers');
+      setLoadError(
+        safeMessage(
+          error instanceof Error ? error.message : '',
+          'Failed to load offers. Check your connection and try again.',
+        ),
+      );
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     void refresh();
-  }, []);
+  }, [refresh]);
 
   async function onCreate(event: FormEvent) {
     event.preventDefault();
+    setCreating(true);
     try {
       await createOffer({
         code,
@@ -54,26 +67,28 @@ export function OffersPage() {
         validFrom: new Date().toISOString(),
         status: 'ACTIVE',
       });
-      toast.success('Offer created');
+      notify.success('Offer created');
       setCode('');
       setSlug('');
       setTitle('');
       await refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Create failed');
+      notify.fromError(error, 'Could not create the offer. Please try again.');
+    } finally {
+      setCreating(false);
     }
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 animate-admin-enter">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Offers</h1>
-        <p className="text-sm text-muted-foreground">Create and review catalog offers.</p>
+        <h1 className="admin-hero__title">Offers</h1>
+        <p className="admin-hero__desc">Create and review catalog offers.</p>
       </div>
 
-      <Card>
+      <Card className="admin-panel">
         <CardHeader>
-          <CardTitle>Create offer</CardTitle>
+          <CardTitle className="font-display text-xl">Create offer</CardTitle>
           <CardDescription>
             Card/merchant assignment uses /offers/:id/cards|merchants.
           </CardDescription>
@@ -99,28 +114,42 @@ export function OffersPage() {
               onChange={(e) => setTitle(e.target.value)}
               required
             />
-            <Button type="submit">Create</Button>
+            <Button type="submit" disabled={creating} className="btn-premium w-fit">
+              {creating ? 'Creating…' : 'Create'}
+            </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="admin-panel">
         <CardHeader>
-          <CardTitle>Active offers</CardTitle>
+          <CardTitle className="font-display text-xl">Active offers</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
-          {!loading && rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active offers.</p>
-          ) : null}
-          {rows.map((row) => (
-            <div key={row.id} className="border-b border-border py-3 last:border-0">
-              <p className="font-medium">{row.title}</p>
-              <p className="text-xs text-muted-foreground">
-                {row.code} · {row.type} · {row.status}
-              </p>
-            </div>
-          ))}
+          {loading ? (
+            <TableSkeleton rows={3} />
+          ) : loadError ? (
+            <LoadErrorState
+              title="Could not load offers"
+              description={loadError}
+              onRetry={() => void refresh()}
+            />
+          ) : rows.length === 0 ? (
+            <EmptyState
+              icon={Tag}
+              title="No active offers yet"
+              description="Create one above — it will appear here once saved."
+            />
+          ) : (
+            rows.map((row) => (
+              <div key={row.id} className="border-b border-border py-3 last:border-0">
+                <p className="font-medium">{row.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {row.code} · {row.type} · {row.status}
+                </p>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

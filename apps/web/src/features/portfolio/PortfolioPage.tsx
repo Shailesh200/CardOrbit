@@ -4,8 +4,9 @@ import { Button } from '@cardwise/ui';
 import { CreditCard, Plus, Star } from 'lucide-react';
 
 import { EmptyState } from '../../components/feedback/EmptyState';
+import { LoadErrorState } from '../../components/feedback/LoadErrorState';
 import { PortfolioGridSkeleton } from '../../components/feedback/PageSkeletons';
-import { toast } from '../../lib/app-toast';
+import { notify } from '../../lib/app-toast';
 import { useAiFeatures } from '../ai/use-ai-features';
 import { AiVisual } from '../ai/components/AiVisual';
 
@@ -13,17 +14,30 @@ import { consumerLink } from '@lib/consumer-link';
 
 import { listPortfolio, type PortfolioCardSummary } from './portfolio-api';
 
+type LoadStatus = 'loading' | 'ready' | 'empty' | 'error';
+
 export function PortfolioPage() {
   const { anyEnabled } = useAiFeatures();
   const [cards, setCards] = useState<PortfolioCardSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<LoadStatus>('loading');
+
+  function load() {
+    setStatus('loading');
+    listPortfolio()
+      .then((items) => {
+        setCards(items);
+        setStatus(items.length === 0 ? 'empty' : 'ready');
+      })
+      .catch((error: Error) => {
+        setCards([]);
+        setStatus('error');
+        notify.fromError(error, 'Could not load your cards');
+      });
+  }
 
   useEffect(() => {
     document.title = 'CardOrbit · Your cards';
-    listPortfolio()
-      .then(setCards)
-      .catch((error: Error) => toast.error(error.message))
-      .finally(() => setLoading(false));
+    load();
   }, []);
 
   return (
@@ -64,9 +78,11 @@ export function PortfolioPage() {
         </div>
       </div>
 
-      {loading ? (
+      {status === 'loading' ? (
         <PortfolioGridSkeleton />
-      ) : cards.length === 0 ? (
+      ) : status === 'error' ? (
+        <LoadErrorState title="Could not load your cards" onRetry={load} />
+      ) : status === 'empty' ? (
         <EmptyState
           icon={CreditCard}
           title="No cards yet"

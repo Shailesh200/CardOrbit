@@ -12,11 +12,34 @@ import {
   Label,
   toast,
 } from '@cardwise/ui';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
+import { toSafeMessage } from '../lib/sanitize-message';
 import type { SduiActionContext, SduiCustomBlocks } from '../types';
 import { JobStatusBlock } from './job-status';
 import { SyncHistoryBlock } from './sync-history';
+
+function BlockLoadError({
+  description,
+  onRetry,
+}: {
+  description: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="admin-error-state" role="alert">
+      <AlertTriangle className="admin-error-state__icon" aria-hidden />
+      <div className="admin-error-state__copy">
+        <p className="admin-error-state__title">Could not load this section</p>
+        <p className="admin-error-state__desc">{description}</p>
+      </div>
+      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+        Try again
+      </Button>
+    </div>
+  );
+}
 
 function resolveOptions(field: SduiField, ctx: SduiActionContext) {
   if (field.kind !== 'select') return [];
@@ -62,7 +85,7 @@ function JobLauncherBlock({
       ctx.setActiveJobId(result.id);
       toast.success(result.message ?? 'Job queued');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to start job');
+      toast.error(toSafeMessage(error instanceof Error ? error.message : '', 'Failed to start job. Please try again.'));
     } finally {
       setBusy(false);
     }
@@ -189,15 +212,48 @@ function StatsBlock({
   ctx: SduiActionContext;
 }) {
   const [stats, setStats] = useState<Array<{ label: string; value: string | number }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    void ctx
+      .fetchData(block.dataSource)
+      .then((data) => {
+        const row = data as Record<string, unknown>;
+        if (row.stats && Array.isArray(row.stats)) {
+          setStats(row.stats as Array<{ label: string; value: string | number }>);
+        }
+      })
+      .catch((error: unknown) => {
+        setLoadError(toSafeMessage(error instanceof Error ? error.message : '', 'Failed to load stats.'));
+      })
+      .finally(() => setLoading(false));
+  }, [block.dataSource, ctx]);
 
   useEffect(() => {
-    void ctx.fetchData(block.dataSource).then((data) => {
-      const row = data as Record<string, unknown>;
-      if (row.stats && Array.isArray(row.stats)) {
-        setStats(row.stats as Array<{ label: string; value: string | number }>);
-      }
-    });
-  }, [block.dataSource, ctx]);
+    load();
+  }, [load]);
+
+  if (loading) {
+    return (
+      <div className="admin-stat-grid" aria-busy="true" aria-label="Loading stats">
+        {Array.from({ length: 4 }, (_, index) => (
+          <Card key={index} className="admin-panel admin-stat">
+            <CardContent className="pt-6">
+              <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+              <div className="mt-2 h-6 w-12 animate-pulse rounded bg-muted" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return <BlockLoadError description={loadError} onRetry={load} />;
+  }
 
   return (
     <div className="admin-stat-grid">
@@ -222,20 +278,29 @@ function DataTableBlock({
 }) {
   const [rows, setRows] = useState<Array<Record<string, unknown>>>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const pageSize = 10;
   const title = block.title ?? block.columns.map((col) => col.label).slice(0, 2).join(' · ');
 
-  useEffect(() => {
+  const load = useCallback(() => {
     setLoading(true);
+    setLoadError(null);
     void ctx
       .fetchData(block.dataSource, { limit: pageSize, offset: page * pageSize })
       .then((data) => {
         const payload = data as { items?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
         setRows(Array.isArray(payload) ? payload : (payload.items ?? []));
       })
+      .catch((error: unknown) => {
+        setLoadError(toSafeMessage(error instanceof Error ? error.message : '', 'Failed to load records.'));
+      })
       .finally(() => setLoading(false));
   }, [block.dataSource, ctx, page]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <Card className="admin-panel">
@@ -251,6 +316,8 @@ function DataTableBlock({
             <span className="admin-loading__dot" />
             Loading records…
           </div>
+        ) : loadError ? (
+          <BlockLoadError description={loadError} onRetry={load} />
         ) : rows.length === 0 ? (
           <p className="admin-empty">No records yet.</p>
         ) : (
@@ -316,7 +383,7 @@ async function handleRowAction(actionId: string, row: Record<string, unknown>, c
     await ctx.submitAction(`admin.row.${actionId}`, { id, row });
     toast.success('Done');
   } catch (error) {
-    toast.error(error instanceof Error ? error.message : 'Action failed');
+    toast.error(toSafeMessage(error instanceof Error ? error.message : '', 'Action failed. Please try again.'));
   }
 }
 
@@ -347,7 +414,7 @@ function FormBlock({
       toast.success('Saved');
       setValues({});
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Submit failed');
+      toast.error(toSafeMessage(error instanceof Error ? error.message : '', 'Submit failed. Please try again.'));
     } finally {
       setBusy(false);
     }
@@ -389,13 +456,46 @@ function InsightGridBlock({
   ctx: SduiActionContext;
 }) {
   const [sections, setSections] = useState<Array<{ title: string; metrics: Array<{ label: string; value: string; hint?: string }> }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    void ctx
+      .fetchData(block.dataSource)
+      .then((data) => {
+        const payload = data as { sections?: typeof sections };
+        setSections(payload.sections ?? []);
+      })
+      .catch((error: unknown) => {
+        setLoadError(toSafeMessage(error instanceof Error ? error.message : '', 'Failed to load insights.'));
+      })
+      .finally(() => setLoading(false));
+  }, [block.dataSource, ctx]);
 
   useEffect(() => {
-    void ctx.fetchData(block.dataSource).then((data) => {
-      const payload = data as { sections?: typeof sections };
-      setSections(payload.sections ?? []);
-    });
-  }, [block.dataSource, ctx]);
+    load();
+  }, [load]);
+
+  if (loading) {
+    return (
+      <div className="admin-loading" role="status">
+        <span className="admin-loading__dot" />
+        <span className="admin-loading__dot" />
+        <span className="admin-loading__dot" />
+        Loading insights…
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return <BlockLoadError description={loadError} onRetry={load} />;
+  }
+
+  if (sections.length === 0) {
+    return <p className="admin-empty">No insights available yet.</p>;
+  }
 
   return (
     <div className="admin-insight-grid">
@@ -427,13 +527,46 @@ function RuleTemplatesBlock({
   ctx: SduiActionContext;
 }) {
   const [templates, setTemplates] = useState<Array<Record<string, unknown>>>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    void ctx
+      .fetchData(block.dataSource)
+      .then((data) => {
+        const payload = data as { templates?: Array<Record<string, unknown>> };
+        setTemplates(payload.templates ?? []);
+      })
+      .catch((error: unknown) => {
+        setLoadError(toSafeMessage(error instanceof Error ? error.message : '', 'Failed to load rule templates.'));
+      })
+      .finally(() => setLoading(false));
+  }, [block.dataSource, ctx]);
 
   useEffect(() => {
-    void ctx.fetchData(block.dataSource).then((data) => {
-      const payload = data as { templates?: Array<Record<string, unknown>> };
-      setTemplates(payload.templates ?? []);
-    });
-  }, [block.dataSource, ctx]);
+    load();
+  }, [load]);
+
+  if (loading) {
+    return (
+      <div className="admin-loading" role="status">
+        <span className="admin-loading__dot" />
+        <span className="admin-loading__dot" />
+        <span className="admin-loading__dot" />
+        Loading templates…
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return <BlockLoadError description={loadError} onRetry={load} />;
+  }
+
+  if (templates.length === 0) {
+    return <p className="admin-empty">No rule templates configured.</p>;
+  }
 
   return (
     <div className="admin-template-grid">

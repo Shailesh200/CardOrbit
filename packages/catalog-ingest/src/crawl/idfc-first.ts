@@ -246,12 +246,12 @@ export async function discoverIdfcFirstCardPaths(): Promise<string[]> {
   return [...paths].sort();
 }
 
-export async function crawlIdfcFirstCard(path: string): Promise<CrawlCardResult | null> {
+export async function crawlIdfcFirstCard(path: string, prefetchedHtml?: string): Promise<CrawlCardResult | null> {
   const normalizedPath = normalizePath(path);
   if (!normalizedPath || isExcludedPath(normalizedPath)) return null;
 
   const sourceUrl = toAbsoluteUrl(normalizedPath);
-  const html = await fetchText(sourceUrl);
+  const html = prefetchedHtml ?? (await fetchText(sourceUrl));
   const schema = findBestCreditCardSchema(extractJsonLdBlocks(html));
   const fallback = schema ? null : parseHtmlFallback(html);
   if (!schema && !fallback) return null;
@@ -352,6 +352,7 @@ export async function crawlIdfcFirstCard(path: string): Promise<CrawlCardResult 
     rewardRules,
     crawlDescription: description,
     feesSummary,
+    sourceDocuments: pageDetails.sourceDocuments,
   };
 
   return { path: normalizedPath, sourceUrl, bundle };

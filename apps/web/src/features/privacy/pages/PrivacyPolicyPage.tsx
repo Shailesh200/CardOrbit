@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@cardwise/ui';
 
-import { toast } from '../../../lib/app-toast';
+import { notify, toast } from '../../../lib/app-toast';
 
 import { requestAccountDeletion, requestDataExport } from '../../../lib/api';
 
@@ -14,7 +14,7 @@ export function PrivacyPolicyPage() {
       const result = await requestDataExport();
       toast.success(`Export requested: ${result.exportId}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Export failed');
+      notify.fromError(error, 'Export failed');
     } finally {
       setBusy(false);
     }
@@ -26,7 +26,7 @@ export function PrivacyPolicyPage() {
       const result = await requestAccountDeletion();
       toast.success(`Deletion status: ${result.status}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Deletion failed');
+      notify.fromError(error, 'Deletion failed');
     } finally {
       setBusy(false);
     }

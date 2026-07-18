@@ -624,6 +624,128 @@ body {
   font-size: 0.875rem;
 }
 
+.admin-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px dashed var(--border);
+  background: color-mix(in oklab, var(--muted) 30%, transparent);
+}
+
+.admin-empty-state__icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+.admin-empty-state__title {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.admin-empty-state__desc {
+  margin: 0;
+  max-width: 32rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.admin-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  border-color: color-mix(in oklab, var(--destructive) 35%, var(--border));
+}
+
+.admin-error-state__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--destructive);
+  opacity: 0.85;
+}
+
+.admin-error-state__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-error-state__title {
+  margin: 0;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.admin-error-state__desc {
+  margin: 0;
+  max-width: 30rem;
+  font-size: 0.8438rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.admin-table-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+}
+
+.admin-table-skeleton__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-stat-skeleton {
+  padding: 1.1rem 1.25rem;
+}
+
+.skip-link {
+  position: absolute;
+  top: -3rem;
+  left: 1rem;
+  z-index: 100;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s var(--ease-out);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.admin-session-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--destructive) 30%, var(--border));
+  background: color-mix(in oklab, var(--destructive) 10%, var(--card));
+  color: var(--foreground);
+  padding: 0.6rem 1.5rem;
+  font-size: 0.8125rem;
+}
+
 .admin-loading {
   display: flex;
   align-items: center;

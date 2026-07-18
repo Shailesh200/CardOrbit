@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@cardwise/ui';
 
+import { LoadErrorState } from '../components/feedback/LoadErrorState';
+import { TableSkeleton } from '../components/feedback/PageSkeleton';
 import {
   fetchAdminExperiments,
   updateAdminExperiment,
   type AdminExperimentDefinition,
 } from '../lib/api';
+import { notify, safeMessage } from '../lib/notify';
 
 function ExperimentRow({
   row,
@@ -88,8 +91,10 @@ export function ExperimentsPage() {
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void fetchAdminExperiments()
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    return fetchAdminExperiments()
       .then((definitions) => {
         setRows(definitions);
         setDrafts(
@@ -101,9 +106,17 @@ export function ExperimentsPage() {
           ),
         );
       })
-      .catch((err: Error) => setError(err.message))
+      .catch((err: unknown) => {
+        setError(
+          safeMessage(err instanceof Error ? err.message : '', 'Failed to load experiments.'),
+        );
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const dirtyKeys = useMemo(() => {
     return rows
@@ -123,15 +136,33 @@ export function ExperimentsPage() {
     try {
       const updated = await updateAdminExperiment(key, draft);
       setRows((current) => current.map((row) => (row.key === key ? updated : row)));
+      notify.success(`${updated.name} updated`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save experiment');
+      notify.fromError(err, 'Failed to save experiment. Please try again.');
     } finally {
       setSavingKey(null);
     }
   }
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading experiments…</p>;
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">A/B experiments</h1>
+        </div>
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (error && rows.length === 0) {
+    return (
+      <LoadErrorState
+        title="Could not load experiments"
+        description={error}
+        onRetry={() => void load()}
+      />
+    );
   }
 
   return (

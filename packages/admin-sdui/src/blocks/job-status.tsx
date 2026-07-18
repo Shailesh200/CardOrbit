@@ -3,6 +3,7 @@ import { ExternalLink, Loader2, RefreshCw, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useJobEvents } from '../hooks/useJobEvents';
+import { toSafeMessage } from '../lib/sanitize-message';
 import type { SduiActionContext } from '../types';
 
 type JobFetchResult = {
@@ -313,7 +314,9 @@ export function JobStatusBlock({
         ) : null}
 
         {runningJob.errorMessage ? (
-          <p className="text-sm text-destructive">{runningJob.errorMessage}</p>
+          <p className="text-sm text-destructive">
+            {toSafeMessage(runningJob.errorMessage, 'This sync hit an error. Try again or check logs below.')}
+          </p>
         ) : null}
 
         <div className="flex flex-wrap gap-2">

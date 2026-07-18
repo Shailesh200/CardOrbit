@@ -30,6 +30,9 @@ import Redis from 'ioredis';
 import { v7 as uuidv7 } from 'uuid';
 
 import { resolveAiExecConfig } from './ai-config';
+import { captureWorkerException, initWorkerSentry } from './sentry';
+
+initWorkerSentry();
 
 const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 const FLAG_REFRESH_MS = 30_000;
@@ -274,6 +277,7 @@ async function startWorker(): Promise<void> {
         }
 
         const message = error instanceof Error ? error.message : String(error);
+        captureWorkerException(error);
         await updateJobRun(jobRunId, {
           status: JobRunStatus.FAILED,
           errorMessage: message,

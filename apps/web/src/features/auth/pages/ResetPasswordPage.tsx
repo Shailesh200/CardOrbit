@@ -5,7 +5,7 @@ import { Button, Label } from '@cardwise/ui';
 import { PasswordInput } from '@/components/auth/PasswordInput';
 import { AuthPanel } from '../../../components/layout/AuthPanel';
 import { resetPassword } from '../../../lib/auth-api';
-import { toast } from '../../../lib/app-toast';
+import { notify, toast } from '../../../lib/app-toast';
 import { consumerLink } from '../../../lib/consumer-link';
 
 export function ResetPasswordPage() {
@@ -23,7 +23,7 @@ export function ResetPasswordPage() {
       toast.success('Password updated');
       navigate('/login');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Reset failed');
+      notify.fromError(error, 'Reset failed');
     } finally {
       setBusy(false);
     }

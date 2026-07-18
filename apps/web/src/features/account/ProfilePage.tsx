@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router';
 import { Button, Input, Label, Separator } from '@cardwise/ui';
 import { LogOut } from 'lucide-react';
 
-import { toast } from '../../lib/app-toast';
+import { LoadErrorState } from '../../components/feedback/LoadErrorState';
+import { AccountRouteSkeleton } from '../../components/feedback/PageSkeletons';
+import { notify, toast } from '../../lib/app-toast';
 import { logout } from '../../lib/auth-api';
 
 import { getProfile, updateProfile, type UserProfile } from './account-api';
@@ -11,6 +13,7 @@ import { getProfile, updateProfile, type UserProfile } from './account-api';
 export function ProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [country, setCountry] = useState('IN');
@@ -20,7 +23,8 @@ export function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
+  function loadProfile() {
+    setLoadStatus('loading');
     void getProfile()
       .then((data) => {
         setProfile(data);
@@ -31,10 +35,16 @@ export function ProfilePage() {
         setLocale(data.locale);
         setTimezone(data.timezone);
         setAvatarUrl(data.avatarUrl ?? '');
+        setLoadStatus('ready');
       })
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Failed to load profile');
+        setLoadStatus('error');
+        notify.fromError(error, 'Failed to load profile');
       });
+  }
+
+  useEffect(() => {
+    loadProfile();
   }, []);
 
   async function onSubmit(event: FormEvent) {
@@ -53,7 +63,7 @@ export function ProfilePage() {
       setProfile(updated);
       toast.success('Profile updated');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Update failed');
+      notify.fromError(error, 'Update failed');
     } finally {
       setBusy(false);
     }
@@ -68,6 +78,34 @@ export function ProfilePage() {
     .filter(Boolean)
     .map((n) => n[0]?.toUpperCase())
     .join('');
+
+  if (loadStatus === 'loading') {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="consumer-page-heading">Profile</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Update your CardOrbit profile details.
+          </p>
+        </div>
+        <AccountRouteSkeleton />
+      </div>
+    );
+  }
+
+  if (loadStatus === 'error') {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="consumer-page-heading">Profile</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Update your CardOrbit profile details.
+          </p>
+        </div>
+        <LoadErrorState title="Could not load profile" onRetry={loadProfile} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

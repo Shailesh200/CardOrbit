@@ -20,6 +20,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, cn } from '@cardwise/ui';
 
 import { DASHBOARD_PATH } from '../features/dashboard/dashboard-path';
+import { useNavFeatureFlags } from '../features/navigation/use-nav-feature-flags';
+
+type NavFlagKey = keyof ReturnType<typeof useNavFeatureFlags>;
 
 const primaryTabs: Array<{
   id: string;
@@ -34,9 +37,15 @@ const primaryTabs: Array<{
   { id: 'more', label: 'More', icon: Menu },
 ];
 
-const moreGroups: Array<{
+const moreGroupsBase: Array<{
   label: string;
-  links: Array<{ to: string; label: string; icon: LucideIcon; end?: boolean }>;
+  links: Array<{
+    to: string;
+    label: string;
+    icon: LucideIcon;
+    end?: boolean;
+    flagKey?: NavFlagKey;
+  }>;
 }> = [
   {
     label: 'Cards & spend',
@@ -49,10 +58,10 @@ const moreGroups: Array<{
   {
     label: 'Planning',
     links: [
-      { to: '/account/calendar', label: 'Calendar', icon: CalendarDays },
+      { to: '/account/calendar', label: 'Calendar', icon: CalendarDays, flagKey: 'calendar' },
       { to: '/account/billing', label: 'Billing', icon: FileText },
-      { to: '/account/travel', label: 'Travel', icon: Plane },
-      { to: '/account/reports', label: 'Reports', icon: BarChart3 },
+      { to: '/account/travel', label: 'Travel', icon: Plane, flagKey: 'travel' },
+      { to: '/account/reports', label: 'Reports', icon: BarChart3, flagKey: 'reports' },
     ],
   },
   {
@@ -65,22 +74,25 @@ const moreGroups: Array<{
   },
 ];
 
-const moreLinks = moreGroups.flatMap((group) => group.links);
-
 function isPrimaryActive(pathname: string, to: string, end?: boolean): boolean {
   if (end) return pathname === to || pathname === `${to}/`;
   return pathname === to || pathname.startsWith(`${to}/`);
-}
-
-function isMoreActive(pathname: string): boolean {
-  return moreLinks.some(({ to, end }) => isPrimaryActive(pathname, to, end));
 }
 
 /** Fixed bottom tab bar for mobile / installed PWA (M-024). */
 export function MobileBottomNav() {
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
-  const moreActive = isMoreActive(location.pathname);
+  const flags = useNavFeatureFlags();
+
+  const moreGroups = moreGroupsBase
+    .map((group) => ({
+      ...group,
+      links: group.links.filter((link) => !link.flagKey || flags[link.flagKey]),
+    }))
+    .filter((group) => group.links.length > 0);
+  const moreLinks = moreGroups.flatMap((group) => group.links);
+  const moreActive = moreLinks.some(({ to, end }) => isPrimaryActive(location.pathname, to, end));
 
   return (
     <>

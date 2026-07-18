@@ -8,6 +8,7 @@ import {
   formatFeesSummary,
   parseHtmlFallback,
 } from './json-ld';
+import { extractSourceDocumentLinks } from './source-documents';
 import { bankCatalogUrl } from '../india/bank-sources';
 
 function slugFromUrl(sourceUrl: string, bankSlug: string): string {
@@ -189,5 +190,6 @@ export function parseGenericCardPage(input: {
     rewardRules,
     crawlDescription: description,
     feesSummary,
+    sourceDocuments: extractSourceDocumentLinks(input.html, input.sourceUrl),
   };
 }

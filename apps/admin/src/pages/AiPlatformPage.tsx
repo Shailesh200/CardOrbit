@@ -13,9 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
   Input,
-  toast,
 } from '@cardwise/ui';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 
 import {
   activateAiPrompt,
@@ -35,6 +34,10 @@ import {
   type AiTaskRoutingRow,
 } from '../lib/api';
 import { AiFeatureFlagsPanel } from '../components/AiFeatureFlagsPanel';
+import { EmptyState } from '../components/feedback/EmptyState';
+import { LoadErrorState } from '../components/feedback/LoadErrorState';
+import { StatGridSkeleton, TableSkeleton } from '../components/feedback/PageSkeleton';
+import { notify, safeMessage } from '../lib/notify';
 
 type Tab = 'runs' | 'prompts' | 'routing';
 
@@ -63,7 +66,7 @@ function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-        ok ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground'
+        ok ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'
       }`}
     >
       {label}
@@ -74,6 +77,7 @@ function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
 export function AiPlatformPage() {
   const [tab, setTab] = useState<Tab>('runs');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [pinging, setPinging] = useState(false);
   const [status, setStatus] = useState<AiPlatformStatus | null>(null);
   const [summary, setSummary] = useState<AiRunSummary | null>(null);
@@ -98,6 +102,7 @@ export function AiPlatformPage() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [statusData, summaryData, routingData, promptRows, runPage] = await Promise.all([
         getAiPlatformStatus(),
@@ -117,7 +122,12 @@ export function AiPlatformPage() {
       setRuns(runPage.items);
       setRunsTotal(runPage.total);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load AI platform');
+      setLoadError(
+        safeMessage(
+          error instanceof Error ? error.message : '',
+          'Failed to load the AI platform. Check your connection and try again.',
+        ),
+      );
     } finally {
       setLoading(false);
     }
@@ -141,10 +151,10 @@ export function AiPlatformPage() {
     setPinging(true);
     try {
       const result = await pingAiPlatform();
-      toast.success(`Ping OK — ${result.model} (${result.latencyMs}ms)`);
+      notify.success(`Ping OK — ${result.model} (${result.latencyMs}ms)`);
       await refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Ping failed');
+      notify.fromError(error, 'Ping failed. Check the AI provider configuration.');
     } finally {
       setPinging(false);
     }
@@ -155,7 +165,7 @@ export function AiPlatformPage() {
       const run = await getAiRun(id);
       setSelectedRun(run);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load run');
+      notify.fromError(error, 'Failed to load run details.');
     }
   }
 
@@ -197,7 +207,7 @@ export function AiPlatformPage() {
           modelTier: promptForm.modelTier,
           modelOverride: promptForm.modelOverride || null,
         });
-        toast.success('Prompt updated');
+        notify.success('Prompt updated');
       } else {
         await createAiPrompt({
           feature: promptForm.feature,
@@ -208,22 +218,22 @@ export function AiPlatformPage() {
           modelOverride: promptForm.modelOverride || undefined,
           activate: promptForm.activate,
         });
-        toast.success('Prompt version created');
+        notify.success('Prompt version created');
       }
       setPromptDialogOpen(false);
       await refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to save prompt');
+      notify.fromError(error, 'Failed to save prompt. Please try again.');
     }
   }
 
   async function onActivatePrompt(id: string) {
     try {
       await activateAiPrompt(id);
-      toast.success('Prompt activated');
+      notify.success('Prompt activated');
       await refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to activate prompt');
+      notify.fromError(error, 'Failed to activate prompt. Please try again.');
     }
   }
 
@@ -251,278 +261,295 @@ export function AiPlatformPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Configuration</CardDescription>
-            <CardTitle className="text-base">
-              {status?.configured ? 'Connected' : 'Not configured'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {status?.configured ? (
-              <>
-                <div>{status.provider}</div>
-                <div className="truncate">{status.defaultModel ?? status.fastModel}</div>
-              </>
-            ) : (
-              'Set GEMINI_API_KEY in .env.local'
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Runs (7d)</CardDescription>
-            <CardTitle className="text-base">{summary?.totalRuns ?? 0}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            <span className="text-emerald-700">{summary?.successCount ?? 0} ok</span>
-            {' · '}
-            <span className="text-red-700">{summary?.failureCount ?? 0} failed</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Tokens (7d)</CardDescription>
-            <CardTitle className="text-base">
-              {(summary?.tokens.total ?? 0).toLocaleString('en-IN')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Avg latency {summary?.avgLatencyMs ?? 0}ms
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Platform flag</CardDescription>
-            <CardTitle className="text-base">
-              <StatusBadge
-                ok={Boolean(status?.platformEnabled)}
-                label={status?.platformEnabled ? 'Enabled' : 'Disabled'}
-              />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Toggle in Admin → Feature flags
-          </CardContent>
-        </Card>
-      </div>
-
-      {status?.configured ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Env model defaults</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-2 text-sm md:grid-cols-3">
-            <div>
-              <span className="text-muted-foreground">Fast:</span> {status.fastModel}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Quality:</span> {status.qualityModel}
-            </div>
-            <div>
-              <span className="text-muted-foreground">Ping:</span> {status.pingModel}
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <div className="flex gap-2 border-b border-border pb-2">
-        {(['runs', 'prompts', 'routing'] as Tab[]).map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`rounded-md px-3 py-1.5 text-sm capitalize ${
-              tab === item ? 'bg-muted font-medium' : 'text-muted-foreground hover:text-foreground'
-            }`}
-            onClick={() => setTab(item)}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
-
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Loading…
-        </div>
-      ) : null}
-
-      {!loading && tab === 'runs' ? (
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-3">
-            <select
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-              value={runFeatureFilter}
-              onChange={(event) => setRunFeatureFilter(event.target.value)}
-            >
-              <option value="">All features</option>
-              {AI_FEATURES.map((feature) => (
-                <option key={feature} value={feature}>
-                  {feature}
-                </option>
-              ))}
-            </select>
-            <select
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-              value={runStatusFilter}
-              onChange={(event) =>
-                setRunStatusFilter(event.target.value as 'SUCCESS' | 'FAILURE' | '')
-              }
-            >
-              <option value="">All statuses</option>
-              <option value="SUCCESS">Success</option>
-              <option value="FAILURE">Failure</option>
-            </select>
-          </div>
-
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="min-w-full text-sm">
-              <thead className="bg-muted/50 text-left">
-                <tr>
-                  <th className="px-3 py-2">Time</th>
-                  <th className="px-3 py-2">Feature</th>
-                  <th className="px-3 py-2">Model</th>
-                  <th className="px-3 py-2">Tokens</th>
-                  <th className="px-3 py-2">Latency</th>
-                  <th className="px-3 py-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {runs.map((run) => (
-                  <tr
-                    key={run.id}
-                    className="cursor-pointer border-t border-border hover:bg-muted/30"
-                    onClick={() => void openRunDetail(run.id)}
-                  >
-                    <td className="px-3 py-2 whitespace-nowrap">{formatDate(run.createdAt)}</td>
-                    <td className="px-3 py-2">{run.feature}</td>
-                    <td className="px-3 py-2 font-mono text-xs">{run.model}</td>
-                    <td className="px-3 py-2">{run.totalTokens ?? '—'}</td>
-                    <td className="px-3 py-2">{run.latencyMs}ms</td>
-                    <td className="px-3 py-2">
-                      <StatusBadge ok={run.status === 'SUCCESS'} label={run.status} />
-                    </td>
-                  </tr>
-                ))}
-                {runs.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
-                      No AI runs yet — use Ping or ai:poc CLI
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Showing {runs.length} of {runsTotal} runs
-          </p>
-        </div>
-      ) : null}
-
-      {!loading && tab === 'prompts' ? (
         <div className="space-y-6">
-          <div className="flex justify-end">
-            <Button type="button" onClick={() => openCreatePrompt()}>
-              New prompt version
-            </Button>
+          <StatGridSkeleton />
+          <TableSkeleton />
+        </div>
+      ) : loadError ? (
+        <LoadErrorState
+          title="Could not load the AI platform"
+          description={loadError}
+          onRetry={() => void refresh()}
+        />
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Configuration</CardDescription>
+                <CardTitle className="text-base">
+                  {status?.configured ? 'Connected' : 'Not configured'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                {status?.configured ? (
+                  <>
+                    <div>{status.provider}</div>
+                    <div className="truncate">{status.defaultModel ?? status.fastModel}</div>
+                  </>
+                ) : (
+                  'Set GEMINI_API_KEY in .env.local'
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Runs (7d)</CardDescription>
+                <CardTitle className="text-base">{summary?.totalRuns ?? 0}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                <span className="text-emerald-400">{summary?.successCount ?? 0} ok</span>
+                {' · '}
+                <span className="text-red-400">{summary?.failureCount ?? 0} failed</span>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Tokens (7d)</CardDescription>
+                <CardTitle className="text-base">
+                  {(summary?.tokens.total ?? 0).toLocaleString('en-IN')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Avg latency {summary?.avgLatencyMs ?? 0}ms
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Platform flag</CardDescription>
+                <CardTitle className="text-base">
+                  <StatusBadge
+                    ok={Boolean(status?.platformEnabled)}
+                    label={status?.platformEnabled ? 'Enabled' : 'Disabled'}
+                  />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-xs text-muted-foreground">
+                Toggle in Admin → Feature flags
+              </CardContent>
+            </Card>
           </div>
-          {AI_FEATURES.map((feature) => {
-            const rows = promptsByFeature.get(feature) ?? [];
-            if (rows.length === 0) return null;
-            return (
-              <Card key={feature}>
-                <CardHeader>
-                  <CardTitle className="text-base">{feature}</CardTitle>
-                  <CardDescription>{rows.length} version(s)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {rows.map((prompt) => (
-                    <div
-                      key={prompt.id}
-                      className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-border p-3"
-                    >
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium">{prompt.version}</span>
-                          {prompt.isActive ? (
-                            <StatusBadge ok label="Active" />
-                          ) : (
-                            <StatusBadge ok={false} label="Inactive" />
-                          )}
-                          {prompt.modelTier ? (
-                            <span className="text-xs text-muted-foreground">
-                              tier: {prompt.modelTier}
-                            </span>
-                          ) : null}
-                          {prompt.modelOverride ? (
-                            <span className="font-mono text-xs text-muted-foreground">
-                              override: {prompt.modelOverride}
-                            </span>
-                          ) : null}
-                        </div>
-                        <p className="line-clamp-2 text-sm text-muted-foreground">
-                          {prompt.systemPrompt}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEditPrompt(prompt)}
-                        >
-                          Edit
-                        </Button>
-                        {!prompt.isActive ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={() => void onActivatePrompt(prompt.id)}
-                          >
-                            Activate
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : null}
 
-      {!loading && tab === 'routing' ? (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted/50 text-left">
-              <tr>
-                <th className="px-3 py-2">Feature</th>
-                <th className="px-3 py-2">Active prompt</th>
-                <th className="px-3 py-2">Tier</th>
-                <th className="px-3 py-2">Env default</th>
-                <th className="px-3 py-2">Override</th>
-                <th className="px-3 py-2">Effective model</th>
-              </tr>
-            </thead>
-            <tbody>
-              {routing.map((row) => (
-                <tr key={row.feature} className="border-t border-border">
-                  <td className="px-3 py-2">{row.feature}</td>
-                  <td className="px-3 py-2">{row.activeVersion ?? '—'}</td>
-                  <td className="px-3 py-2">{row.modelTier}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{row.envDefaultModel}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{row.modelOverride ?? '—'}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{row.effectiveModel}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+          {status?.configured ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Env model defaults</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-2 text-sm md:grid-cols-3">
+                <div>
+                  <span className="text-muted-foreground">Fast:</span> {status.fastModel}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Quality:</span> {status.qualityModel}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Ping:</span> {status.pingModel}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <div className="flex gap-2 border-b border-border pb-2">
+            {(['runs', 'prompts', 'routing'] as Tab[]).map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={`rounded-md px-3 py-1.5 text-sm capitalize ${
+                  tab === item
+                    ? 'bg-muted font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                onClick={() => setTab(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'runs' ? (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-3">
+                <select
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  value={runFeatureFilter}
+                  onChange={(event) => setRunFeatureFilter(event.target.value)}
+                >
+                  <option value="">All features</option>
+                  {AI_FEATURES.map((feature) => (
+                    <option key={feature} value={feature}>
+                      {feature}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  value={runStatusFilter}
+                  onChange={(event) =>
+                    setRunStatusFilter(event.target.value as 'SUCCESS' | 'FAILURE' | '')
+                  }
+                >
+                  <option value="">All statuses</option>
+                  <option value="SUCCESS">Success</option>
+                  <option value="FAILURE">Failure</option>
+                </select>
+              </div>
+
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-muted/50 text-left">
+                    <tr>
+                      <th className="px-3 py-2">Time</th>
+                      <th className="px-3 py-2">Feature</th>
+                      <th className="px-3 py-2">Model</th>
+                      <th className="px-3 py-2">Tokens</th>
+                      <th className="px-3 py-2">Latency</th>
+                      <th className="px-3 py-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {runs.map((run) => (
+                      <tr
+                        key={run.id}
+                        className="cursor-pointer border-t border-border hover:bg-muted/30"
+                        onClick={() => void openRunDetail(run.id)}
+                      >
+                        <td className="px-3 py-2 whitespace-nowrap">{formatDate(run.createdAt)}</td>
+                        <td className="px-3 py-2">{run.feature}</td>
+                        <td className="px-3 py-2 font-mono text-xs">{run.model}</td>
+                        <td className="px-3 py-2">{run.totalTokens ?? '—'}</td>
+                        <td className="px-3 py-2">{run.latencyMs}ms</td>
+                        <td className="px-3 py-2">
+                          <StatusBadge ok={run.status === 'SUCCESS'} label={run.status} />
+                        </td>
+                      </tr>
+                    ))}
+                    {runs.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                          No AI runs yet — use Ping or ai:poc CLI
+                        </td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Showing {runs.length} of {runsTotal} runs
+              </p>
+            </div>
+          ) : null}
+
+          {tab === 'prompts' ? (
+            <div className="space-y-6">
+              <div className="flex justify-end">
+                <Button type="button" onClick={() => openCreatePrompt()}>
+                  New prompt version
+                </Button>
+              </div>
+              {prompts.length === 0 ? (
+                <EmptyState
+                  icon={Sparkles}
+                  title="No prompt versions yet"
+                  description="Create the first prompt version for a feature above."
+                />
+              ) : null}
+              {AI_FEATURES.map((feature) => {
+                const rows = promptsByFeature.get(feature) ?? [];
+                if (rows.length === 0) return null;
+                return (
+                  <Card key={feature}>
+                    <CardHeader>
+                      <CardTitle className="text-base">{feature}</CardTitle>
+                      <CardDescription>{rows.length} version(s)</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {rows.map((prompt) => (
+                        <div
+                          key={prompt.id}
+                          className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-border p-3"
+                        >
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-medium">{prompt.version}</span>
+                              {prompt.isActive ? (
+                                <StatusBadge ok label="Active" />
+                              ) : (
+                                <StatusBadge ok={false} label="Inactive" />
+                              )}
+                              {prompt.modelTier ? (
+                                <span className="text-xs text-muted-foreground">
+                                  tier: {prompt.modelTier}
+                                </span>
+                              ) : null}
+                              {prompt.modelOverride ? (
+                                <span className="font-mono text-xs text-muted-foreground">
+                                  override: {prompt.modelOverride}
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                              {prompt.systemPrompt}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditPrompt(prompt)}
+                            >
+                              Edit
+                            </Button>
+                            {!prompt.isActive ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => void onActivatePrompt(prompt.id)}
+                              >
+                                Activate
+                              </Button>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {tab === 'routing' ? (
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="min-w-full text-sm">
+                <thead className="bg-muted/50 text-left">
+                  <tr>
+                    <th className="px-3 py-2">Feature</th>
+                    <th className="px-3 py-2">Active prompt</th>
+                    <th className="px-3 py-2">Tier</th>
+                    <th className="px-3 py-2">Env default</th>
+                    <th className="px-3 py-2">Override</th>
+                    <th className="px-3 py-2">Effective model</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {routing.map((row) => (
+                    <tr key={row.feature} className="border-t border-border">
+                      <td className="px-3 py-2">{row.feature}</td>
+                      <td className="px-3 py-2">{row.activeVersion ?? '—'}</td>
+                      <td className="px-3 py-2">{row.modelTier}</td>
+                      <td className="px-3 py-2 font-mono text-xs">{row.envDefaultModel}</td>
+                      <td className="px-3 py-2 font-mono text-xs">{row.modelOverride ?? '—'}</td>
+                      <td className="px-3 py-2 font-mono text-xs">{row.effectiveModel}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+        </>
+      )}
 
       <AiFeatureFlagsPanel />
 

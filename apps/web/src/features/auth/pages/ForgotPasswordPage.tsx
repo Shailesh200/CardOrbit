@@ -4,7 +4,7 @@ import { Button, Input, Label } from '@cardwise/ui';
 
 import { AuthPanel } from '../../../components/layout/AuthPanel';
 import { forgotPassword } from '../../../lib/auth-api';
-import { toast } from '../../../lib/app-toast';
+import { notify, toast } from '../../../lib/app-toast';
 import { consumerLink } from '../../../lib/consumer-link';
 
 export function ForgotPasswordPage() {
@@ -18,7 +18,7 @@ export function ForgotPasswordPage() {
       await forgotPassword(email);
       toast.info('If that email exists, a reset link was sent');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Request failed');
+      notify.fromError(error, 'Request failed');
     } finally {
       setBusy(false);
     }

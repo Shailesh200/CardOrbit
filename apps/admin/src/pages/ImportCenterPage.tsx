@@ -15,6 +15,8 @@ import {
 } from '@cardwise/ui';
 import { ExternalLink } from 'lucide-react';
 
+import { LoadErrorState } from '../components/feedback/LoadErrorState';
+import { PageHeroSkeleton, TableSkeleton } from '../components/feedback/PageSkeleton';
 import {
   approveAllPendingCatalogItems,
   approveCatalogImportItem,
@@ -27,6 +29,7 @@ import {
   rejectCatalogImportItem,
   type CatalogImportItem,
 } from '../lib/api';
+import { notify, safeMessage } from '../lib/notify';
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING_REVIEW: 'Pending',
@@ -86,7 +89,21 @@ type CardBundlePayload = {
   crawlDescription?: string | null;
   feesSummary?: string | null;
   benefits?: Array<{ benefitTypeCode: string; title: string; description?: string | null }>;
-  rewardRules?: Array<{ ruleKey: string; name: string; payload?: { rewardMultiplier?: number } }>;
+  rewardRules?: Array<{
+    ruleKey: string;
+    name: string;
+    payload?: { rewardMultiplier?: number; cashbackPercent?: number };
+  }>;
+  sourceDocuments?: Array<{ url: string; label?: string | null; kind: string }>;
+};
+
+const SOURCE_DOCUMENT_KIND_LABEL: Record<string, string> = {
+  MITC: 'Most Important T&C (MITC)',
+  TNC: 'Terms & Conditions',
+  KFS: 'Key Fact Statement',
+  SCHEDULE_OF_CHARGES: 'Schedule of charges',
+  PDF: 'PDF document',
+  OTHER: 'Linked document',
 };
 
 type ImportPayloadEnvelope = {
@@ -153,6 +170,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
   const [entityType, setEntityType] = useState<string>('CARD_BUNDLE');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [lastBatchId, setLastBatchId] = useState<string | null>(null);
   const [stats, setStats] = useState<{
@@ -181,8 +199,16 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
 
   useEffect(() => {
     setLoading(true);
+    setLoadError(null);
     refresh()
-      .catch((error: Error) => setMessage(error.message))
+      .catch((error: unknown) => {
+        setLoadError(
+          safeMessage(
+            error instanceof Error ? error.message : '',
+            'Failed to load the import queue. Check your connection and try again.',
+          ),
+        );
+      })
       .finally(() => setLoading(false));
   }, [refresh]);
 
@@ -197,7 +223,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
       setStatus('APPROVED');
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Bulk approve failed');
+      notify.fromError(error, 'Bulk approve failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -214,7 +240,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
       setStatus('PUBLISHED');
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Bulk publish failed');
+      notify.fromError(error, 'Bulk publish failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -230,7 +256,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
       }
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Approve failed');
+      notify.fromError(error, 'Approve failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -246,7 +272,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
       }
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Reject failed');
+      notify.fromError(error, 'Reject failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -263,7 +289,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
       }
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Publish failed');
+      notify.fromError(error, 'Publish failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -277,7 +303,7 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
       setMessage(`Published ${result.published} approved items from batch.`);
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Batch publish failed');
+      notify.fromError(error, 'Batch publish failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -289,9 +315,26 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
       const item = await getCatalogImportItem(id);
       setDetailItem(item);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Failed to load item details');
+      notify.fromError(error, 'Failed to load item details.');
     } finally {
       setDetailLoading(false);
+    }
+  }
+
+  async function retryLoad() {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      await refresh();
+    } catch (error) {
+      setLoadError(
+        safeMessage(
+          error instanceof Error ? error.message : '',
+          'Failed to load the import queue. Check your connection and try again.',
+        ),
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -303,12 +346,20 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
 
   if (loading && !stats) {
     return (
-      <div className="admin-loading" role="status">
-        <span className="admin-loading__dot" />
-        <span className="admin-loading__dot" />
-        <span className="admin-loading__dot" />
-        Loading import queue…
+      <div className="space-y-6">
+        {!embedded ? <PageHeroSkeleton /> : null}
+        <TableSkeleton />
       </div>
+    );
+  }
+
+  if (loadError && !stats) {
+    return (
+      <LoadErrorState
+        title="Could not load the import queue"
+        description={loadError}
+        onRetry={() => void retryLoad()}
+      />
     );
   }
 
@@ -697,7 +748,39 @@ export function ImportCenterPage({ embedded = false }: { embedded?: boolean }) {
                               {rule.name}
                               {rule.payload?.rewardMultiplier
                                 ? ` · ${rule.payload.rewardMultiplier}x multiplier`
-                                : ''}
+                                : rule.payload?.cashbackPercent
+                                  ? ` · ${rule.payload.cashbackPercent}% cashback`
+                                  : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
+                    {detailPayload.sourceDocuments?.length ? (
+                      <div>
+                        <p className="font-medium">
+                          Source documents ({detailPayload.sourceDocuments.length})
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Secondary evidence (MITC / T&amp;C / fee schedule) linked from the issuer
+                          page — not persisted on publish, for reviewer corroboration only.
+                        </p>
+                        <ul className="mt-2 space-y-1.5">
+                          {detailPayload.sourceDocuments.map((doc) => (
+                            <li key={doc.url} className="flex items-center justify-between gap-2">
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                {SOURCE_DOCUMENT_KIND_LABEL[doc.kind] ?? doc.kind}
+                              </span>
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 truncate text-primary underline-offset-2 hover:underline"
+                              >
+                                {doc.label || doc.url}
+                                <ExternalLink className="size-3 shrink-0" aria-hidden />
+                              </a>
                             </li>
                           ))}
                         </ul>

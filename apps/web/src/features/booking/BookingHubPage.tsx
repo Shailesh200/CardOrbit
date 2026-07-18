@@ -4,7 +4,7 @@ import { Button } from '@cardwise/ui';
 import { Building2, ExternalLink, Plane } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import { formatOfferTitle } from '@features/offers/format-offer-title';
 import {
   defaultFlightDates,
@@ -211,7 +211,7 @@ export function BookingHubPage() {
     void getBookingHub()
       .then(setHub)
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load booking hub');
+        notify.fromError(error, 'Could not load booking hub');
       })
       .finally(() => setLoading(false));
   }, []);
@@ -253,7 +253,7 @@ export function BookingHubPage() {
       });
       setChannels(channelResult);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Flight search failed');
+      notify.fromError(error, 'Flight search failed');
     } finally {
       setSearching(false);
     }
@@ -286,7 +286,7 @@ export function BookingHubPage() {
       });
       setChannels(channelResult);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Hotel search failed');
+      notify.fromError(error, 'Hotel search failed');
     } finally {
       setSearching(false);
     }
@@ -312,7 +312,7 @@ export function BookingHubPage() {
       setValidation(data);
       toast.message(data.detail);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Validation failed');
+      notify.fromError(error, 'Validation failed');
     } finally {
       setActionBusy(false);
     }
@@ -332,7 +332,7 @@ export function BookingHubPage() {
         toast.message(`Best card: ${data.recommendedCardName}`);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Payment optimize failed');
+      notify.fromError(error, 'Payment optimize failed');
     } finally {
       setActionBusy(false);
     }
@@ -356,7 +356,7 @@ export function BookingHubPage() {
         toast.message(`Best loyalty path: ${data.recommendedLabel}`);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Loyalty optimize failed');
+      notify.fromError(error, 'Loyalty optimize failed');
     } finally {
       setActionBusy(false);
     }
@@ -373,7 +373,7 @@ export function BookingHubPage() {
       });
       window.open(handoff.deepLinkUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not open bank portal');
+      notify.fromError(error, 'Could not open bank portal');
     } finally {
       setActionBusy(false);
     }

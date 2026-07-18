@@ -51,6 +51,22 @@ export const IngestRewardRuleSchema = z.object({
   sourceUrl: url.optional().nullable(),
 });
 
+/** Secondary evidence documents (MITC / T&C / fee schedule) linked from a product page. */
+export const IngestSourceDocumentKindSchema = z.enum([
+  'MITC',
+  'TNC',
+  'KFS',
+  'SCHEDULE_OF_CHARGES',
+  'PDF',
+  'OTHER',
+]);
+
+export const IngestSourceDocumentSchema = z.object({
+  url,
+  label: z.string().optional().nullable(),
+  kind: IngestSourceDocumentKindSchema.default('OTHER'),
+});
+
 export const IngestCardBundleSchema = z.object({
   bankSlug: slug,
   bankSourceUrl: url.optional().nullable(),
@@ -79,6 +95,8 @@ export const IngestCardBundleSchema = z.object({
   crawlDescription: z.string().optional().nullable(),
   /** Crawled fees/charges summary — shown in admin review, not persisted on publish. */
   feesSummary: z.string().optional().nullable(),
+  /** MITC / T&C / fee-schedule links captured from the product page — secondary evidence, not persisted on publish. */
+  sourceDocuments: z.array(IngestSourceDocumentSchema).default([]),
 });
 
 export const IngestMerchantUpsertSchema = z.object({
@@ -101,6 +119,7 @@ export const IngestMerchantRemoveSchema = z.object({
 });
 
 export type IngestCardBundle = z.infer<typeof IngestCardBundleSchema>;
+export type IngestSourceDocument = z.infer<typeof IngestSourceDocumentSchema>;
 export type IngestMerchantUpsert = z.infer<typeof IngestMerchantUpsertSchema>;
 export type IngestMerchantRemove = z.infer<typeof IngestMerchantRemoveSchema>;
 

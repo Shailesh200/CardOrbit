@@ -26,6 +26,8 @@
     "check": "bun run lint && bun run format:check && bun run typecheck",
     "check:fix": "bun run lint:fix && bun run format",
     "test": "bash scripts/run-tests-if-present.sh",
+    "e2e": "bun run --filter @cardwise/web e2e",
+    "e2e:ui": "bun run --filter @cardwise/web e2e:ui",
     "verify:milestone": "bash scripts/verify-milestone.sh",
     "verify:web": "bash scripts/verify-web-quality.sh",
     "verify:ai-coverage": "bash scripts/verify-ai-coverage.sh",

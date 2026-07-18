@@ -39,6 +39,12 @@ pnpm-debug.log*
 # Test coverage
 coverage/
 
+# Playwright
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/playwright/.cache/
+
 # Prisma
 services/api/prisma/*.db
 services/api/prisma/*.db-journal

@@ -19,6 +19,9 @@ import {
 
 import { DASHBOARD_PATH } from '../../features/dashboard/dashboard-path';
 import { NotificationsNavLink } from '../../features/notifications/NotificationsNavLink';
+import { useNavFeatureFlags } from '../../features/navigation/use-nav-feature-flags';
+
+type NavFlagKey = keyof ReturnType<typeof useNavFeatureFlags>;
 
 type NavItem = {
   to: string;
@@ -26,6 +29,8 @@ type NavItem = {
   icon: LucideIcon;
   end?: boolean;
   custom?: boolean;
+  /** Hides this entry when the flag resolves to false. */
+  flagKey?: NavFlagKey;
 };
 
 type NavGroup = {
@@ -56,10 +61,10 @@ const navGroups: NavGroup[] = [
   {
     label: 'Planning',
     items: [
-      { to: '/account/calendar', label: 'Calendar', icon: CalendarDays },
+      { to: '/account/calendar', label: 'Calendar', icon: CalendarDays, flagKey: 'calendar' },
       { to: '/account/billing', label: 'Billing', icon: FileText },
-      { to: '/account/travel', label: 'Travel', icon: Plane },
-      { to: '/account/reports', label: 'Reports', icon: BarChart3 },
+      { to: '/account/travel', label: 'Travel', icon: Plane, flagKey: 'travel' },
+      { to: '/account/reports', label: 'Reports', icon: BarChart3, flagKey: 'reports' },
     ],
   },
   {
@@ -73,11 +78,19 @@ const navGroups: NavGroup[] = [
 ];
 
 export function AccountLayout() {
+  const flags = useNavFeatureFlags();
+  const visibleGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.flagKey || flags[item.flagKey]),
+    }))
+    .filter((group) => group.items.length > 0);
+
   return (
     <div className="consumer-page mx-auto flex max-w-5xl flex-col gap-8 py-6 lg:py-10 lg:flex-row lg:items-start lg:gap-10">
       <aside className="consumer-sidebar hidden lg:block lg:w-56 lg:shrink-0">
         <nav className="consumer-sidebar-nav flex max-h-[calc(100dvh-var(--shell-sticky-rail-top)-1.5rem)] flex-col gap-4 overflow-y-auto overscroll-contain">
-          {navGroups.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group.label}>
               <p className="consumer-sidebar-label">{group.label}</p>
               <div className="flex flex-col gap-1">

@@ -4,7 +4,7 @@ import { ArrowLeftRight, Sparkles, Star } from 'lucide-react';
 
 import { MiniCreditCard } from '@brand/MiniCreditCard';
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 
 import {
   buildComparisonIdsParam,
@@ -134,7 +134,7 @@ export function CardComparisonPage() {
     document.title = 'CardOrbit · Compare cards';
     listPortfolio()
       .then(setPortfolio)
-      .catch((error: Error) => toast.error(error.message))
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoadingPortfolio(false));
   }, []);
 
@@ -150,7 +150,7 @@ export function CardComparisonPage() {
       setResult(data);
     } catch (error) {
       setResult(null);
-      toast.error(error instanceof Error ? error.message : 'Comparison failed');
+      notify.fromError(error, 'Comparison failed');
     } finally {
       setComparing(false);
     }

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Fuel, Shield, Sparkles, UtensilsCrossed, Wallet } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import {
   formatInr,
   getLifestyleBenefitsOverview,
@@ -130,7 +130,7 @@ export function LifestyleBenefitsPage() {
     void getLifestyleBenefitsOverview()
       .then(setOverview)
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load lifestyle benefits');
+        notify.fromError(error, 'Could not load lifestyle benefits');
       })
       .finally(() => setLoading(false));
   }, []);

@@ -60,6 +60,9 @@ export function runCatalogGoldenEval(): EvalSuiteResult {
     if (entry.bundle.structuredFees.length < entry.expect.minStructuredFees) {
       issues.push(`expected at least ${entry.expect.minStructuredFees} structured fees`);
     }
+    if (entry.bundle.rewardRules.length < entry.expect.minRewardRules) {
+      issues.push(`expected at least ${entry.expect.minRewardRules} reward rules`);
+    }
     for (const tag of entry.expect.requiredTags) {
       if (!entry.bundle.tags.includes(tag)) {
         issues.push(`missing required tag "${tag}"`);

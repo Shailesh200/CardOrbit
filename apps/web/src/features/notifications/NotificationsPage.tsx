@@ -4,7 +4,7 @@ import { Button } from '@cardwise/ui';
 import { Bell, CheckCheck, ExternalLink, RefreshCw } from 'lucide-react';
 
 import { EmptyState } from '../../components/feedback/EmptyState';
-import { toast } from '../../lib/app-toast';
+import { notify, toast } from '../../lib/app-toast';
 import {
   trackNotificationClickedClient,
   trackNotificationsViewedClient,
@@ -117,7 +117,7 @@ export function NotificationsPage() {
         contextualEnabled: true,
       });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load notifications');
+      notify.fromError(error, 'Failed to load notifications');
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ export function NotificationsPage() {
       const updated = await markNotificationRead(id);
       setItems((current) => current.map((row) => (row.id === id ? updated : row)));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not mark as read');
+      notify.fromError(error, 'Could not mark as read');
     }
   }
 
@@ -149,7 +149,7 @@ export function NotificationsPage() {
       );
       toast.success('All notifications marked read');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not mark all as read');
+      notify.fromError(error, 'Could not mark all as read');
     } finally {
       setBusy(false);
     }
@@ -166,7 +166,7 @@ export function NotificationsPage() {
         toast.success('Notifications are up to date');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not refresh insights');
+      notify.fromError(error, 'Could not refresh insights');
     } finally {
       setSyncing(false);
     }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, cn } from '@cardwise/ui';
 
 import {
@@ -12,6 +12,9 @@ import {
   aiFeatureFlagLabel,
   isAiFeatureFlagKey,
 } from '../lib/ai-feature-flags';
+import { LoadErrorState } from './feedback/LoadErrorState';
+import { TableSkeleton } from './feedback/PageSkeleton';
+import { notify, safeMessage } from '../lib/notify';
 
 type Draft = { enabled: boolean; rolloutPercentage: number };
 
@@ -22,8 +25,10 @@ export function AiFeatureFlagsPanel({ className }: { className?: string }) {
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void fetchAdminFeatureFlags()
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    return fetchAdminFeatureFlags()
       .then((definitions) => {
         const aiRows = AI_FEATURE_FLAG_KEYS.map(
           (key) => definitions.find((row) => row.key === key) ?? null,
@@ -38,9 +43,17 @@ export function AiFeatureFlagsPanel({ className }: { className?: string }) {
           ),
         );
       })
-      .catch((err: Error) => setError(err.message))
+      .catch((err: unknown) => {
+        setError(
+          safeMessage(err instanceof Error ? err.message : '', 'Failed to load AI feature flags.'),
+        );
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const dirtyKeys = useMemo(() => {
     return rows
@@ -60,15 +73,35 @@ export function AiFeatureFlagsPanel({ className }: { className?: string }) {
     try {
       const updated = await updateAdminFeatureFlag(key, draft);
       setRows((current) => current.map((row) => (row.key === key ? updated : row)));
+      notify.success(`${aiFeatureFlagLabel(key)} updated`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save feature flag');
+      notify.fromError(err, 'Failed to save feature flag. Please try again.');
     } finally {
       setSavingKey(null);
     }
   }
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading AI feature flags…</p>;
+    return (
+      <div className={cn('space-y-4', className)}>
+        <div>
+          <h2 className="text-base font-semibold">AI feature flags</h2>
+        </div>
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (error && rows.length === 0) {
+    return (
+      <div className={className}>
+        <LoadErrorState
+          title="Could not load AI feature flags"
+          description={error}
+          onRetry={() => void load()}
+        />
+      </div>
+    );
   }
 
   return (
@@ -80,12 +113,6 @@ export function AiFeatureFlagsPanel({ className }: { className?: string }) {
           worker within ~30 seconds.
         </p>
       </div>
-
-      {error ? (
-        <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {error}
-        </p>
-      ) : null}
 
       <div className="overflow-hidden rounded-2xl border border-border/60">
         <table className="min-w-full text-sm">

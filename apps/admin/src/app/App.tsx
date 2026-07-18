@@ -5,6 +5,7 @@ import { AnalyticsEventsPage } from '../pages/AnalyticsEventsPage';
 import { ExperimentsPage } from '../pages/ExperimentsPage';
 import { FeatureFlagsPage } from '../pages/FeatureFlagsPage';
 import { LoginPage } from '../pages/LoginPage';
+import { NotFoundPage } from '../pages/NotFoundPage';
 import { OffersPage } from '../pages/OffersPage';
 import { SduiRoutePage } from '../pages/SduiRoutePage';
 import { AdminShell } from './AdminShell';
@@ -36,7 +37,7 @@ export function App() {
             <Route path="merchants/intelligence" element={<Navigate to="/insights" replace />} />
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/insights" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

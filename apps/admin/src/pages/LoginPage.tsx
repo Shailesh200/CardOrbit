@@ -8,10 +8,10 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  toast,
 } from '@cardwise/ui';
 
 import { getAdminToken, login, setAdminToken } from '../lib/api';
+import { notify } from '../lib/notify';
 
 const PROD_LOGIN_EMAIL = 'admin@cardorbit.in';
 const DEV_LOGIN_EMAIL = 'admin@cardwise.local';
@@ -48,10 +48,10 @@ export function LoginPage() {
     try {
       const result = await login(email, password);
       setAdminToken(result.accessToken);
-      toast.success(`Signed in as ${result.admin.email}`);
+      notify.success(`Signed in as ${result.admin.email}`);
       navigate('/insights');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed');
+      notify.fromError(error, 'Login failed. Check your email and password and try again.');
     } finally {
       setBusy(false);
     }

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Gift } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import {
   formatInr,
   formatPoints,
@@ -102,7 +102,7 @@ export function RedemptionsPage() {
         setHistory(historyResponse.items);
       })
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load redemptions');
+        notify.fromError(error, 'Could not load redemptions');
       })
       .finally(() => setLoading(false));
   }, []);

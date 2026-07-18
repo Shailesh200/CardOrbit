@@ -6,7 +6,7 @@ import { BookmarkPlus, Loader2, SearchX, Trash2, X } from 'lucide-react';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { MerchantListSkeleton } from '../../components/feedback/PageSkeletons';
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import { trackSavedSearchCreatedClient, trackSavedSearchRunClient } from '@lib/product-analytics';
 
 import { MerchantSearchAutocomplete } from './components/MerchantSearchAutocomplete';
@@ -82,7 +82,7 @@ export function MerchantSearchPage() {
         setPopular(popularRows);
         setSavedSearches(savedRows);
       })
-      .catch((error: Error) => toast.error(error.message))
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoading(false));
   }, [fetchPage]);
 
@@ -93,7 +93,7 @@ export function MerchantSearchPage() {
     try {
       await fetchPage({ q, categorySlug, offset: 0, append: false });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Search failed');
+      notify.fromError(error, 'Search failed');
     } finally {
       setLoading(false);
     }
@@ -110,7 +110,7 @@ export function MerchantSearchPage() {
     try {
       await fetchPage({ q: activeQuery, categorySlug: slug, offset: 0, append: false });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not filter merchants');
+      notify.fromError(error, 'Could not filter merchants');
     } finally {
       setLoading(false);
     }
@@ -127,7 +127,7 @@ export function MerchantSearchPage() {
         append: true,
       });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not load more merchants');
+      notify.fromError(error, 'Could not load more merchants');
     } finally {
       setLoadingMore(false);
     }
@@ -174,7 +174,7 @@ export function MerchantSearchPage() {
       });
       toast.success('Search saved');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not save search');
+      notify.fromError(error, 'Could not save search');
     } finally {
       setSavePending(false);
     }
@@ -200,7 +200,7 @@ export function MerchantSearchPage() {
         resultCount: page?.total,
       });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not run saved search');
+      notify.fromError(error, 'Could not run saved search');
     } finally {
       setLoading(false);
     }
@@ -212,7 +212,7 @@ export function MerchantSearchPage() {
       setSavedSearches((prev) => prev.filter((row) => row.id !== savedSearchId));
       toast.success('Saved search removed');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not delete saved search');
+      notify.fromError(error, 'Could not delete saved search');
     }
   }
 
@@ -432,7 +432,7 @@ export function MerchantSearchPage() {
                   setActiveQuery('');
                   setLoading(true);
                   void fetchPage({ q: '', categorySlug, offset: 0, append: false })
-                    .catch((error: Error) => toast.error(error.message))
+                    .catch((error: Error) => notify.fromError(error))
                     .finally(() => setLoading(false));
                 }}
               >

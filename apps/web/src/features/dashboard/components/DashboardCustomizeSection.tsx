@@ -7,7 +7,7 @@ import {
   updateDashboardPreferences,
   type DashboardWidgetId,
 } from '../dashboard-api';
-import { toast } from '../../../lib/app-toast';
+import { notify, toast } from '../../../lib/app-toast';
 import { trackDashboardWidgetInteractionClient } from '../../../lib/product-analytics';
 
 export function DashboardCustomizeSection() {
@@ -47,7 +47,7 @@ export function DashboardCustomizeSection() {
       trackDashboardWidgetInteractionClient({ widgetId: 'layout', action: 'customized' });
       toast.success('Homepage layout updated');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not save homepage layout');
+      notify.fromError(error, 'Could not save homepage layout');
     } finally {
       setSaving(false);
     }

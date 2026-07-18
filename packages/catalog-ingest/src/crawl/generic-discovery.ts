@@ -35,7 +35,7 @@ const EXCLUDED_PATH_PATTERNS: RegExp[] = [
   /corporate/i,
   /sme/i,
   /referral/i,
-  /services\//i,
+  /\/services\//i,
   /loststolen/i,
   /block-/i,
   /apply-for/i,

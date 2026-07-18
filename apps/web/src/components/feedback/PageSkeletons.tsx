@@ -1,9 +1,14 @@
 import { Skeleton } from '@cardwise/ui';
 
+/**
+ * Route/page loading placeholders — prefer these over ad-hoc "Loading…" text.
+ * Use EmptyState for true empty collections; LoadErrorState after failed fetches.
+ */
+
 export function MerchantListSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <ul
-      className="divide-y divide-white/5 rounded-2xl border border-white/8 bg-card/50"
+      className="divide-y divide-border rounded-2xl border border-border bg-card/50"
       aria-busy="true"
       aria-label="Loading merchants"
     >
@@ -20,7 +25,7 @@ export function MerchantListSkeleton({ rows = 6 }: { rows?: number }) {
 export function CatalogListSkeleton({ rows = 6 }: { rows?: number }) {
   return (
     <ul
-      className="divide-y divide-white/5 rounded-2xl border border-white/8 bg-card/50"
+      className="divide-y divide-border rounded-2xl border border-border bg-card/50"
       aria-busy="true"
       aria-label="Loading card catalog"
     >
@@ -45,7 +50,7 @@ export function PortfolioGridSkeleton({ cards = 4 }: { cards?: number }) {
   return (
     <ul className="grid gap-4 sm:grid-cols-2" aria-busy="true" aria-label="Loading portfolio">
       {Array.from({ length: cards }, (_, index) => (
-        <li key={index} className="space-y-3 rounded-2xl border border-white/8 bg-card/50 p-5">
+        <li key={index} className="space-y-3 rounded-2xl border border-border bg-card/50 p-5">
           <Skeleton className="h-3 w-24" />
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-4 w-full max-w-xs" />
@@ -74,7 +79,7 @@ export function RecommendationPanelSkeleton() {
 export function DashboardHomeSkeleton() {
   return (
     <div className="space-y-8" aria-busy="true" aria-label="Loading your home">
-      <div className="space-y-3 rounded-2xl border border-white/8 bg-card/50 p-5 sm:p-6">
+      <div className="space-y-3 rounded-2xl border border-border bg-card/50 p-5 sm:p-6">
         <Skeleton className="h-3 w-28" />
         <Skeleton className="h-8 w-72 max-w-full" />
         <Skeleton className="h-4 w-full max-w-md" />
@@ -85,10 +90,10 @@ export function DashboardHomeSkeleton() {
         </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
-        <div className="rounded-2xl border border-white/8 bg-card/50 p-5">
+        <div className="rounded-2xl border border-border bg-card/50 p-5">
           <RecommendationPanelSkeleton />
         </div>
-        <div className="space-y-3 rounded-2xl border border-white/8 bg-card/50 p-5">
+        <div className="space-y-3 rounded-2xl border border-border bg-card/50 p-5">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-4 w-full" />

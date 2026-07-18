@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { Button } from '@cardwise/ui';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '../../lib/app-toast';
+import { notify, toast } from '../../lib/app-toast';
 import { Star, Trash2, ExternalLink } from 'lucide-react';
 
 import { getCardBenefitsDashboard, type CardBenefitsDashboard } from './card-benefits-api';
@@ -24,7 +24,7 @@ export function CardDetailPage() {
         setDashboard(data);
         document.title = `CardOrbit · ${data.overview.nickname ?? data.overview.cardName}`;
       })
-      .catch((error: Error) => toast.error(error.message))
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoading(false));
   }, [userCardId]);
 
@@ -45,7 +45,7 @@ export function CardDetailPage() {
       );
       toast.success(updated.isFavorite ? 'Marked as favorite' : 'Removed from favorites');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Update failed');
+      notify.fromError(error, 'Update failed');
     } finally {
       setBusy(false);
     }
@@ -67,7 +67,7 @@ export function CardDetailPage() {
       );
       toast.success(next === 'ACTIVE' ? 'Card activated' : 'Card deactivated');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Update failed');
+      notify.fromError(error, 'Update failed');
     } finally {
       setBusy(false);
     }
@@ -82,7 +82,7 @@ export function CardDetailPage() {
       toast.success('Card removed');
       navigate('/account/cards');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Remove failed');
+      notify.fromError(error, 'Remove failed');
     } finally {
       setBusy(false);
     }

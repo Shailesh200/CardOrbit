@@ -5,7 +5,7 @@ import { BarChart3, Download, FileSpreadsheet, Receipt } from 'lucide-react';
 
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import {
   downloadCsv,
   exportReportCsv,
@@ -161,7 +161,7 @@ export function ReportsPage() {
       setDetail(null);
       setActiveType('overview');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Reports unavailable');
+      notify.fromError(error, 'Reports unavailable');
     } finally {
       setLoading(false);
     }
@@ -179,7 +179,7 @@ export function ReportsPage() {
       const section = await getReport(type, period);
       setDetail(section);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not load report');
+      notify.fromError(error, 'Could not load report');
     } finally {
       setLoading(false);
     }
@@ -207,7 +207,7 @@ export function ReportsPage() {
       });
       toast.success('Full report downloaded');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Export failed');
+      notify.fromError(error, 'Export failed');
     } finally {
       setExporting(false);
     }

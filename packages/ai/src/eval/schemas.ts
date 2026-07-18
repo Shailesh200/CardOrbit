@@ -33,11 +33,13 @@ export const CatalogGoldenEntrySchema = z.object({
     .object({
       minHighlights: z.number().int().nonnegative().default(1),
       minStructuredFees: z.number().int().nonnegative().default(0),
+      minRewardRules: z.number().int().nonnegative().default(0),
       requiredTags: z.array(z.string()).default([]),
     })
     .default(() => ({
       minHighlights: 1,
       minStructuredFees: 0,
+      minRewardRules: 0,
       requiredTags: [],
     })),
 });

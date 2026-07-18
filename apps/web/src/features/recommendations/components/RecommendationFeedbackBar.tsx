@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@cardwise/ui';
 import { ThumbsDown, ThumbsUp } from 'lucide-react';
 
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 
 import {
   submitRecommendationFeedback,
@@ -37,7 +37,7 @@ export function RecommendationFeedbackBar({
       });
       toast.success('Thanks for the feedback');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not save feedback');
+      notify.fromError(error, 'Could not save feedback');
     } finally {
       setPending(false);
     }

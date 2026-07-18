@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Button } from '@cardwise/ui';
+import { Sparkles } from 'lucide-react';
 
 import { MiniCreditCard } from '@brand/MiniCreditCard';
 import { MerchantMark } from '@brand/MerchantMark';
@@ -9,6 +10,7 @@ import { AiVisual } from '@features/ai/components/AiVisual';
 import { EmptyState } from '../../../components/feedback/EmptyState';
 import { RecommendationPanelSkeleton } from '../../../components/feedback/PageSkeletons';
 import {
+  addCardHref,
   fetchRecommendationShowcase,
   formatInr,
   formatRewardHighlight,
@@ -34,10 +36,20 @@ export function DashboardRecommendationWidget({ scenario }: Props) {
     'idle',
   );
 
+  const portfolioReady = recommendation.status === 'ready' && Boolean(recommendation.data.merchant);
+  const hasPortfolioBest = Boolean(
+    portfolioReady && recommendation.status === 'ready' && recommendation.data.recommendedCard,
+  );
+  const hasCatalogBest = Boolean(
+    portfolioReady &&
+    recommendation.status === 'ready' &&
+    recommendation.data.catalogRecommendation?.recommendedCard,
+  );
+
   const needsFallback =
     recommendation.status === 'error' ||
-    (recommendation.status === 'ready' &&
-      (!recommendation.data.recommendedCard || !recommendation.data.merchant));
+    (recommendation.status === 'ready' && !recommendation.data.merchant) ||
+    (recommendation.status === 'ready' && !hasPortfolioBest && !hasCatalogBest);
 
   useEffect(() => {
     if (!needsFallback) {
@@ -76,9 +88,7 @@ export function DashboardRecommendationWidget({ scenario }: Props) {
   }
 
   const data =
-    recommendation.status === 'ready' &&
-    recommendation.data.recommendedCard &&
-    recommendation.data.merchant
+    portfolioReady && recommendation.status === 'ready' && (hasPortfolioBest || hasCatalogBest)
       ? recommendation.data
       : showcaseStatus === 'ready' && showcase
         ? showcase
@@ -116,9 +126,10 @@ export function DashboardRecommendationWidget({ scenario }: Props) {
     );
   }
 
-  const card = data.recommendedCard!;
+  const card = data.recommendedCard;
+  const catalog = data.catalogRecommendation;
+  const catalogBest = catalog?.recommendedCard ?? null;
   const merchant = data.merchant!;
-  const rewardLine = formatRewardHighlight(data);
   const amount = data.source === 'showcase' ? data.amount : scenario.amount;
 
   return (
@@ -136,24 +147,74 @@ export function DashboardRecommendationWidget({ scenario }: Props) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <MiniCreditCard
-          bankSlug={card.bankSlug}
-          cardSlug={card.cardSlug}
-          cardName={card.cardName}
-          className="mx-auto w-[7.5rem] shrink-0 sm:mx-0"
-        />
-        <div className="min-w-0 flex-1 space-y-2 text-center sm:text-left">
-          <MerchantMark name={merchant.name} slug={merchant.slug} logoUrl={merchant.logoUrl} />
-          <p className="font-display text-lg font-semibold tracking-tight">Use {card.cardName}</p>
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-primary">{rewardLine}</span>
-          </p>
-          {data.explanation ? (
-            <p className="text-xs leading-relaxed text-muted-foreground">{data.explanation}</p>
-          ) : null}
+      {card ? (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <MiniCreditCard
+            bankSlug={card.bankSlug}
+            cardSlug={card.cardSlug}
+            cardName={card.cardName}
+            className="mx-auto w-[7.5rem] shrink-0 sm:mx-0"
+          />
+          <div className="min-w-0 flex-1 space-y-2 text-center sm:text-left">
+            <MerchantMark name={merchant.name} slug={merchant.slug} logoUrl={merchant.logoUrl} />
+            <p className="font-display text-lg font-semibold tracking-tight">Use {card.cardName}</p>
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-primary">{formatRewardHighlight(data)}</span>
+            </p>
+            {data.explanation ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">{data.explanation}</p>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
+          <p>None of your cards earn rewards for this spend at {merchant.name}.</p>
+        </div>
+      )}
+
+      {catalog && catalog.cardsEvaluated > 0 ? (
+        <div className="space-y-3 border-t border-border/60 pt-4" aria-label="Cards to consider">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Cards to consider
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Top catalog cards not in your portfolio yet
+            </p>
+          </div>
+
+          {catalogBest ? (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <MiniCreditCard
+                bankSlug={catalogBest.bankSlug}
+                cardSlug={catalogBest.cardSlug}
+                cardName={catalogBest.cardName}
+                className="mx-auto w-[5.5rem] shrink-0 sm:mx-0"
+              />
+              <div className="min-w-0 flex-1 space-y-1 text-center sm:text-left">
+                <p className="font-display text-sm font-semibold tracking-tight">
+                  {catalogBest.cardName}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-semibold text-primary">
+                    {formatRewardHighlight(catalog)}
+                  </span>
+                </p>
+                <Button asChild size="sm" className="btn-premium mt-1">
+                  <Link to={addCardHref(catalogBest)}>
+                    <Sparkles className="size-3.5" aria-hidden />
+                    Add card
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              No catalog cards with eligible rewards for this merchant yet.
+            </p>
+          )}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4 text-sm">
         <span className="rounded-lg bg-muted px-2.5 py-1 font-medium">

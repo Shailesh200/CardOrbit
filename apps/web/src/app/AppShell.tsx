@@ -1,16 +1,20 @@
 import { Link, NavLink, Outlet } from 'react-router';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Button, Toaster, cn } from '@cardwise/ui';
 
 import { HeroLogo } from '@brand/HeroLogo';
 import { AppOriginLink } from '../components/navigation/AppOriginLink';
+import { OfflineBanner } from '../components/feedback/OfflineBanner';
 import { DASHBOARD_PATH } from '../features/dashboard/dashboard-path';
 import { useAiFeatures } from '../features/ai/use-ai-features';
 import { useDeferredAfterLoad } from '../hooks/useAfterPageLoad';
 import { useAuthSession } from '../hooks/useAuthSession';
 import { useMobileViewport } from '../hooks/useMobileViewport';
+import { useTheme } from '../hooks/useTheme';
+import { initPwaUpdate } from '../lib/pwa-update';
 import { landingHref } from '../lib/site-origins';
 import { MobileBottomNav } from './MobileBottomNav';
+import { ThemeToggle } from './ThemeToggle';
 
 const AssistantFloatingWidget = lazy(() =>
   import('../features/assistant/AssistantFloatingWidget').then((m) => ({
@@ -39,8 +43,13 @@ export function AppShell() {
   const authed = useAuthSession();
   const mobileViewport = useMobileViewport();
   const { assistant } = useAiFeatures();
+  const { theme, toggleTheme } = useTheme();
 
   const authedNavLinks = [...authedNavLinksBase];
+
+  useEffect(() => {
+    initPwaUpdate();
+  }, []);
 
   return (
     <div
@@ -54,45 +63,46 @@ export function AppShell() {
       </a>
       <header className="site-header">
         <div className="site-header__inner">
-          <HeroLogo
-            size="sm"
-            tone="light"
-            homeTo={authed ? DASHBOARD_PATH : landingHref('/')}
-          />
-          <nav
-            className={cn('items-center gap-1 sm:gap-2', authed ? 'hidden lg:flex' : 'flex')}
-            aria-label="Primary"
-          >
-            {authed ? (
-              <>
-                {authedNavLinks.map(({ to, label, end }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    end={end}
-                    className={({ isActive }) =>
-                      cn('consumer-nav-link inline-flex', isActive && 'is-active')
-                    }
-                  >
-                    {label}
-                  </NavLink>
-                ))}
-              </>
-            ) : (
-              <>
-                <AppOriginLink className="consumer-nav-link inline-flex" to="/login">
-                  Sign in
-                </AppOriginLink>
-                <Button asChild size="sm" className="consumer-nav-cta">
-                  <AppOriginLink to="/signup">Get started</AppOriginLink>
-                </Button>
-              </>
-            )}
-          </nav>
+          <HeroLogo size="sm" tone="light" homeTo={authed ? DASHBOARD_PATH : landingHref('/')} />
+          <div className="flex items-center gap-1 sm:gap-2">
+            <nav
+              className={cn('items-center gap-1 sm:gap-2', authed ? 'hidden lg:flex' : 'flex')}
+              aria-label="Primary"
+            >
+              {authed ? (
+                <>
+                  {authedNavLinks.map(({ to, label, end }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      end={end}
+                      className={({ isActive }) =>
+                        cn('consumer-nav-link inline-flex', isActive && 'is-active')
+                      }
+                    >
+                      {label}
+                    </NavLink>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <AppOriginLink className="consumer-nav-link inline-flex" to="/login">
+                    Sign in
+                  </AppOriginLink>
+                  <Button asChild size="sm" className="consumer-nav-cta">
+                    <AppOriginLink to="/signup">Get started</AppOriginLink>
+                  </Button>
+                </>
+              )}
+            </nav>
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          </div>
         </div>
       </header>
 
       <div aria-hidden className="site-header-spacer shrink-0" />
+
+      <OfflineBanner />
 
       <main id="main-content" className="shell-main flex-1" tabIndex={-1}>
         <Outlet />
@@ -126,7 +136,7 @@ export function AppShell() {
       <Suspense fallback={null}>
         <DeferredConsentBanner />
       </Suspense>
-      <Toaster position="top-right" closeButton richColors />
+      <Toaster theme={theme} position="top-right" closeButton richColors />
     </div>
   );
 }

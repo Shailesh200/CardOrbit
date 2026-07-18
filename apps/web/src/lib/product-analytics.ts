@@ -1,3 +1,5 @@
+import { getConsentPreferences } from '../features/privacy/consent-storage';
+
 /** Browser-safe product analytics (matches @cardwise/analytics event names). */
 export function captureProductEvent(event: string, properties: Record<string, unknown>): void {
   const payload = {
@@ -5,6 +7,14 @@ export function captureProductEvent(event: string, properties: Record<string, un
     properties,
     timestamp: new Date().toISOString(),
   };
+
+  // Never beacon to PostHog until the visitor has explicitly opted into analytics cookies.
+  if (getConsentPreferences()?.analytics !== true) {
+    if (import.meta.env.DEV) {
+      console.debug('[analytics] skipped (no consent)', payload);
+    }
+    return;
+  }
 
   const apiKey = import.meta.env.VITE_POSTHOG_API_KEY as string | undefined;
   const host =

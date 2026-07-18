@@ -789,6 +789,17 @@ button.consumer-link--muted:disabled {
   }
 }
 
+/* —— Cookie consent —— */
+.consumer-consent {
+  bottom: 0;
+}
+
+@media (max-width: 1023px) {
+  .consumer-consent {
+    bottom: calc(var(--consumer-bottom-nav-height) + var(--safe-bottom));
+  }
+}
+
 /* —— Signup email confirmation —— */
 .signup-verify-prompt {
   display: flex;

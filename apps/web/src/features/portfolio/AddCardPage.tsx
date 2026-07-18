@@ -1,12 +1,12 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Button, Input } from '@cardwise/ui';
 import { Check, Loader2, SearchX } from 'lucide-react';
 
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { CatalogListSkeleton } from '../../components/feedback/PageSkeletons';
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 
 import { addPortfolioCard, listCatalog, type CatalogCard } from './portfolio-api';
 import { AiSearchHint } from '../ai/components/AiSearchHint';
@@ -18,9 +18,11 @@ const PAGE_SIZE = 20;
 
 export function AddCardPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialQ = (searchParams.get('q') ?? searchParams.get('slug') ?? '').trim();
   const [items, setItems] = useState<CatalogCard[]>([]);
-  const [query, setQuery] = useState('');
-  const [activeQuery, setActiveQuery] = useState('');
+  const [query, setQuery] = useState(initialQ);
+  const [activeQuery, setActiveQuery] = useState(initialQ);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -47,10 +49,10 @@ export function AddCardPage() {
   useEffect(() => {
     document.title = 'CardOrbit · Add card';
     setLoading(true);
-    void fetchPage({ q: '', offset: 0, append: false })
-      .catch((error: Error) => toast.error(error.message))
+    void fetchPage({ q: initialQ, offset: 0, append: false })
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoading(false));
-  }, [fetchPage]);
+  }, [fetchPage, initialQ]);
 
   async function onSearch(event: FormEvent) {
     event.preventDefault();
@@ -60,7 +62,7 @@ export function AddCardPage() {
     try {
       await fetchPage({ q, offset: 0, append: false });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Search failed');
+      notify.fromError(error, 'Search failed');
     } finally {
       setLoading(false);
     }
@@ -72,7 +74,7 @@ export function AddCardPage() {
     try {
       await fetchPage({ q: activeQuery, offset: nextOffset, append: true });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not load more cards');
+      notify.fromError(error, 'Could not load more cards');
     } finally {
       setLoadingMore(false);
     }
@@ -105,7 +107,7 @@ export function AddCardPage() {
       toast.success(`${card.name} added to your portfolio`);
       navigate(`/account/cards/${added.id}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not add card');
+      notify.fromError(error, 'Could not add card');
     } finally {
       setBusyId(null);
     }
@@ -185,7 +187,7 @@ export function AddCardPage() {
                   setActiveQuery('');
                   setLoading(true);
                   void fetchPage({ q: '', offset: 0, append: false })
-                    .catch((error: Error) => toast.error(error.message))
+                    .catch((error: Error) => notify.fromError(error))
                     .finally(() => setLoading(false));
                 }}
               >

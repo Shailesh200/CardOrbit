@@ -3,8 +3,11 @@ import { Link } from 'react-router';
 import { Button } from '@cardwise/ui';
 import { Tag } from 'lucide-react';
 
+import { EmptyState } from '../../components/feedback/EmptyState';
+import { LoadErrorState } from '../../components/feedback/LoadErrorState';
+import { CatalogListSkeleton } from '../../components/feedback/PageSkeletons';
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 
 import { formatOfferTitle } from './format-offer-title';
 import { listMatchedOffers, type MatchedOffer } from './offers-api';
@@ -84,10 +87,10 @@ export function OffersPage() {
   const [status, setStatus] = useState<'active' | 'historical'>('active');
   const [amountInr, setAmountInr] = useState('2500');
   const [offers, setOffers] = useState<MatchedOffer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
 
   const load = useCallback(async () => {
-    setLoading(true);
+    setLoadStatus('loading');
     try {
       const parsedAmount = Number(amountInr);
       const response = await listMatchedOffers({
@@ -96,10 +99,11 @@ export function OffersPage() {
         amountInr: Number.isFinite(parsedAmount) && parsedAmount > 0 ? parsedAmount : undefined,
       });
       setOffers(response.items);
+      setLoadStatus(response.items.length === 0 ? 'empty' : 'ready');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not load offers');
-    } finally {
-      setLoading(false);
+      setOffers([]);
+      setLoadStatus('error');
+      notify.fromError(error, 'Could not load offers');
     }
   }, [amountInr, status]);
 
@@ -161,17 +165,21 @@ export function OffersPage() {
         </div>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading offers…</p>
-      ) : offers.length === 0 ? (
-        <div className="space-y-3 rounded-2xl border border-border/60 p-6">
-          <p className="text-sm text-muted-foreground">
-            No {status} offers matched your portfolio yet. Add cards or check back after seeding.
-          </p>
-          <Button asChild size="sm" variant="outline">
-            <Link to="/account/cards/add">Add a card</Link>
-          </Button>
-        </div>
+      {loadStatus === 'loading' ? (
+        <CatalogListSkeleton rows={4} />
+      ) : loadStatus === 'error' ? (
+        <LoadErrorState title="Could not load offers" onRetry={() => void load()} />
+      ) : loadStatus === 'empty' ? (
+        <EmptyState
+          icon={Tag}
+          title={`No ${status} offers yet`}
+          description="No offers matched your portfolio. Add cards or check back after new offers are published."
+          action={
+            <Button asChild size="sm" variant="outline">
+              <Link to="/account/cards/add">Add a card</Link>
+            </Button>
+          }
+        />
       ) : (
         <ul className="grid gap-4">
           {offers.map((offer) => (

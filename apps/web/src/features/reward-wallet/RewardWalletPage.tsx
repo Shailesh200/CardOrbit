@@ -5,7 +5,7 @@ import { AlertTriangle, Pencil, Wallet } from 'lucide-react';
 
 import { MiniCreditCard } from '@brand/MiniCreditCard';
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 
 import { getRewardExpiryIntelligence, type RewardExpiryIntelligence } from './reward-expiry-api';
 import { RewardExpiryIntelligencePanel } from './RewardExpiryIntelligencePanel';
@@ -93,7 +93,7 @@ function CardWalletEditor({
       setOpen(false);
       toast.success('Balances updated');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not save balances');
+      notify.fromError(error, 'Could not save balances');
     } finally {
       setSaving(false);
     }
@@ -241,7 +241,7 @@ export function RewardWalletPage() {
         setOverview(wallet);
         setExpiryIntel(expiry);
       })
-      .catch((error: Error) => toast.error(error.message))
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoading(false));
   }, []);
 

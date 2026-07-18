@@ -1,6 +1,7 @@
 import type { IngestCardBundle } from '@cardwise/validation';
 
 import { inferBenefitCategory, normalizeHighlightKey } from './benefit-categories';
+import { extractSourceDocumentLinks } from './source-documents';
 
 export type ParsedIdfcHighlight = {
   category: string;
@@ -19,6 +20,7 @@ export type ParsedIdfcPageDetails = {
   eligibilitySummary: string | null;
   annualFeeInr: number | null;
   joiningFeeInr: number | null;
+  sourceDocuments: IngestCardBundle['sourceDocuments'];
 };
 
 function decodeHtml(value: string): string {
@@ -331,6 +333,9 @@ export function parseIdfcProductPageHtml(
   const approvalSummary = extractApprovalSummary(html);
   const eligibilitySummary = extractEligibilitySummary(html);
   const tags = inferTags(cardName, path, html, structuredFees);
+  // Full (unsliced) page HTML so MITC/T&C links in the footer/FAQ area are still captured
+  // even though productHtmlSlice() truncates before those sections for highlight extraction.
+  const sourceDocuments = extractSourceDocumentLinks(html, sourceUrl);
 
   const highlights = dedupeHighlights([...headingHighlights, ...rewardHighlights]);
 
@@ -360,5 +365,6 @@ export function parseIdfcProductPageHtml(
     eligibilitySummary,
     annualFeeInr,
     joiningFeeInr,
+    sourceDocuments,
   };
 }

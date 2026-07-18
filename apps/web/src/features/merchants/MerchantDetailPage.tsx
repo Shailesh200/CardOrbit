@@ -4,7 +4,7 @@ import { Button } from '@cardwise/ui';
 import { Star } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import { MerchantRecommendationPanel } from '@features/recommendations/components/MerchantRecommendationPanel';
 import { MerchantOffersPanel } from './components/MerchantOffersPanel';
 import { AiVisual } from '../ai/components/AiVisual';
@@ -37,7 +37,7 @@ export function MerchantDetailPage() {
         document.title = `CardOrbit · ${detail.name}`;
         pushRecentMerchant({ id: detail.id, name: detail.name, slug: detail.slug });
       })
-      .catch((error: Error) => toast.error(error.message))
+      .catch((error: Error) => notify.fromError(error))
       .finally(() => setLoading(false));
   }, [merchantSlug]);
 
@@ -67,7 +67,7 @@ export function MerchantDetailPage() {
         toast.success('Added to favorites');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not update favorite');
+      notify.fromError(error, 'Could not update favorite');
     } finally {
       setFavoritePending(false);
     }

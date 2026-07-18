@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -42,7 +43,30 @@ function perfHtmlPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), perfHtmlPlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    perfHtmlPlugin(),
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: false,
+      // manifest.webmanifest is hand-authored in public/ (linked from index.html).
+      manifest: false,
+      includeAssets: ['favicon.svg', 'icons/*.png'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/health\//],
+        runtimeCaching: [
+          {
+            // Never let the SW intercept API calls — always hit the network.
+            urlPattern: /^\/api\//,
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+    }),
+  ],
   resolve: { alias: aliases },
   ssr: {
     noExternal: [

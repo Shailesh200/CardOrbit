@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Plane } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import { formatOfferTitle } from '@features/offers/format-offer-title';
 import {
   formatInr,
@@ -84,7 +84,7 @@ export function TravelHubPage() {
     void getTravelHubOverview()
       .then(setOverview)
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load travel hub');
+        notify.fromError(error, 'Could not load travel hub');
       })
       .finally(() => setLoading(false));
   }, []);

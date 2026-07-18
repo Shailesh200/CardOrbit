@@ -3,6 +3,13 @@ import type { AdminPortalConfig } from '@cardwise/admin-config';
 const TOKEN_KEY = 'cardwise.admin.accessToken';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+/** Dispatched on window when a 401 clears an existing session — AdminShell redirects to /login. */
+export const ADMIN_SESSION_EXPIRED_EVENT = 'cardwise:admin-session-expired';
+
+function isLoginPath(path: string): boolean {
+  return path.includes('/admin/auth/login');
+}
+
 export type AdminPrincipal = {
   id: string;
   email: string;
@@ -50,6 +57,18 @@ export async function adminFetch<T>(path: string, init: RequestInit = {}): Promi
     } catch {
       // keep raw text
     }
+
+    const sessionExpired = response.status === 401 && Boolean(token) && !isLoginPath(path);
+    if (sessionExpired) {
+      clearAdminToken();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(ADMIN_SESSION_EXPIRED_EVENT));
+      }
+      const expiredError = new Error('Your session has expired. Please sign in again.');
+      (expiredError as Error & { silentToast?: boolean }).silentToast = true;
+      throw expiredError;
+    }
+
     throw new Error(message);
   }
   if (response.status === 204) {

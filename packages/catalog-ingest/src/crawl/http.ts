@@ -46,3 +46,55 @@ export async function fetchText(url: string, timeoutMs = 30_000, referer?: strin
   const { html } = await fetchHtml(url, timeoutMs, referer);
   return html;
 }
+
+export type FetchPdfResult = {
+  buffer: Buffer;
+  finalUrl: string;
+  contentType: string | null;
+};
+
+const PDF_MAGIC_BYTES = Buffer.from('%PDF-');
+
+/**
+ * Fetches a URL and enforces that the response is actually a PDF before returning it.
+ * Content-Type headers are unreliable (issuer CDNs sometimes mislabel PDFs as
+ * octet-stream, or mislabel error pages as application/pdf), so the magic-byte check
+ * on the response body is the authoritative guard; Content-Type is only informational.
+ */
+export async function fetchPdf(url: string, timeoutMs = 30_000, referer?: string): Promise<FetchPdfResult> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const headers: Record<string, string> = {
+      ...DEFAULT_HEADERS,
+      Accept: 'application/pdf,*/*;q=0.8',
+    };
+    if (referer) {
+      headers.Referer = referer;
+      headers['Sec-Fetch-Site'] = 'same-origin';
+    }
+
+    const response = await fetch(url, {
+      headers,
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} for ${url}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const isPdfBySignature = buffer.subarray(0, PDF_MAGIC_BYTES.length).equals(PDF_MAGIC_BYTES);
+
+    if (!isPdfBySignature) {
+      throw new Error(
+        `Refusing to treat ${url} as a PDF — missing %PDF- signature (content-type: ${contentType ?? 'unknown'})`,
+      );
+    }
+
+    return { buffer, finalUrl: response.url, contentType };
+  } finally {
+    clearTimeout(timer);
+  }
+}

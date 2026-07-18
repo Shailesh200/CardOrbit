@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Trophy } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify } from '@lib/app-toast';
 import {
   formatInr,
   getAnnualFeeWaiverProgress,
@@ -106,7 +106,7 @@ export function MilestoneTrackerPage() {
         setForecasts(forecastResponse.forecasts);
       })
       .catch((error) => {
-        toast.error(error instanceof Error ? error.message : 'Could not load milestones');
+        notify.fromError(error, 'Could not load milestones');
       })
       .finally(() => setLoading(false));
   }, []);

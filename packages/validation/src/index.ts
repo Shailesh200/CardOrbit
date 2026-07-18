@@ -701,6 +701,8 @@ export {
   IngestMerchantRemoveSchema,
   IngestMerchantUpsertSchema,
   IngestRewardRuleSchema,
+  IngestSourceDocumentSchema,
+  IngestSourceDocumentKindSchema,
   parseIngestCardBundle,
   parseIngestMerchantRemove,
   parseIngestMerchantUpsert,
@@ -712,6 +714,7 @@ export {
   type IngestCardBundle,
   type IngestMerchantRemove,
   type IngestMerchantUpsert,
+  type IngestSourceDocument,
   type CatalogImportCardPayload,
   type CatalogImportIngestMeta,
 } from './catalog-ingest';

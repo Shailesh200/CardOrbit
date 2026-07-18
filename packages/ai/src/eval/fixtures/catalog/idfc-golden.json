@@ -39,7 +39,12 @@
         "benefits": [],
         "rewardRules": []
       },
-      "expect": { "minHighlights": 2, "minStructuredFees": 1, "requiredTags": ["Lifetime free"] }
+      "expect": {
+        "minHighlights": 2,
+        "minStructuredFees": 1,
+        "minRewardRules": 0,
+        "requiredTags": ["Lifetime free"]
+      }
     },
     {
       "id": "idfc-first-classic",
@@ -66,9 +71,25 @@
           }
         ],
         "benefits": [],
-        "rewardRules": []
+        "rewardRules": [
+          {
+            "ruleKey": "idfc-first-classic-cashback",
+            "name": "Up to 1% cashback",
+            "spendCategoryCode": null,
+            "merchantSlug": null,
+            "payload": { "cashbackPercent": 1, "exclusions": [] },
+            "validFrom": "2026-01-01",
+            "validUntil": null,
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/classic-credit-card"
+          }
+        ]
       },
-      "expect": { "minHighlights": 1, "minStructuredFees": 1, "requiredTags": [] }
+      "expect": {
+        "minHighlights": 1,
+        "minStructuredFees": 1,
+        "minRewardRules": 1,
+        "requiredTags": []
+      }
     },
     {
       "id": "idfc-first-millennia",
@@ -101,9 +122,35 @@
           }
         ],
         "benefits": [],
-        "rewardRules": []
+        "rewardRules": [
+          {
+            "ruleKey": "idfc-first-millennia-dining-cashback",
+            "name": "5% cashback on dining",
+            "spendCategoryCode": "DINING",
+            "merchantSlug": null,
+            "payload": { "cashbackPercent": 5, "exclusions": [] },
+            "validFrom": "2026-01-01",
+            "validUntil": null,
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/millennia-credit-card"
+          },
+          {
+            "ruleKey": "idfc-first-millennia-online-cashback",
+            "name": "2.5% on online spends",
+            "spendCategoryCode": "SHOPPING",
+            "merchantSlug": null,
+            "payload": { "cashbackPercent": 2.5, "exclusions": [] },
+            "validFrom": "2026-01-01",
+            "validUntil": null,
+            "sourceUrl": "https://www.idfcfirst.bank.in/credit-card/millennia-credit-card"
+          }
+        ]
       },
-      "expect": { "minHighlights": 2, "minStructuredFees": 1, "requiredTags": ["Dining"] }
+      "expect": {
+        "minHighlights": 2,
+        "minStructuredFees": 1,
+        "minRewardRules": 2,
+        "requiredTags": ["Dining"]
+      }
     },
     {
       "id": "idfc-first-wealth",

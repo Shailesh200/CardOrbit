@@ -214,20 +214,30 @@ AI_PROVIDER=gemini
 
 ## Step 14 — Sentry
 
-**Where:** https://sentry.io/signup/
+**Where:** https://sentry.io (org e.g. `shailesh-jha`)
 
 **Tasks**
-- [ ] Create org/project: Node for API, React for web
-- [ ] Copy DSNs
+- [x] Create projects: `cardorbit-web` (React), `cardorbit-admin` (React), `cardorbit-api` (Node/Nest), `cardorbit-worker` (Node)
+- [x] Copy DSNs
+- [x] Vercel web + admin: `VITE_SENTRY_DSN` (Production + Preview) → redeploy
+- [x] Coolify: `SENTRY_DSN` on shared env (api DSN; worker shares until per-service split) → redeploy
+- [ ] Confirm test events in each project (web/admin ErrorBoundary or debug; API non-prod `/api/v1/debug/sentry-test`; worker failed job)
 
 **Save → env**
 ```bash
-SENTRY_DSN=https://...@o....ingest.sentry.io/...
-VITE_SENTRY_DSN=https://...@o....ingest.sentry.io/...   # Vercel web
+# Coolify (api / worker / scheduler)
+SENTRY_DSN=https://...@o....ingest.sentry.io/...   # cardorbit-api (or worker-specific)
+
+# Vercel web
+VITE_SENTRY_DSN=https://...@o....ingest.sentry.io/...   # cardorbit-web
+
+# Vercel admin
+VITE_SENTRY_DSN=https://...@o....ingest.sentry.io/...   # cardorbit-admin
 ```
 
 **Verify**
-- Project accepts a test event
+- Project accepts a test event with correct `environment` / `release` / tags (`surface` or `service`)
+- PII scrub: no Authorization headers or emails in event payloads
 
 ---
 

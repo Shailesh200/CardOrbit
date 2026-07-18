@@ -4,6 +4,9 @@
  */
 
 :root {
+  /* Admin is always Deep Space (dark) — hint native controls (select popups,
+     checkboxes, scrollbars) so they never fall back to a light/white UI. */
+  color-scheme: dark;
   --font-display: 'Geist', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Geist', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --admin-sidebar-width: 17rem;

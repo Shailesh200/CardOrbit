@@ -1,13 +1,16 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes, StaticRouter } from 'react-router';
+import { FeatureFlag } from '@cardwise/feature-flags/browser';
 
 import { AccountLayout } from '../components/layout/AccountLayout';
 import { ErrorBoundary } from '../components/feedback/ErrorBoundary';
 import { AuthShell } from '../components/layout/AuthShell';
 import { RequireAuth } from '../features/auth/RequireAuth';
 import { HomePage } from '../pages/HomePage';
+import { NotFoundPage } from '../pages/NotFoundPage';
 import { AppShell } from './AppShell';
 import { AuthSessionRedirect } from '../components/auth/AuthSessionRedirect';
+import { FeatureGatedRoute } from './FeatureGatedRoute';
 import { RouteFallback } from './RouteFallback';
 import { RouteErrorPage } from './RouteErrorPage';
 import { ScrollToTop } from './ScrollToTop';
@@ -217,16 +220,82 @@ export function App({ ssrLocation }: AppProps = {}) {
                 <Route path="insights/spending" element={<SpendingInsightsPage />} />
                 <Route path="transactions" element={<TransactionsPage />} />
                 <Route path="billing" element={<BillingPage />} />
-                <Route path="calendar" element={<FinancialCalendarPage />} />
-                <Route path="reports" element={<ReportsPage />} />
+                <Route
+                  path="calendar"
+                  element={
+                    <FeatureGatedRoute
+                      flag={FeatureFlag.FINANCIAL_CALENDAR}
+                      title="Financial calendar is unavailable"
+                      description="This feature isn't enabled for your account yet. Check back soon."
+                    >
+                      <FinancialCalendarPage />
+                    </FeatureGatedRoute>
+                  }
+                />
+                <Route
+                  path="reports"
+                  element={
+                    <FeatureGatedRoute
+                      flag={FeatureFlag.USER_REPORTS}
+                      title="Reports are unavailable"
+                      description="This feature isn't enabled for your account yet. Check back soon."
+                    >
+                      <ReportsPage />
+                    </FeatureGatedRoute>
+                  }
+                />
                 <Route path="milestones" element={<MilestoneTrackerPage />} />
                 <Route path="cashback" element={<CashbackPage />} />
                 <Route path="redemptions" element={<RedemptionsPage />} />
-                <Route path="travel" element={<TravelHubPage />} />
-                <Route path="travel/planner" element={<TripPlannerPage />} />
-                <Route path="travel/booking" element={<BookingHubPage />} />
+                <Route
+                  path="travel"
+                  element={
+                    <FeatureGatedRoute
+                      flag={FeatureFlag.TRAVEL_BOOKING_ENABLED}
+                      title="Travel is unavailable"
+                      description="This feature isn't enabled for your account yet. Check back soon."
+                    >
+                      <TravelHubPage />
+                    </FeatureGatedRoute>
+                  }
+                />
+                <Route
+                  path="travel/planner"
+                  element={
+                    <FeatureGatedRoute
+                      flag={FeatureFlag.TRAVEL_BOOKING_ENABLED}
+                      title="Trip planner is unavailable"
+                      description="This feature isn't enabled for your account yet. Check back soon."
+                    >
+                      <TripPlannerPage />
+                    </FeatureGatedRoute>
+                  }
+                />
+                <Route
+                  path="travel/booking"
+                  element={
+                    <FeatureGatedRoute
+                      flag={FeatureFlag.TRAVEL_BOOKING_ENABLED}
+                      title="Booking is unavailable"
+                      description="This feature isn't enabled for your account yet. Check back soon."
+                    >
+                      <BookingHubPage />
+                    </FeatureGatedRoute>
+                  }
+                />
                 <Route path="benefits" element={<LifestyleBenefitsPage />} />
-                <Route path="premium" element={<PremiumDashboardPage />} />
+                <Route
+                  path="premium"
+                  element={
+                    <FeatureGatedRoute
+                      flag={FeatureFlag.PREMIUM_FEATURES_ENABLED}
+                      title="Premium is unavailable"
+                      description="This feature isn't enabled for your account yet. Check back soon."
+                    >
+                      <PremiumDashboardPage />
+                    </FeatureGatedRoute>
+                  }
+                />
                 <Route path="cards" element={<PortfolioPage />} />
                 <Route path="cards/compare" element={<CardComparisonPage />} />
                 <Route path="cards/add" element={<AddCardPage />} />
@@ -245,6 +314,7 @@ export function App({ ssrLocation }: AppProps = {}) {
             <Route path="privacy" element={<PrivacyPolicyPage />} />
             <Route path="terms" element={<TermsPage />} />
             <Route path="cookies" element={<CookiePolicyPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </Suspense>

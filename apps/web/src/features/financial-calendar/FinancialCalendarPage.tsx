@@ -13,7 +13,7 @@ import {
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3, Plus } from 'lucide-react';
 
 import { PageBackLink } from '@layout/PageBackLink';
-import { toast } from '@lib/app-toast';
+import { notify, toast } from '@lib/app-toast';
 import {
   firstWeekdayLocal,
   localDateKey,
@@ -111,7 +111,7 @@ export function FinancialCalendarPage() {
         (current) => current ?? firstWithEvents?.date ?? response.days[0]?.date ?? null,
       );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Calendar unavailable');
+      notify.fromError(error, 'Calendar unavailable');
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export function FinancialCalendarPage() {
       const response = await getFinancialCalendarAgenda(30);
       setAgenda(response.items);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Agenda unavailable');
+      notify.fromError(error, 'Agenda unavailable');
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ export function FinancialCalendarPage() {
       const response = await getFinancialTimeline(1, 30);
       setTimeline(response.items);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Timeline unavailable');
+      notify.fromError(error, 'Timeline unavailable');
     } finally {
       setLoading(false);
     }
@@ -147,7 +147,7 @@ export function FinancialCalendarPage() {
       const rows = await listCalendarReminders();
       setReminders(rows);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Reminders unavailable');
+      notify.fromError(error, 'Reminders unavailable');
     } finally {
       setLoading(false);
     }
@@ -199,7 +199,7 @@ export function FinancialCalendarPage() {
       await loadReminders();
       if (tab !== 'reminders') setTab('reminders');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not create reminder');
+      notify.fromError(error, 'Could not create reminder');
     } finally {
       setSaving(false);
     }
@@ -211,7 +211,7 @@ export function FinancialCalendarPage() {
       setReminders((current) => current.filter((row) => row.id !== id));
       toast.success('Reminder deleted');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not delete reminder');
+      notify.fromError(error, 'Could not delete reminder');
     }
   }
 
