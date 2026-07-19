@@ -18,6 +18,20 @@ export function resolveAnalyticsDistinctId(): string {
   }
 }
 
+/** Stable per-tab session id for PostHog Web analytics session metrics. */
+export function resolveAnalyticsSessionId(): string {
+  if (typeof sessionStorage === 'undefined') return 'anonymous-session';
+  const key = 'cardorbit.posthog_session_id';
+  const existing = sessionStorage.getItem(key);
+  if (existing) return existing;
+  const created =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `sess_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  sessionStorage.setItem(key, created);
+  return created;
+}
+
 function postToPostHog(event: string, properties: Record<string, unknown>): void {
   const apiKey = import.meta.env.VITE_POSTHOG_API_KEY as string | undefined;
   if (!apiKey || typeof window === 'undefined') {
@@ -27,6 +41,7 @@ function postToPostHog(event: string, properties: Record<string, unknown>): void
     return;
   }
 
+  const distinctId = resolveAnalyticsDistinctId();
   const timestamp = new Date().toISOString();
   const body = JSON.stringify({
     api_key: apiKey,
@@ -34,26 +49,26 @@ function postToPostHog(event: string, properties: Record<string, unknown>): void
     properties: {
       ...properties,
       $lib: 'web',
-      distinct_id: resolveAnalyticsDistinctId(),
+      $session_id: resolveAnalyticsSessionId(),
+      distinct_id: distinctId,
     },
-    distinct_id: resolveAnalyticsDistinctId(),
+    distinct_id: distinctId,
     timestamp,
   });
   const url = resolvePostHogCaptureUrl(import.meta.env.VITE_POSTHOG_HOST as string | undefined);
   const blob = new Blob([body], { type: 'application/json' });
 
-  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-    const queued = navigator.sendBeacon(url, blob);
-    if (queued) return;
-  }
-
+  // Prefer fetch so DevTools Network shows the request and we get status visibility.
   void fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body,
     keepalive: true,
+    mode: 'cors',
   }).catch(() => {
-    /* ignore network errors — analytics must not break UX */
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      navigator.sendBeacon(url, blob);
+    }
   });
 }
 
