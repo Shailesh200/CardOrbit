@@ -1,6 +1,7 @@
 import { Worker, type Job } from 'bullmq';
 import { PrismaClient, JobRunStatus, type Prisma } from '@prisma/client';
 import { isAiConfigured } from '@cardwise/ai';
+import { initAnalytics, trackGmailSyncCompleted } from '@cardwise/analytics';
 import {
   applyFeatureFlagDefinitions,
   initFeatureFlags,
@@ -33,6 +34,11 @@ import { resolveAiExecConfig } from './ai-config';
 import { captureWorkerException, initWorkerSentry } from './sentry';
 
 initWorkerSentry();
+initAnalytics({
+  apiKey: process.env.POSTHOG_API_KEY,
+  host: process.env.POSTHOG_HOST,
+  useMemory: process.env.NODE_ENV !== 'production' || !process.env.POSTHOG_API_KEY,
+});
 
 const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 const FLAG_REFRESH_MS = 30_000;
@@ -205,6 +211,7 @@ async function processGmailStatementSync(job: Job<JobPayload>): Promise<void> {
   const { jobRunId, payload } = job.data;
   const typed = payload as GmailStatementSyncPayload;
   const startedAt = new Date();
+  const wallStarted = Date.now();
 
   await updateJobRun(jobRunId, { status: JobRunStatus.PROCESSING, startedAt });
   await publishEvent({
@@ -213,25 +220,53 @@ async function processGmailStatementSync(job: Job<JobPayload>): Promise<void> {
     progress: { message: 'Starting Gmail statement sync' },
   });
 
-  const result = await runGmailStatementSync(prisma, typed, async (progress) => {
-    await updateJobRun(jobRunId, { progress: progress as Record<string, unknown> });
+  try {
+    const result = await runGmailStatementSync(prisma, typed, async (progress) => {
+      await updateJobRun(jobRunId, { progress: progress as Record<string, unknown> });
+      await publishEvent({
+        jobId: jobRunId,
+        status: 'PROCESSING',
+        progress: progress as Record<string, unknown>,
+      });
+    });
+
+    await updateJobRun(jobRunId, {
+      status: JobRunStatus.COMPLETED,
+      result: result as Record<string, unknown>,
+      completedAt: new Date(),
+    });
     await publishEvent({
       jobId: jobRunId,
-      status: 'PROCESSING',
-      progress: progress as Record<string, unknown>,
+      status: 'COMPLETED',
+      result: result as Record<string, unknown>,
     });
-  });
 
-  await updateJobRun(jobRunId, {
-    status: JobRunStatus.COMPLETED,
-    result: result as Record<string, unknown>,
-    completedAt: new Date(),
-  });
-  await publishEvent({
-    jobId: jobRunId,
-    status: 'COMPLETED',
-    result: result as Record<string, unknown>,
-  });
+    const status =
+      result.transactionsCreated > 0 || result.messagesScanned === 0 ? 'success' : 'partial';
+    trackGmailSyncCompleted(
+      {
+        mailboxId: typed.mailboxId,
+        importedCount: result.transactionsCreated,
+        messagesScanned: result.messagesScanned,
+        cardsAutoAdded: result.cardsAutoAdded,
+        status,
+        durationMs: Date.now() - wallStarted,
+      },
+      { distinctId: typed.userId },
+    );
+  } catch (error) {
+    trackGmailSyncCompleted(
+      {
+        mailboxId: typed.mailboxId,
+        importedCount: 0,
+        messagesScanned: 0,
+        status: 'failed',
+        durationMs: Date.now() - wallStarted,
+      },
+      { distinctId: typed.userId },
+    );
+    throw error;
+  }
 }
 
 async function startWorker(): Promise<void> {

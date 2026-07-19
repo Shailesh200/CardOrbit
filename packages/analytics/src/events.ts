@@ -5,6 +5,17 @@
 
 export const AnalyticsEvent = {
   USER_REGISTERED: 'USER_REGISTERED',
+  /** Successful email or Google login (including returning Google users). */
+  USER_LOGGED_IN: 'USER_LOGGED_IN',
+  USER_LOGGED_OUT: 'USER_LOGGED_OUT',
+  EMAIL_VERIFIED: 'EMAIL_VERIFIED',
+  AUTH_LOGIN_FAILED: 'AUTH_LOGIN_FAILED',
+  AUTH_PAGE_VIEWED: 'AUTH_PAGE_VIEWED',
+  MARKETING_CTA_CLICKED: 'MARKETING_CTA_CLICKED',
+  SESSION_STARTED: 'SESSION_STARTED',
+  GMAIL_CONNECTED: 'GMAIL_CONNECTED',
+  GMAIL_SYNC_STARTED: 'GMAIL_SYNC_STARTED',
+  GMAIL_SYNC_COMPLETED: 'GMAIL_SYNC_COMPLETED',
   CARD_ADDED: 'CARD_ADDED',
   CARD_REMOVED: 'CARD_REMOVED',
   MERCHANT_SEARCHED: 'MERCHANT_SEARCHED',
@@ -93,6 +104,65 @@ export type AnalyticsEventName = (typeof AnalyticsEvent)[keyof typeof AnalyticsE
 export type UserRegisteredProperties = {
   method: 'email' | 'google' | 'unknown';
   source?: string;
+};
+
+export type UserLoggedInProperties = {
+  method: 'email' | 'google';
+  isReturning: boolean;
+  surface?: 'web' | 'extension' | 'api';
+};
+
+export type UserLoggedOutProperties = {
+  scope: 'current' | 'all';
+  surface?: 'web' | 'extension' | 'api';
+};
+
+export type EmailVerifiedProperties = {
+  method: 'email';
+  hoursSinceSignup?: number;
+};
+
+export type AuthLoginFailedProperties = {
+  method: 'email' | 'google';
+  reason: 'invalid_credentials' | 'email_unverified' | 'inactive' | 'oauth_failed';
+};
+
+export type AuthPageViewedProperties = {
+  page: 'signup' | 'login' | 'forgot_password' | 'verify_email' | 'reset_password';
+  referrer?: string;
+};
+
+export type MarketingCtaClickedProperties = {
+  placement: 'hero' | 'nav' | 'below_fold' | 'ai_section';
+  cta: string;
+  destination: string;
+};
+
+export type SessionStartedProperties = {
+  surface: 'web' | 'extension';
+  isAuthenticated: boolean;
+  path?: string;
+};
+
+export type GmailConnectedProperties = {
+  isPrimary: boolean;
+  mailboxCount: number;
+  source: 'settings' | 'oauth_login_upsert';
+};
+
+export type GmailSyncStartedProperties = {
+  mailboxId: string;
+  portfolioCardCount: number;
+  triggeredBy: 'user' | 'system';
+};
+
+export type GmailSyncCompletedProperties = {
+  mailboxId: string;
+  importedCount: number;
+  messagesScanned: number;
+  cardsAutoAdded?: number;
+  status: 'success' | 'partial' | 'failed';
+  durationMs?: number;
 };
 
 export type CardAddedProperties = {
@@ -507,6 +577,16 @@ export type ExperimentExposedProperties = {
 
 export type EventPropertiesMap = {
   USER_REGISTERED: UserRegisteredProperties;
+  USER_LOGGED_IN: UserLoggedInProperties;
+  USER_LOGGED_OUT: UserLoggedOutProperties;
+  EMAIL_VERIFIED: EmailVerifiedProperties;
+  AUTH_LOGIN_FAILED: AuthLoginFailedProperties;
+  AUTH_PAGE_VIEWED: AuthPageViewedProperties;
+  MARKETING_CTA_CLICKED: MarketingCtaClickedProperties;
+  SESSION_STARTED: SessionStartedProperties;
+  GMAIL_CONNECTED: GmailConnectedProperties;
+  GMAIL_SYNC_STARTED: GmailSyncStartedProperties;
+  GMAIL_SYNC_COMPLETED: GmailSyncCompletedProperties;
   CARD_ADDED: CardAddedProperties;
   CARD_REMOVED: CardRemovedProperties;
   MERCHANT_SEARCHED: MerchantSearchedProperties;

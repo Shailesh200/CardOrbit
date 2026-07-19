@@ -10,7 +10,8 @@ export type AnalyticsEventCatalogEntry = {
     | 'extension'
     | 'dashboard'
     | 'experiment'
-    | 'travel';
+    | 'travel'
+    | 'activation';
   description: string;
   phase: '0' | '1' | '2' | '3';
   keyProperties: string[];
@@ -24,6 +25,76 @@ export const ANALYTICS_EVENT_CATALOG: AnalyticsEventCatalogEntry[] = [
     description: 'New account created.',
     phase: '0',
     keyProperties: ['method', 'source'],
+  },
+  {
+    event: AnalyticsEvent.USER_LOGGED_IN,
+    category: 'user',
+    description: 'Successful email or Google login.',
+    phase: '0',
+    keyProperties: ['method', 'isReturning'],
+  },
+  {
+    event: AnalyticsEvent.USER_LOGGED_OUT,
+    category: 'user',
+    description: 'User signed out of one or all sessions.',
+    phase: '0',
+    keyProperties: ['scope'],
+  },
+  {
+    event: AnalyticsEvent.EMAIL_VERIFIED,
+    category: 'user',
+    description: 'Email signup completed verification.',
+    phase: '0',
+    keyProperties: ['method', 'hoursSinceSignup'],
+  },
+  {
+    event: AnalyticsEvent.AUTH_LOGIN_FAILED,
+    category: 'user',
+    description: 'Login attempt rejected (no PII).',
+    phase: '0',
+    keyProperties: ['method', 'reason'],
+  },
+  {
+    event: AnalyticsEvent.AUTH_PAGE_VIEWED,
+    category: 'user',
+    description: 'Auth funnel page viewed (signup/login/verify).',
+    phase: '0',
+    keyProperties: ['page', 'referrer'],
+  },
+  {
+    event: AnalyticsEvent.MARKETING_CTA_CLICKED,
+    category: 'user',
+    description: 'Marketing CTA clicked toward signup or login.',
+    phase: '0',
+    keyProperties: ['placement', 'cta', 'destination'],
+  },
+  {
+    event: AnalyticsEvent.SESSION_STARTED,
+    category: 'user',
+    description: 'Browser/app session started (once per tab).',
+    phase: '0',
+    keyProperties: ['surface', 'isAuthenticated', 'path'],
+  },
+  {
+    event: AnalyticsEvent.GMAIL_CONNECTED,
+    category: 'activation',
+    description: 'Google mailbox linked for spend-alert sync.',
+    phase: '0',
+    keyProperties: ['isPrimary', 'mailboxCount', 'source'],
+  },
+  {
+    event: AnalyticsEvent.GMAIL_SYNC_STARTED,
+    category: 'activation',
+    description: 'Gmail statement sync job enqueued.',
+    phase: '0',
+    keyProperties: ['mailboxId', 'portfolioCardCount', 'triggeredBy'],
+  },
+  {
+    event: AnalyticsEvent.GMAIL_SYNC_COMPLETED,
+    category: 'activation',
+    description: 'Gmail statement sync finished (success or failure).',
+    phase: '0',
+    keyProperties: ['mailboxId', 'importedCount', 'status', 'durationMs'],
   },
   {
     event: AnalyticsEvent.CARD_ADDED,

@@ -128,3 +128,39 @@ export function trackExperimentExposedClient(properties: {
 }): void {
   captureProductEvent('EXPERIMENT_EXPOSED', properties);
 }
+
+export function trackAuthPageViewedClient(properties: {
+  page: 'signup' | 'login' | 'forgot_password' | 'verify_email' | 'reset_password';
+  referrer?: string;
+}): void {
+  captureProductEvent('AUTH_PAGE_VIEWED', properties);
+}
+
+export function trackMarketingCtaClickedClient(properties: {
+  placement: 'hero' | 'nav' | 'below_fold' | 'ai_section';
+  cta: string;
+  destination: string;
+}): void {
+  captureProductEvent('MARKETING_CTA_CLICKED', properties);
+}
+
+export function trackSessionStartedClient(properties: {
+  surface: 'web' | 'extension';
+  isAuthenticated: boolean;
+  path?: string;
+}): void {
+  captureProductEvent('SESSION_STARTED', properties);
+}
+
+/** Fire once per browser tab for DAU-style session analytics. */
+export function maybeTrackWebSessionStarted(isAuthenticated: boolean, path?: string): void {
+  if (typeof sessionStorage === 'undefined') return;
+  const key = 'cardorbit.session_started';
+  if (sessionStorage.getItem(key) === '1') return;
+  sessionStorage.setItem(key, '1');
+  trackSessionStartedClient({
+    surface: 'web',
+    isAuthenticated,
+    path,
+  });
+}

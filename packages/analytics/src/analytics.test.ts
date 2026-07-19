@@ -7,7 +7,9 @@ import {
   initAnalytics,
   shutdownAnalytics,
   trackEvent,
+  trackGmailConnected,
   trackRecommendationRequested,
+  trackUserLoggedIn,
 } from './index';
 
 describe('@cardwise/analytics', () => {
@@ -23,6 +25,12 @@ describe('@cardwise/analytics', () => {
 
   it('defines required milestone event names', () => {
     expect(AnalyticsEvent.USER_REGISTERED).toBe('USER_REGISTERED');
+    expect(AnalyticsEvent.USER_LOGGED_IN).toBe('USER_LOGGED_IN');
+    expect(AnalyticsEvent.EMAIL_VERIFIED).toBe('EMAIL_VERIFIED');
+    expect(AnalyticsEvent.GMAIL_CONNECTED).toBe('GMAIL_CONNECTED');
+    expect(AnalyticsEvent.GMAIL_SYNC_COMPLETED).toBe('GMAIL_SYNC_COMPLETED');
+    expect(AnalyticsEvent.MARKETING_CTA_CLICKED).toBe('MARKETING_CTA_CLICKED');
+    expect(AnalyticsEvent.SESSION_STARTED).toBe('SESSION_STARTED');
     expect(AnalyticsEvent.CARD_ADDED).toBe('CARD_ADDED');
     expect(AnalyticsEvent.RECOMMENDATION_REQUESTED).toBe('RECOMMENDATION_REQUESTED');
     expect(AnalyticsEvent.ONBOARDING_STARTED).toBe('ONBOARDING_STARTED');
@@ -85,6 +93,19 @@ describe('@cardwise/analytics', () => {
     expect(payload.event).toBe('USER_REGISTERED');
     expect(getMemoryEvents()).toHaveLength(1);
     expect(getMemoryEvents()[0]?.event).toBe('USER_REGISTERED');
+  });
+
+  it('captures USER_LOGGED_IN and GMAIL_CONNECTED via helpers', () => {
+    trackUserLoggedIn(
+      { method: 'google', isReturning: false, surface: 'api' },
+      { distinctId: 'user_1' },
+    );
+    trackGmailConnected(
+      { isPrimary: true, mailboxCount: 1, source: 'oauth_login_upsert' },
+      { distinctId: 'user_1' },
+    );
+    const events = getMemoryEvents().map((e) => e.event);
+    expect(events).toEqual(['USER_LOGGED_IN', 'GMAIL_CONNECTED']);
   });
 
   it('captures CARD_ADDED via trackEvent', () => {

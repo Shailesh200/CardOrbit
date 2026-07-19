@@ -408,6 +408,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@cardwise/ai": "workspace:*",
+        "@cardwise/analytics": "workspace:*",
         "@cardwise/feature-flags": "workspace:*",
         "@cardwise/job-runners": "workspace:*",
         "@cardwise/jobs": "workspace:*",

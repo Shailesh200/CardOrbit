@@ -9,6 +9,7 @@ import { login } from '@lib/auth-api';
 import { notify } from '@lib/app-toast';
 import { consumerLink, consumerLinkSm } from '@lib/consumer-link';
 import { resolvePostAuthPath } from '@lib/post-auth-redirect';
+import { trackAuthPageViewedClient } from '@lib/product-analytics';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -16,6 +17,13 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    trackAuthPageViewedClient({
+      page: 'login',
+      referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
+    });
+  }, []);
 
   useEffect(() => {
     const authMessage = (location.state as { authMessage?: string } | null)?.authMessage;

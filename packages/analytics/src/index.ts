@@ -15,6 +15,16 @@ export {
   type EventPropertiesMap,
   type TrackedEvent,
   type UserRegisteredProperties,
+  type UserLoggedInProperties,
+  type UserLoggedOutProperties,
+  type EmailVerifiedProperties,
+  type AuthLoginFailedProperties,
+  type AuthPageViewedProperties,
+  type MarketingCtaClickedProperties,
+  type SessionStartedProperties,
+  type GmailConnectedProperties,
+  type GmailSyncStartedProperties,
+  type GmailSyncCompletedProperties,
   type CardAddedProperties,
   type RecommendationRequestedProperties,
   type OnboardingStartedProperties,
@@ -24,6 +34,18 @@ export {
   type OnboardingStepName,
 } from './events';
 export { trackEvent, type TrackEventOptions } from './track';
+export {
+  trackUserLoggedIn,
+  trackUserLoggedOut,
+  trackEmailVerified,
+  trackAuthLoginFailed,
+  trackAuthPageViewed,
+  trackMarketingCtaClicked,
+  trackSessionStarted,
+  trackGmailConnected,
+  trackGmailSyncStarted,
+  trackGmailSyncCompleted,
+} from './funnel';
 export {
   trackRecommendationRequested,
   trackRecommendationViewed,

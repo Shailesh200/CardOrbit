@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Button, Label } from '@cardwise/ui';
 
@@ -7,6 +7,7 @@ import { AuthPanel } from '../../../components/layout/AuthPanel';
 import { resetPassword } from '../../../lib/auth-api';
 import { notify, toast } from '../../../lib/app-toast';
 import { consumerLink } from '../../../lib/consumer-link';
+import { trackAuthPageViewedClient } from '../../../lib/product-analytics';
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -14,6 +15,10 @@ export function ResetPasswordPage() {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    trackAuthPageViewedClient({ page: 'reset_password' });
+  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();

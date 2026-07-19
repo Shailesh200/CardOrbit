@@ -66,10 +66,17 @@ export function HomePage() {
 
             <div className="home-hero-ctas flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="home-btn-primary">
-                <AppOriginLink to="/signup">Enter your orbit</AppOriginLink>
+                <AppOriginLink
+                  to="/signup"
+                  marketingCta={{ placement: 'hero', cta: 'enter_your_orbit' }}
+                >
+                  Enter your orbit
+                </AppOriginLink>
               </Button>
               <Button asChild size="lg" variant="outline" className="home-btn-secondary">
-                <AppOriginLink to="/login">Sign in</AppOriginLink>
+                <AppOriginLink to="/login" marketingCta={{ placement: 'hero', cta: 'sign_in' }}>
+                  Sign in
+                </AppOriginLink>
               </Button>
             </div>
 

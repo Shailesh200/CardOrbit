@@ -6,15 +6,29 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { initAnalytics, trackGmailConnected, trackGmailSyncStarted } from '@cardwise/analytics';
+import { gmailStatementSyncJob } from '@cardwise/jobs';
 
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { exchangeGoogleCode, getGoogleAuthUrl, getGoogleOAuthConfig } from '../auth/google-oauth';
 import { verifyOAuthState } from '../auth/oauth-state';
 import { JobsService } from '../jobs/jobs.service';
-import { gmailStatementSyncJob } from '@cardwise/jobs';
 import { readMailboxRefreshToken, upsertMailSyncMailbox } from './mailbox-store';
 
 const MAX_MAILBOXES = 2;
+
+let analyticsReady = false;
+
+function ensureAnalytics(): void {
+  if (!analyticsReady) {
+    initAnalytics({
+      apiKey: process.env.POSTHOG_API_KEY,
+      host: process.env.POSTHOG_HOST,
+      useMemory: process.env.NODE_ENV !== 'production' || !process.env.POSTHOG_API_KEY,
+    });
+    analyticsReady = true;
+  }
+}
 
 @Injectable()
 export class MailSyncService {
@@ -84,6 +98,18 @@ export class MailSyncService {
         scopes,
         isPrimary,
       });
+      const mailboxCount = await this.prisma.mailSyncMailbox.count({
+        where: { userId, status: { not: 'DISCONNECTED' } },
+      });
+      ensureAnalytics();
+      trackGmailConnected(
+        {
+          isPrimary,
+          mailboxCount,
+          source: 'settings',
+        },
+        { distinctId: userId },
+      );
       return { email: mailbox.email };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not link mailbox';
@@ -138,6 +164,7 @@ export class MailSyncService {
       error?: string;
     }> = [];
 
+    ensureAnalytics();
     for (const mailbox of mailboxes) {
       try {
         const job = await this.jobs.enqueue({
@@ -149,6 +176,14 @@ export class MailSyncService {
           },
           triggeredBy: userId,
         });
+        trackGmailSyncStarted(
+          {
+            mailboxId: mailbox.id,
+            portfolioCardCount: portfolioCount,
+            triggeredBy: 'user',
+          },
+          { distinctId: userId },
+        );
         results.push({
           mailboxId: mailbox.id,
           email: mailbox.email,

@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Button, Input, Label } from '@cardwise/ui';
 
@@ -6,10 +6,15 @@ import { AuthPanel } from '../../../components/layout/AuthPanel';
 import { forgotPassword } from '../../../lib/auth-api';
 import { notify, toast } from '../../../lib/app-toast';
 import { consumerLink } from '../../../lib/consumer-link';
+import { trackAuthPageViewedClient } from '../../../lib/product-analytics';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    trackAuthPageViewedClient({ page: 'forgot_password' });
+  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();

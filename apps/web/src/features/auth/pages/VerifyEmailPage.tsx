@@ -6,11 +6,16 @@ import { AuthPanel } from '../../../components/layout/AuthPanel';
 import { SuccessLottie } from '../../../components/motion/SuccessLottie';
 import { verifyEmail } from '../../../lib/auth-api';
 import { consumerLink } from '../../../lib/consumer-link';
+import { trackAuthPageViewedClient } from '../../../lib/product-analytics';
 
 export function VerifyEmailPage() {
   const [params] = useSearchParams();
   const token = params.get('token') || '';
   const [status, setStatus] = useState<'pending' | 'ok' | 'error'>('pending');
+
+  useEffect(() => {
+    trackAuthPageViewedClient({ page: 'verify_email' });
+  }, []);
 
   useEffect(() => {
     if (!token) {

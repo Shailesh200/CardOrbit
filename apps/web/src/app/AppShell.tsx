@@ -12,6 +12,7 @@ import { useAuthSession } from '../hooks/useAuthSession';
 import { useMobileViewport } from '../hooks/useMobileViewport';
 import { useTheme } from '../hooks/useTheme';
 import { initPwaUpdate } from '../lib/pwa-update';
+import { maybeTrackWebSessionStarted } from '../lib/product-analytics';
 import { landingHref } from '../lib/site-origins';
 import { MobileBottomNav } from './MobileBottomNav';
 import { ThemeToggle } from './ThemeToggle';
@@ -51,6 +52,13 @@ export function AppShell() {
     initPwaUpdate();
   }, []);
 
+  useEffect(() => {
+    maybeTrackWebSessionStarted(
+      authed,
+      typeof window !== 'undefined' ? window.location.pathname : undefined,
+    );
+  }, [authed]);
+
   return (
     <div
       className={cn(
@@ -86,11 +94,20 @@ export function AppShell() {
                 </>
               ) : (
                 <>
-                  <AppOriginLink className="consumer-nav-link inline-flex" to="/login">
+                  <AppOriginLink
+                    className="consumer-nav-link inline-flex"
+                    to="/login"
+                    marketingCta={{ placement: 'nav', cta: 'sign_in' }}
+                  >
                     Sign in
                   </AppOriginLink>
                   <Button asChild size="sm" className="consumer-nav-cta">
-                    <AppOriginLink to="/signup">Get started</AppOriginLink>
+                    <AppOriginLink
+                      to="/signup"
+                      marketingCta={{ placement: 'nav', cta: 'get_started' }}
+                    >
+                      Get started
+                    </AppOriginLink>
                   </Button>
                 </>
               )}

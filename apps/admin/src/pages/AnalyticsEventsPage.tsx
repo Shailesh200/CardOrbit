@@ -2,12 +2,14 @@ import { ANALYTICS_EVENT_CATALOG } from '@cardwise/analytics/catalog';
 
 const CATEGORY_LABELS: Record<string, string> = {
   user: 'User',
+  activation: 'Activation',
   recommendation: 'Recommendation',
   merchant: 'Merchant',
   card: 'Card',
   extension: 'Extension',
   dashboard: 'Dashboard',
   experiment: 'Experiment',
+  travel: 'Travel',
 };
 
 export function AnalyticsEventsPage() {

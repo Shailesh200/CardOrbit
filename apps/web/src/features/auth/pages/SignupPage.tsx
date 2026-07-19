@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Mail } from 'lucide-react';
 import { Button, Input, Label, Separator } from '@cardwise/ui';
@@ -10,6 +10,7 @@ import { resendVerification, signup } from '@lib/auth-api';
 import { notify, toast } from '@lib/app-toast';
 import { consumerLink } from '@lib/consumer-link';
 import { fieldDescribedBy } from '@lib/field-error';
+import { trackAuthPageViewedClient } from '@lib/product-analytics';
 
 export function SignupPage() {
   const [email, setEmail] = useState('');
@@ -20,6 +21,13 @@ export function SignupPage() {
   const [busy, setBusy] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resendBusy, setResendBusy] = useState(false);
+
+  useEffect(() => {
+    trackAuthPageViewedClient({
+      page: 'signup',
+      referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
+    });
+  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();

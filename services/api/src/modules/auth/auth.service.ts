@@ -6,7 +6,16 @@ import {
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AnalyticsEvent, initAnalytics, trackEvent } from '@cardwise/analytics';
+import {
+  AnalyticsEvent,
+  initAnalytics,
+  trackAuthLoginFailed,
+  trackEmailVerified,
+  trackEvent,
+  trackGmailConnected,
+  trackUserLoggedIn,
+  trackUserLoggedOut,
+} from '@cardwise/analytics';
 import { PasswordSchema } from '@cardwise/validation';
 import { compare as bcryptCompare, hash as bcryptHash } from 'bcryptjs';
 
@@ -75,7 +84,11 @@ export class AuthService {
     await this.issueVerificationEmail(user.id, user.email);
 
     ensureAnalytics();
-    trackEvent(AnalyticsEvent.USER_REGISTERED, { method: 'email', source: 'api' });
+    trackEvent(
+      AnalyticsEvent.USER_REGISTERED,
+      { method: 'email', source: 'api' },
+      { distinctId: user.id },
+    );
 
     return { userId: user.id, verificationRequired: true };
   }
@@ -104,6 +117,20 @@ export class AuthService {
     ]);
 
     if (firstVerification) {
+      ensureAnalytics();
+      const hoursSinceSignup =
+        user?.createdAt != null
+          ? Math.max(0, (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60))
+          : undefined;
+      trackEmailVerified(
+        {
+          method: 'email',
+          ...(hoursSinceSignup != null
+            ? { hoursSinceSignup: Math.round(hoursSinceSignup * 10) / 10 }
+            : {}),
+        },
+        { distinctId: row.userId },
+      );
       void this.notifications.deliverWelcome(row.userId).catch((error) => {
         this.logger.warn(
           `Welcome delivery failed for ${row.userId}: ${error instanceof Error ? error.message : String(error)}`,
@@ -132,16 +159,30 @@ export class AuthService {
       where: { email: email.trim().toLowerCase() },
     });
     if (!user?.passwordHash) {
+      ensureAnalytics();
+      trackAuthLoginFailed({ method: 'email', reason: 'invalid_credentials' });
       throw new UnauthorizedException('Invalid credentials');
     }
     if (!user.emailVerifiedAt) {
+      ensureAnalytics();
+      trackAuthLoginFailed(
+        { method: 'email', reason: 'email_unverified' },
+        { distinctId: user.id },
+      );
       throw new UnauthorizedException('Email not verified');
     }
     if (user.accountStatus !== 'ACTIVE') {
+      ensureAnalytics();
+      trackAuthLoginFailed({ method: 'email', reason: 'inactive' }, { distinctId: user.id });
       throw new UnauthorizedException('Account not active');
     }
     const ok = await bcryptCompare(password, user.passwordHash);
     if (!ok) {
+      ensureAnalytics();
+      trackAuthLoginFailed(
+        { method: 'email', reason: 'invalid_credentials' },
+        { distinctId: user.id },
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -151,6 +192,11 @@ export class AuthService {
       role: 'USER',
     };
     const pair = await this.tokens.issueTokenPair(principal);
+    ensureAnalytics();
+    trackUserLoggedIn(
+      { method: 'email', isReturning: true, surface: 'api' },
+      { distinctId: user.id },
+    );
     return { ...pair, user: principal };
   }
 
@@ -163,12 +209,23 @@ export class AuthService {
   }
 
   async logout(refreshToken: string): Promise<{ ok: true }> {
+    const tokenHash = this.tokens.hash(refreshToken);
+    const session = await this.prisma.session.findFirst({
+      where: { tokenHash, revokedAt: null },
+      select: { userId: true },
+    });
     await this.tokens.revokeRefreshToken(refreshToken);
+    if (session) {
+      ensureAnalytics();
+      trackUserLoggedOut({ scope: 'current', surface: 'api' }, { distinctId: session.userId });
+    }
     return { ok: true };
   }
 
   async logoutAll(userId: string): Promise<{ ok: true }> {
     await this.tokens.revokeAllSessions(userId);
+    ensureAnalytics();
+    trackUserLoggedOut({ scope: 'all', surface: 'api' }, { distinctId: userId });
     return { ok: true };
   }
 
@@ -313,6 +370,7 @@ export class AuthService {
       });
     }
 
+    let mailboxLinked = false;
     try {
       await upsertMailSyncMailbox(this.prisma, {
         userId: user.id,
@@ -322,6 +380,7 @@ export class AuthService {
         scopes,
         isPrimary: true,
       });
+      mailboxLinked = true;
     } catch (error) {
       this.logger.warn(
         `Primary mailbox upsert failed for ${user.id}: ${
@@ -330,14 +389,35 @@ export class AuthService {
       );
     }
 
+    ensureAnalytics();
     if (isNew) {
-      ensureAnalytics();
-      trackEvent(AnalyticsEvent.USER_REGISTERED, { method: 'google', source: 'api' });
+      trackEvent(
+        AnalyticsEvent.USER_REGISTERED,
+        { method: 'google', source: 'api' },
+        { distinctId: user.id },
+      );
       void this.notifications.deliverWelcome(user.id).catch((error) => {
         this.logger.warn(
           `Welcome delivery failed for ${user.id}: ${error instanceof Error ? error.message : String(error)}`,
         );
       });
+    }
+    trackUserLoggedIn(
+      { method: 'google', isReturning: !isNew, surface: 'api' },
+      { distinctId: user.id },
+    );
+    if (mailboxLinked) {
+      const mailboxCount = await this.prisma.mailSyncMailbox.count({
+        where: { userId: user.id, status: { not: 'DISCONNECTED' } },
+      });
+      trackGmailConnected(
+        {
+          isPrimary: true,
+          mailboxCount,
+          source: 'oauth_login_upsert',
+        },
+        { distinctId: user.id },
+      );
     }
 
     const principal: ConsumerPrincipal = {

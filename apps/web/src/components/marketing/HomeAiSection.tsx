@@ -71,7 +71,10 @@ export function HomeAiSection() {
 
       <RevealOnScroll className="mt-10 flex flex-wrap items-center gap-3">
         <Button asChild size="lg" className="btn-premium">
-          <AppOriginLink to="/signup">
+          <AppOriginLink
+            to="/signup"
+            marketingCta={{ placement: 'ai_section', cta: 'enter_cardorbit' }}
+          >
             Enter CardOrbit
             <ArrowRight className="size-4" />
           </AppOriginLink>

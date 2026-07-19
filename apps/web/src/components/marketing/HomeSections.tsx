@@ -74,13 +74,21 @@ export function HomeCtaBand() {
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Button asChild size="lg" className="home-btn-primary">
-                <AppOriginLink to="/signup">
+                <AppOriginLink
+                  to="/signup"
+                  marketingCta={{ placement: 'below_fold', cta: 'enter_your_orbit' }}
+                >
                   Enter your orbit
                   <ArrowRight className="size-4" />
                 </AppOriginLink>
               </Button>
               <Button asChild size="lg" variant="outline" className="home-btn-secondary">
-                <AppOriginLink to="/login">Sign in</AppOriginLink>
+                <AppOriginLink
+                  to="/login"
+                  marketingCta={{ placement: 'below_fold', cta: 'sign_in' }}
+                >
+                  Sign in
+                </AppOriginLink>
               </Button>
             </div>
           </div>

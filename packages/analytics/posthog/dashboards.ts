@@ -100,21 +100,23 @@ export const CARDWISE_DASHBOARDS: PostHogDashboardDefinition[] = [
     key: 'user-metrics',
     name: 'CardWise — User Metrics',
     description:
-      'Phase 1 user adoption and engagement. [cardwise-dashboard:user-metrics] Events: USER_REGISTERED, CARD_ADDED, ONBOARDING_*.',
+      'Phase 1 user adoption and engagement. [cardwise-dashboard:user-metrics] Events: USER_REGISTERED, USER_LOGGED_IN, GMAIL_*, CARD_ADDED, ONBOARDING_*.',
     tags: ['cardwise', 'm-023', 'user-metrics'],
     insights: [
       {
         name: 'Daily active users (core events)',
         description: 'Unique users performing any core product action per day.',
         events: [
-          AnalyticsEvent.USER_REGISTERED,
+          AnalyticsEvent.USER_LOGGED_IN,
+          AnalyticsEvent.SESSION_STARTED,
           AnalyticsEvent.CARD_ADDED,
           AnalyticsEvent.MERCHANT_SEARCHED,
           AnalyticsEvent.RECOMMENDATION_REQUESTED,
         ],
         query: trendsQuery(
           [
-            eventNode(AnalyticsEvent.USER_REGISTERED, { math: 'dau' }),
+            eventNode(AnalyticsEvent.USER_LOGGED_IN, { math: 'dau' }),
+            eventNode(AnalyticsEvent.SESSION_STARTED, { math: 'dau' }),
             eventNode(AnalyticsEvent.CARD_ADDED, { math: 'dau' }),
             eventNode(AnalyticsEvent.MERCHANT_SEARCHED, { math: 'dau' }),
             eventNode(AnalyticsEvent.RECOMMENDATION_REQUESTED, { math: 'dau' }),
@@ -136,6 +138,42 @@ export const CARDWISE_DASHBOARDS: PostHogDashboardDefinition[] = [
         query: trendsQuery([eventNode(AnalyticsEvent.USER_REGISTERED)], {
           breakdown: 'method',
         }),
+      },
+      {
+        name: 'Signup → verify → login funnel',
+        description: 'Auth funnel: register, verify email, then log in.',
+        events: [
+          AnalyticsEvent.USER_REGISTERED,
+          AnalyticsEvent.EMAIL_VERIFIED,
+          AnalyticsEvent.USER_LOGGED_IN,
+        ],
+        query: trendsQuery([
+          eventNode(AnalyticsEvent.USER_REGISTERED),
+          eventNode(AnalyticsEvent.EMAIL_VERIFIED),
+          eventNode(AnalyticsEvent.USER_LOGGED_IN),
+        ]),
+      },
+      {
+        name: 'Marketing CTA clicks',
+        description: 'Landing CTAs by placement.',
+        events: [AnalyticsEvent.MARKETING_CTA_CLICKED],
+        query: trendsQuery([eventNode(AnalyticsEvent.MARKETING_CTA_CLICKED)], {
+          breakdown: 'placement',
+        }),
+      },
+      {
+        name: 'Gmail activation',
+        description: 'Mailbox connect and sync completion.',
+        events: [
+          AnalyticsEvent.GMAIL_CONNECTED,
+          AnalyticsEvent.GMAIL_SYNC_STARTED,
+          AnalyticsEvent.GMAIL_SYNC_COMPLETED,
+        ],
+        query: trendsQuery([
+          eventNode(AnalyticsEvent.GMAIL_CONNECTED),
+          eventNode(AnalyticsEvent.GMAIL_SYNC_STARTED),
+          eventNode(AnalyticsEvent.GMAIL_SYNC_COMPLETED),
+        ]),
       },
       {
         name: 'Cards added to portfolios',
