@@ -10,7 +10,7 @@ Phase 1 product analytics dashboards for engineering and product triage. All cha
 | Recommendation Quality | `recommendation-quality` | `RECOMMENDATION_*` |
 | Merchant Intelligence | `merchant-intelligence` | `MERCHANT_SEARCHED` (incl. `searchFailed`) |
 | Card Intelligence | `card-intelligence` | `CARD_ADDED`, `CARD_DATA_GAP`, reco clicks |
-| Traffic & Page Visits | `traffic` | `PAGE_VIEWED`, `SESSION_STARTED` |
+| Traffic & Page Visits | `traffic` | `$pageview`, `SESSION_STARTED` |
 
 Definitions live in [`dashboards.ts`](./dashboards.ts).
 

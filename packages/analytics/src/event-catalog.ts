@@ -62,11 +62,12 @@ export const ANALYTICS_EVENT_CATALOG: AnalyticsEventCatalogEntry[] = [
     keyProperties: ['page', 'referrer'],
   },
   {
-    event: AnalyticsEvent.PAGE_VIEWED,
+    event: AnalyticsEvent.POSTHOG_PAGEVIEW,
     category: 'user',
-    description: 'SPA route / page visit (consent-gated).',
+    description:
+      'SPA route / page visit (consent-gated). Web sends PostHog $pageview with path/host/isAuthenticated props.',
     phase: '0',
-    keyProperties: ['path', 'host', 'isAuthenticated'],
+    keyProperties: ['path', 'host', 'isAuthenticated', '$current_url'],
   },
   {
     event: AnalyticsEvent.MARKETING_CTA_CLICKED,

@@ -11,8 +11,14 @@ export const AnalyticsEvent = {
   EMAIL_VERIFIED: 'EMAIL_VERIFIED',
   AUTH_LOGIN_FAILED: 'AUTH_LOGIN_FAILED',
   AUTH_PAGE_VIEWED: 'AUTH_PAGE_VIEWED',
-  /** SPA route change / page visit (consent-gated client). */
+  /**
+   * SPA route change / page visit (consent-gated client).
+   * Web emits PostHog’s standard `$pageview` (see POSTHOG_PAGEVIEW) so Web analytics works
+   * without a duplicate custom PAGE_VIEWED event.
+   */
   PAGE_VIEWED: 'PAGE_VIEWED',
+  /** PostHog standard pageview event name used by the web client. */
+  POSTHOG_PAGEVIEW: '$pageview',
   MARKETING_CTA_CLICKED: 'MARKETING_CTA_CLICKED',
   SESSION_STARTED: 'SESSION_STARTED',
   GMAIL_CONNECTED: 'GMAIL_CONNECTED',
@@ -141,6 +147,13 @@ export type PageViewedProperties = {
   /** Query param keys only (no values), truncated. */
   search?: string;
   referrer?: string;
+};
+
+export type PosthogPageviewProperties = PageViewedProperties & {
+  $current_url?: string;
+  $pathname?: string;
+  $host?: string;
+  $referrer?: string;
 };
 
 export type MarketingCtaClickedProperties = {
@@ -594,6 +607,7 @@ export type EventPropertiesMap = {
   AUTH_LOGIN_FAILED: AuthLoginFailedProperties;
   AUTH_PAGE_VIEWED: AuthPageViewedProperties;
   PAGE_VIEWED: PageViewedProperties;
+  $pageview: PosthogPageviewProperties;
   MARKETING_CTA_CLICKED: MarketingCtaClickedProperties;
   SESSION_STARTED: SessionStartedProperties;
   GMAIL_CONNECTED: GmailConnectedProperties;

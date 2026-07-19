@@ -32,6 +32,7 @@ describe('@cardwise/analytics', () => {
     expect(AnalyticsEvent.GMAIL_SYNC_COMPLETED).toBe('GMAIL_SYNC_COMPLETED');
     expect(AnalyticsEvent.MARKETING_CTA_CLICKED).toBe('MARKETING_CTA_CLICKED');
     expect(AnalyticsEvent.PAGE_VIEWED).toBe('PAGE_VIEWED');
+    expect(AnalyticsEvent.POSTHOG_PAGEVIEW).toBe('$pageview');
     expect(AnalyticsEvent.SESSION_STARTED).toBe('SESSION_STARTED');
     expect(AnalyticsEvent.CARD_ADDED).toBe('CARD_ADDED');
     expect(AnalyticsEvent.RECOMMENDATION_REQUESTED).toBe('RECOMMENDATION_REQUESTED');

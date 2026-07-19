@@ -46,6 +46,7 @@ export function trackAuthPageViewed(
   return trackEvent(AnalyticsEvent.AUTH_PAGE_VIEWED, properties, options);
 }
 
+/** Server/tests: typed PAGE_VIEWED. Web client emits `$pageview` instead (see trackPageViewedClient). */
 export function trackPageViewed(properties: PageViewedProperties, options?: TrackEventOptions) {
   return trackEvent(AnalyticsEvent.PAGE_VIEWED, properties, options);
 }

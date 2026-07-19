@@ -201,21 +201,19 @@ export function trackPageViewedClient(properties: {
   search?: string;
   referrer?: string;
 }): void {
-  captureProductEvent('PAGE_VIEWED', properties);
-
-  // PostHog "Web analytics" only counts $pageview (not custom PAGE_VIEWED).
-  if (typeof window !== 'undefined') {
-    captureProductEvent('$pageview', {
-      $current_url: window.location.href,
-      $pathname: properties.path,
-      $host: window.location.host,
-      $referrer: properties.referrer ?? document.referrer ?? undefined,
-      path: properties.path,
-      host: properties.host,
-      isAuthenticated: properties.isAuthenticated,
-      search: properties.search,
-    });
-  }
+  // Single event: PostHog Web analytics requires `$pageview`. Custom props keep
+  // path/host/auth for product insights without a duplicate PAGE_VIEWED row.
+  if (typeof window === 'undefined') return;
+  captureProductEvent('$pageview', {
+    $current_url: window.location.href,
+    $pathname: properties.path,
+    $host: window.location.host,
+    $referrer: properties.referrer ?? document.referrer ?? undefined,
+    path: properties.path,
+    host: properties.host,
+    isAuthenticated: properties.isAuthenticated,
+    search: properties.search,
+  });
 }
 
 export function trackMarketingCtaClickedClient(properties: {
