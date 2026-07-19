@@ -3,8 +3,11 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 
 import { App } from './app/App';
 import { ErrorBoundary } from './components/feedback/ErrorBoundary';
+import { initPostHog } from './lib/posthog';
 
 import './styles.css';
+
+initPostHog();
 
 function deferNonCriticalInit() {
   const run = () => {

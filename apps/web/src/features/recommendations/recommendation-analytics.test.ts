@@ -5,15 +5,16 @@ import {
   trackRecommendationViewedClient,
 } from './recommendation-analytics';
 
+vi.mock('posthog-js', () => ({
+  default: { capture: vi.fn(), init: vi.fn(), identify: vi.fn(), reset: vi.fn() },
+}));
+
 describe('recommendation-analytics (M-020)', () => {
   beforeEach(() => {
-    vi.stubEnv('DEV', true);
-    vi.stubEnv('VITE_POSTHOG_API_KEY', '');
     vi.spyOn(console, 'debug').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 

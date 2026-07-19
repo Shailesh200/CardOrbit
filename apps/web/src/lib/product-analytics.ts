@@ -1,40 +1,11 @@
-import { getConsentPreferences } from '../features/privacy/consent-storage';
+import posthog from 'posthog-js';
 
 /** Browser-safe product analytics (matches @cardwise/analytics event names). */
 export function captureProductEvent(event: string, properties: Record<string, unknown>): void {
-  const payload = {
-    event,
-    properties,
-    timestamp: new Date().toISOString(),
-  };
-
-  // Never beacon to PostHog until the visitor has explicitly opted into analytics cookies.
-  if (getConsentPreferences()?.analytics !== true) {
-    if (import.meta.env.DEV) {
-      console.debug('[analytics] skipped (no consent)', payload);
-    }
-    return;
-  }
-
-  const apiKey = import.meta.env.VITE_POSTHOG_API_KEY as string | undefined;
-  const host =
-    (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://app.posthog.com';
-
-  if (apiKey && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-    const body = JSON.stringify({
-      api_key: apiKey,
-      event,
-      properties: { ...properties, $lib: 'web' },
-      distinct_id: 'anonymous',
-      timestamp: payload.timestamp,
-    });
-    navigator.sendBeacon(`${host.replace(/\/$/, '')}/capture/`, body);
-    return;
-  }
-
   if (import.meta.env.DEV) {
-    console.debug('[analytics]', payload);
+    console.debug('[analytics]', event, properties);
   }
+  posthog.capture(event, properties);
 }
 
 export function trackAlternativeCardSelectedClient(properties: {

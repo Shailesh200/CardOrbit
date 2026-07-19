@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Button, Input } from '@cardwise/ui';
 import { Check, Loader2, SearchX } from 'lucide-react';
+import posthog from 'posthog-js';
 
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { CatalogListSkeleton } from '../../components/feedback/PageSkeletons';
@@ -104,6 +105,7 @@ export function AddCardPage() {
     setBusyId(card.id);
     try {
       const added = await addPortfolioCard({ creditCardId: card.id });
+      posthog.capture('CARD_ADDED', { cardId: card.id, source: 'catalog' });
       toast.success(`${card.name} added to your portfolio`);
       navigate(`/account/cards/${added.id}`);
     } catch (error) {

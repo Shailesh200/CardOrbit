@@ -18,6 +18,7 @@ import {
   Separator,
   Switch,
 } from '@cardwise/ui';
+import posthog from 'posthog-js';
 
 import { notify, toast } from '../../lib/app-toast';
 import { logout } from '../../lib/auth-api';
@@ -142,6 +143,7 @@ export function SettingsPage() {
     try {
       await changePassword(currentPassword, newPassword);
       toast.success('Password updated — please sign in again');
+      posthog.reset();
       await logout();
       navigate('/login');
     } catch (error) {
@@ -169,6 +171,7 @@ export function SettingsPage() {
       toast.success('Account deleted');
       setDeleteOpen(false);
       setDeleteConfirm('');
+      posthog.reset();
       await logout();
       navigate('/login');
     } catch (error) {

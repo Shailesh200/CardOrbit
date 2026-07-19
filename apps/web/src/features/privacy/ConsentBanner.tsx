@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Button, Dialog, DialogContent, DialogTitle } from '@cardwise/ui';
+import posthog from 'posthog-js';
 
 import { getConsentPreferences, saveConsentPreferences } from './consent-storage';
 import { consumerLinkOnDark } from '../../lib/consumer-link';
@@ -35,6 +36,7 @@ export function ConsentBanner() {
               variant="outline"
               onClick={() => {
                 saveConsentPreferences(false);
+                posthog.opt_out_capturing();
                 setVisible(false);
               }}
             >
@@ -43,6 +45,7 @@ export function ConsentBanner() {
             <Button
               onClick={() => {
                 saveConsentPreferences(true);
+                posthog.opt_in_capturing();
                 setVisible(false);
               }}
             >

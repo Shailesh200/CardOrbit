@@ -21,6 +21,7 @@
     "@cardwise/feature-flags": "workspace:*",
     "@cardwise/ui": "workspace:*",
     "@sentry/react": "^9.30.0",
+    "posthog-js": "^1.257.0",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button, Input, Label, Separator } from '@cardwise/ui';
 import { LogOut } from 'lucide-react';
+import posthog from 'posthog-js';
 
 import { LoadErrorState } from '../../components/feedback/LoadErrorState';
 import { AccountRouteSkeleton } from '../../components/feedback/PageSkeletons';
@@ -70,6 +71,7 @@ export function ProfilePage() {
   }
 
   async function onLogout() {
+    posthog.reset();
     await logout();
     navigate('/login', { replace: true });
   }

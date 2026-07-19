@@ -2,6 +2,7 @@ import { FormEvent, useState } from 'react';
 import { Link } from 'react-router';
 import { Mail } from 'lucide-react';
 import { Button, Input, Label, Separator } from '@cardwise/ui';
+import posthog from 'posthog-js';
 
 import { PasswordInput } from '@/components/auth/PasswordInput';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
@@ -30,6 +31,7 @@ export function SignupPage() {
     setBusy(true);
     try {
       await signup({ email, password, firstName, lastName });
+      posthog.capture('USER_REGISTERED', { method: 'email' });
       setPendingEmail(email.trim());
     } catch (error) {
       notify.fromError(error, 'Signup failed');

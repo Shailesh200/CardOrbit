@@ -1,3 +1,5 @@
+import posthog from 'posthog-js';
+
 type RecommendationEventBase = {
   merchantId?: string;
   merchantName?: string;
@@ -16,33 +18,11 @@ export type RecommendationClickedEvent = RecommendationViewedEvent & {
   clickedCardId?: string;
 };
 
-/** Browser-safe product analytics (matches @cardwise/analytics event names). */
 function capture(event: string, properties: Record<string, unknown>): void {
-  const payload = {
-    event,
-    properties,
-    timestamp: new Date().toISOString(),
-  };
-
-  const apiKey = import.meta.env.VITE_POSTHOG_API_KEY as string | undefined;
-  const host =
-    (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://app.posthog.com';
-
-  if (apiKey && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-    const body = JSON.stringify({
-      api_key: apiKey,
-      event,
-      properties: { ...properties, $lib: 'web' },
-      distinct_id: 'anonymous',
-      timestamp: payload.timestamp,
-    });
-    navigator.sendBeacon(`${host.replace(/\/$/, '')}/capture/`, body);
-    return;
-  }
-
   if (import.meta.env.DEV) {
-    console.debug('[analytics]', payload);
+    console.debug('[analytics]', { event, properties });
   }
+  posthog.capture(event, properties);
 }
 
 export function trackRecommendationViewedClient(properties: RecommendationViewedEvent): void {

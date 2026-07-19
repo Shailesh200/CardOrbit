@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { setAuthTokens } from '@cardwise/auth';
+import posthog from 'posthog-js';
 
+import { me } from '../../../lib/auth-api';
 import { resolvePostAuthPath } from '../../../lib/post-auth-redirect';
 
 export function OAuthCallbackPage() {
@@ -20,7 +22,11 @@ export function OAuthCallbackPage() {
     void (async () => {
       try {
         setMessage('Checking setup…');
-        navigate(await resolvePostAuthPath(), { replace: true });
+        const [path, userInfo] = await Promise.all([resolvePostAuthPath(), me().catch(() => null)]);
+        if (userInfo) {
+          posthog.identify(userInfo.id, { email: userInfo.email, role: userInfo.role });
+        }
+        navigate(path, { replace: true });
       } catch {
         navigate('/onboarding', { replace: true });
       }

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { Button, Input, Label, Separator } from '@cardwise/ui';
+import posthog from 'posthog-js';
 
 import { PasswordInput } from '@/components/auth/PasswordInput';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
@@ -36,7 +37,8 @@ export function LoginPage() {
     event.preventDefault();
     setBusy(true);
     try {
-      await login(email, password);
+      const result = await login(email, password);
+      posthog.identify(result.user.id, { email: result.user.email, role: result.user.role });
       notify.success('Signed in');
       const from = (location.state as { from?: string } | null)?.from;
       if (from && from.startsWith('/') && !from.startsWith('//')) {
