@@ -1,6 +1,7 @@
 import { getAccessToken } from '@cardwise/auth';
 
 import { getConsentPreferences } from '../features/privacy/consent-storage';
+import { buildPostHogPersonProperties } from './person-display';
 import { resolvePostHogCaptureUrl } from './posthog-ingest';
 
 /** Decode JWT payload `sub` without verifying (client identity for PostHog only). */
@@ -93,6 +94,25 @@ export function captureProductEvent(event: string, properties: Record<string, un
   if (import.meta.env.DEV) {
     console.debug('[analytics]', payload);
   }
+}
+
+/**
+ * Attach email/name to the PostHog person so Persons shows a display name
+ * instead of a raw distinct id.
+ */
+export function identifyAnalyticsPerson(profile: {
+  email: string;
+  fullName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}): void {
+  const distinctId = resolveAnalyticsDistinctId();
+  if (distinctId === 'anonymous') return;
+
+  const person = buildPostHogPersonProperties(profile);
+  captureProductEvent('$identify', {
+    $set: person,
+  });
 }
 
 export function trackAlternativeCardSelectedClient(properties: {

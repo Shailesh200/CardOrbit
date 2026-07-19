@@ -7,6 +7,7 @@ import { LoadErrorState } from '../../components/feedback/LoadErrorState';
 import { AccountRouteSkeleton } from '../../components/feedback/PageSkeletons';
 import { notify, toast } from '../../lib/app-toast';
 import { logout } from '../../lib/auth-api';
+import { identifyAnalyticsPerson } from '../../lib/product-analytics';
 
 import { getProfile, updateProfile, type UserProfile } from './account-api';
 
@@ -61,6 +62,12 @@ export function ProfilePage() {
         avatarUrl: avatarUrl || null,
       });
       setProfile(updated);
+      identifyAnalyticsPerson({
+        email: updated.email,
+        fullName: updated.fullName,
+        firstName: updated.firstName,
+        lastName: updated.lastName,
+      });
       toast.success('Profile updated');
     } catch (error) {
       notify.fromError(error, 'Update failed');

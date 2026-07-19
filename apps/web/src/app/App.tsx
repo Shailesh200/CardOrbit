@@ -18,6 +18,7 @@ import { FeatureGatedRoute } from './FeatureGatedRoute';
 import { RouteFallback } from './RouteFallback';
 import { RouteErrorPage } from './RouteErrorPage';
 import { ScrollToTop } from './ScrollToTop';
+import { AnalyticsIdentify } from './AnalyticsIdentify';
 import { PageViewTracker } from './PageViewTracker';
 import { FeatureFlagsBootstrap } from './FeatureFlagsBootstrap';
 import { ExperimentsBootstrap } from './ExperimentsBootstrap';
@@ -187,6 +188,7 @@ export function App({ ssrLocation }: AppProps = {}) {
       <AuthSessionRedirect />
       <ScrollToTop />
       <PageViewTracker />
+      <AnalyticsIdentify />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route element={<AppShell />}>
