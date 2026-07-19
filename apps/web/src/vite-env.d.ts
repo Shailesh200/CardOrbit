@@ -8,6 +8,10 @@ interface ImportMetaEnv {
   readonly VITE_LANDING_ORIGIN?: string;
   /** Authenticated app origin, e.g. https://app.cardorbit.in */
   readonly VITE_APP_ORIGIN?: string;
+  /** PostHog project API key (phc_...). Required for client analytics. */
+  readonly VITE_POSTHOG_API_KEY?: string;
+  /** PostHog UI/host hint, e.g. https://us.posthog.com or https://app.posthog.com */
+  readonly VITE_POSTHOG_HOST?: string;
 }
 
 interface ImportMeta {

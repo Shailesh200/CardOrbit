@@ -1,6 +1,7 @@
 import { getAccessToken } from '@cardwise/auth';
 
 import { getConsentPreferences } from '../features/privacy/consent-storage';
+import { resolvePostHogCaptureUrl } from './posthog-ingest';
 
 /** Decode JWT payload `sub` without verifying (client identity for PostHog only). */
 export function resolveAnalyticsDistinctId(): string {
@@ -15,6 +16,45 @@ export function resolveAnalyticsDistinctId(): string {
   } catch {
     return 'anonymous';
   }
+}
+
+function postToPostHog(event: string, properties: Record<string, unknown>): void {
+  const apiKey = import.meta.env.VITE_POSTHOG_API_KEY as string | undefined;
+  if (!apiKey || typeof window === 'undefined') {
+    if (import.meta.env.DEV) {
+      console.debug('[analytics] skipped (no api key)', { event, properties });
+    }
+    return;
+  }
+
+  const timestamp = new Date().toISOString();
+  const body = JSON.stringify({
+    api_key: apiKey,
+    event,
+    properties: {
+      ...properties,
+      $lib: 'web',
+      distinct_id: resolveAnalyticsDistinctId(),
+    },
+    distinct_id: resolveAnalyticsDistinctId(),
+    timestamp,
+  });
+  const url = resolvePostHogCaptureUrl(import.meta.env.VITE_POSTHOG_HOST as string | undefined);
+  const blob = new Blob([body], { type: 'application/json' });
+
+  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+    const queued = navigator.sendBeacon(url, blob);
+    if (queued) return;
+  }
+
+  void fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+    keepalive: true,
+  }).catch(() => {
+    /* ignore network errors — analytics must not break UX */
+  });
 }
 
 /** Browser-safe product analytics (matches @cardwise/analytics event names). */
@@ -33,21 +73,7 @@ export function captureProductEvent(event: string, properties: Record<string, un
     return;
   }
 
-  const apiKey = import.meta.env.VITE_POSTHOG_API_KEY as string | undefined;
-  const host =
-    (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://app.posthog.com';
-
-  if (apiKey && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-    const body = JSON.stringify({
-      api_key: apiKey,
-      event,
-      properties: { ...properties, $lib: 'web' },
-      distinct_id: resolveAnalyticsDistinctId(),
-      timestamp: payload.timestamp,
-    });
-    navigator.sendBeacon(`${host.replace(/\/$/, '')}/capture/`, body);
-    return;
-  }
+  postToPostHog(event, properties);
 
   if (import.meta.env.DEV) {
     console.debug('[analytics]', payload);
@@ -161,6 +187,20 @@ export function trackPageViewedClient(properties: {
   referrer?: string;
 }): void {
   captureProductEvent('PAGE_VIEWED', properties);
+
+  // PostHog "Web analytics" only counts $pageview (not custom PAGE_VIEWED).
+  if (typeof window !== 'undefined') {
+    captureProductEvent('$pageview', {
+      $current_url: window.location.href,
+      $pathname: properties.path,
+      $host: window.location.host,
+      $referrer: properties.referrer ?? document.referrer ?? undefined,
+      path: properties.path,
+      host: properties.host,
+      isAuthenticated: properties.isAuthenticated,
+      search: properties.search,
+    });
+  }
 }
 
 export function trackMarketingCtaClickedClient(properties: {
