@@ -90,7 +90,8 @@ export const PRERENDER_PATHS = PUBLIC_SEO_ROUTES.map((route) => route.path);
 const ACCOUNT_TITLE_PREFIX = 'CardOrbit · ';
 
 export function seoForPath(pathname: string): SeoDefinition {
-  const normalized = pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
+  const normalized =
+    pathname.endsWith('/') && pathname.length > 1 ? pathname.slice(0, -1) : pathname;
   const exact = PUBLIC_SEO_ROUTES.find((route) => route.path === normalized);
   if (exact) return exact;
 
@@ -215,11 +216,7 @@ ${urls}
 `;
 }
 
-function upsertMeta(
-  selector: string,
-  attrs: Record<string, string>,
-  content?: string,
-): void {
+function upsertMeta(selector: string, attrs: Record<string, string>, content?: string): void {
   if (typeof document === 'undefined') return;
   let el = document.head.querySelector(selector) as HTMLMetaElement | HTMLLinkElement | null;
   if (!el) {
@@ -249,7 +246,11 @@ export function applyDocumentSeo(
   document.title = seo.title;
 
   upsertMeta('meta[name="description"]', { name: 'description' }, seo.description);
-  upsertMeta('meta[name="robots"]', { name: 'robots' }, noindex ? 'noindex,nofollow' : 'index,follow');
+  upsertMeta(
+    'meta[name="robots"]',
+    { name: 'robots' },
+    noindex ? 'noindex,nofollow' : 'index,follow',
+  );
   upsertMeta('link[rel="canonical"]', { rel: 'canonical', href: pageUrl });
 
   upsertMeta('meta[property="og:type"]', { property: 'og:type' }, ogType);
