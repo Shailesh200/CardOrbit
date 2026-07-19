@@ -27,9 +27,7 @@ export function saveConsentPreferences(analytics: boolean): ConsentPreferences {
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(
-      new CustomEvent(CONSENT_CHANGED_EVENT, { detail: { analytics } }),
-    );
+    window.dispatchEvent(new CustomEvent(CONSENT_CHANGED_EVENT, { detail: { analytics } }));
   }
   return prefs;
 }
