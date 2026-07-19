@@ -6,8 +6,8 @@ import { CARDWISE_DASHBOARDS, collectDashboardEventNames } from './dashboards';
 const catalogEvents = new Set<string>(Object.values(AnalyticsEvent));
 
 describe('PostHog dashboards (M-023 / M-034)', () => {
-  it('defines six CardWise dashboards', () => {
-    expect(CARDWISE_DASHBOARDS).toHaveLength(6);
+  it('defines seven CardWise dashboards', () => {
+    expect(CARDWISE_DASHBOARDS).toHaveLength(7);
     expect(CARDWISE_DASHBOARDS.map((row) => row.key)).toEqual([
       'user-metrics',
       'recommendation-quality',
@@ -15,6 +15,7 @@ describe('PostHog dashboards (M-023 / M-034)', () => {
       'card-intelligence',
       'extension-telemetry',
       'feature-adoption',
+      'traffic',
     ]);
   });
 

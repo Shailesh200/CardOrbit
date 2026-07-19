@@ -580,6 +580,54 @@ export const CARDWISE_DASHBOARDS: PostHogDashboardDefinition[] = [
       },
     ],
   },
+  {
+    key: 'traffic',
+    name: 'CardWise — Traffic & Page Visits',
+    description:
+      'SPA pageviews and visit trends. [cardwise-dashboard:traffic] Events: PAGE_VIEWED, SESSION_STARTED.',
+    tags: ['cardwise', 'traffic', 'pageviews'],
+    insights: [
+      {
+        name: 'Daily page views',
+        description: 'PAGE_VIEWED volume per day.',
+        events: [AnalyticsEvent.PAGE_VIEWED],
+        query: trendsQuery([eventNode(AnalyticsEvent.PAGE_VIEWED)]),
+      },
+      {
+        name: 'Daily active visitors',
+        description: 'Unique users with PAGE_VIEWED or SESSION_STARTED.',
+        events: [AnalyticsEvent.PAGE_VIEWED, AnalyticsEvent.SESSION_STARTED],
+        query: trendsQuery([
+          eventNode(AnalyticsEvent.PAGE_VIEWED, { math: 'dau' }),
+          eventNode(AnalyticsEvent.SESSION_STARTED, { math: 'dau' }),
+        ]),
+      },
+      {
+        name: 'Top paths',
+        description: 'PAGE_VIEWED broken down by path.',
+        events: [AnalyticsEvent.PAGE_VIEWED],
+        query: trendsQuery([eventNode(AnalyticsEvent.PAGE_VIEWED)], {
+          breakdown: 'path',
+        }),
+      },
+      {
+        name: 'Landing vs app host',
+        description: 'PAGE_VIEWED by host surface.',
+        events: [AnalyticsEvent.PAGE_VIEWED],
+        query: trendsQuery([eventNode(AnalyticsEvent.PAGE_VIEWED)], {
+          breakdown: 'host',
+        }),
+      },
+      {
+        name: 'Authenticated vs anonymous visits',
+        description: 'PAGE_VIEWED by isAuthenticated.',
+        events: [AnalyticsEvent.PAGE_VIEWED],
+        query: trendsQuery([eventNode(AnalyticsEvent.PAGE_VIEWED)], {
+          breakdown: 'isAuthenticated',
+        }),
+      },
+    ],
+  },
 ];
 
 export function collectDashboardEventNames(): string[] {

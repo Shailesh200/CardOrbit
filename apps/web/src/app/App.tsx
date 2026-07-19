@@ -18,6 +18,7 @@ import { FeatureGatedRoute } from './FeatureGatedRoute';
 import { RouteFallback } from './RouteFallback';
 import { RouteErrorPage } from './RouteErrorPage';
 import { ScrollToTop } from './ScrollToTop';
+import { PageViewTracker } from './PageViewTracker';
 import { FeatureFlagsBootstrap } from './FeatureFlagsBootstrap';
 import { ExperimentsBootstrap } from './ExperimentsBootstrap';
 import { HostGate } from './HostGate';
@@ -185,6 +186,7 @@ export function App({ ssrLocation }: AppProps = {}) {
       <HostGate />
       <AuthSessionRedirect />
       <ScrollToTop />
+      <PageViewTracker />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route element={<AppShell />}>

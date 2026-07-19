@@ -1,4 +1,21 @@
+import { getAccessToken } from '@cardwise/auth';
+
 import { getConsentPreferences } from '../features/privacy/consent-storage';
+
+/** Decode JWT payload `sub` without verifying (client identity for PostHog only). */
+export function resolveAnalyticsDistinctId(): string {
+  const token = getAccessToken();
+  if (!token) return 'anonymous';
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return 'anonymous';
+    const json = atob(parts[1]!.replace(/-/g, '+').replace(/_/g, '/'));
+    const payload = JSON.parse(json) as { sub?: unknown };
+    return typeof payload.sub === 'string' && payload.sub.length > 0 ? payload.sub : 'anonymous';
+  } catch {
+    return 'anonymous';
+  }
+}
 
 /** Browser-safe product analytics (matches @cardwise/analytics event names). */
 export function captureProductEvent(event: string, properties: Record<string, unknown>): void {
@@ -25,7 +42,7 @@ export function captureProductEvent(event: string, properties: Record<string, un
       api_key: apiKey,
       event,
       properties: { ...properties, $lib: 'web' },
-      distinct_id: 'anonymous',
+      distinct_id: resolveAnalyticsDistinctId(),
       timestamp: payload.timestamp,
     });
     navigator.sendBeacon(`${host.replace(/\/$/, '')}/capture/`, body);
@@ -134,6 +151,16 @@ export function trackAuthPageViewedClient(properties: {
   referrer?: string;
 }): void {
   captureProductEvent('AUTH_PAGE_VIEWED', properties);
+}
+
+export function trackPageViewedClient(properties: {
+  path: string;
+  host: 'landing' | 'app' | 'other';
+  isAuthenticated: boolean;
+  search?: string;
+  referrer?: string;
+}): void {
+  captureProductEvent('PAGE_VIEWED', properties);
 }
 
 export function trackMarketingCtaClickedClient(properties: {

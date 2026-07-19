@@ -11,6 +11,8 @@ export const AnalyticsEvent = {
   EMAIL_VERIFIED: 'EMAIL_VERIFIED',
   AUTH_LOGIN_FAILED: 'AUTH_LOGIN_FAILED',
   AUTH_PAGE_VIEWED: 'AUTH_PAGE_VIEWED',
+  /** SPA route change / page visit (consent-gated client). */
+  PAGE_VIEWED: 'PAGE_VIEWED',
   MARKETING_CTA_CLICKED: 'MARKETING_CTA_CLICKED',
   SESSION_STARTED: 'SESSION_STARTED',
   GMAIL_CONNECTED: 'GMAIL_CONNECTED',
@@ -129,6 +131,15 @@ export type AuthLoginFailedProperties = {
 
 export type AuthPageViewedProperties = {
   page: 'signup' | 'login' | 'forgot_password' | 'verify_email' | 'reset_password';
+  referrer?: string;
+};
+
+export type PageViewedProperties = {
+  path: string;
+  host: 'landing' | 'app' | 'other';
+  isAuthenticated: boolean;
+  /** Query param keys only (no values), truncated. */
+  search?: string;
   referrer?: string;
 };
 
@@ -582,6 +593,7 @@ export type EventPropertiesMap = {
   EMAIL_VERIFIED: EmailVerifiedProperties;
   AUTH_LOGIN_FAILED: AuthLoginFailedProperties;
   AUTH_PAGE_VIEWED: AuthPageViewedProperties;
+  PAGE_VIEWED: PageViewedProperties;
   MARKETING_CTA_CLICKED: MarketingCtaClickedProperties;
   SESSION_STARTED: SessionStartedProperties;
   GMAIL_CONNECTED: GmailConnectedProperties;

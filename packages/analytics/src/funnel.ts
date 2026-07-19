@@ -7,6 +7,7 @@ import type {
   GmailSyncCompletedProperties,
   GmailSyncStartedProperties,
   MarketingCtaClickedProperties,
+  PageViewedProperties,
   SessionStartedProperties,
   UserLoggedInProperties,
   UserLoggedOutProperties,
@@ -43,6 +44,10 @@ export function trackAuthPageViewed(
   options?: TrackEventOptions,
 ) {
   return trackEvent(AnalyticsEvent.AUTH_PAGE_VIEWED, properties, options);
+}
+
+export function trackPageViewed(properties: PageViewedProperties, options?: TrackEventOptions) {
+  return trackEvent(AnalyticsEvent.PAGE_VIEWED, properties, options);
 }
 
 export function trackMarketingCtaClicked(

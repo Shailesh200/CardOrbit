@@ -8,6 +8,7 @@ import {
   shutdownAnalytics,
   trackEvent,
   trackGmailConnected,
+  trackPageViewed,
   trackRecommendationRequested,
   trackUserLoggedIn,
 } from './index';
@@ -30,6 +31,7 @@ describe('@cardwise/analytics', () => {
     expect(AnalyticsEvent.GMAIL_CONNECTED).toBe('GMAIL_CONNECTED');
     expect(AnalyticsEvent.GMAIL_SYNC_COMPLETED).toBe('GMAIL_SYNC_COMPLETED');
     expect(AnalyticsEvent.MARKETING_CTA_CLICKED).toBe('MARKETING_CTA_CLICKED');
+    expect(AnalyticsEvent.PAGE_VIEWED).toBe('PAGE_VIEWED');
     expect(AnalyticsEvent.SESSION_STARTED).toBe('SESSION_STARTED');
     expect(AnalyticsEvent.CARD_ADDED).toBe('CARD_ADDED');
     expect(AnalyticsEvent.RECOMMENDATION_REQUESTED).toBe('RECOMMENDATION_REQUESTED');
@@ -106,6 +108,24 @@ describe('@cardwise/analytics', () => {
     );
     const events = getMemoryEvents().map((e) => e.event);
     expect(events).toEqual(['USER_LOGGED_IN', 'GMAIL_CONNECTED']);
+  });
+
+  it('captures PAGE_VIEWED via helper', () => {
+    trackPageViewed(
+      {
+        path: '/account/cards',
+        host: 'app',
+        isAuthenticated: true,
+        search: 'utm_source',
+      },
+      { distinctId: 'user_1' },
+    );
+    expect(getMemoryEvents()[0]?.event).toBe('PAGE_VIEWED');
+    expect(getMemoryEvents()[0]?.properties).toMatchObject({
+      path: '/account/cards',
+      host: 'app',
+      isAuthenticated: true,
+    });
   });
 
   it('captures CARD_ADDED via trackEvent', () => {

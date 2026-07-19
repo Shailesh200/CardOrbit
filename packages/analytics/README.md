@@ -31,7 +31,7 @@ Full catalog includes card/merchant/offer/recommendation events from bootstrap Â
 
 ## PostHog dashboards (M-023 / M-034)
 
-Six product dashboards are defined in `posthog/dashboards.ts` and synced via:
+Seven product dashboards are defined in `posthog/dashboards.ts` and synced via:
 
 ```bash
 bun run analytics:sync-dashboards

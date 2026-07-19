@@ -62,6 +62,13 @@ export const ANALYTICS_EVENT_CATALOG: AnalyticsEventCatalogEntry[] = [
     keyProperties: ['page', 'referrer'],
   },
   {
+    event: AnalyticsEvent.PAGE_VIEWED,
+    category: 'user',
+    description: 'SPA route / page visit (consent-gated).',
+    phase: '0',
+    keyProperties: ['path', 'host', 'isAuthenticated'],
+  },
+  {
     event: AnalyticsEvent.MARKETING_CTA_CLICKED,
     category: 'user',
     description: 'Marketing CTA clicked toward signup or login.',
