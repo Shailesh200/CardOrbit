@@ -9,31 +9,90 @@ CardOrbit is a milestone-driven platform for Indian credit card optimization —
 
 ---
 
-## Production (live)
+## Ops bookmarks (check regularly)
 
-| Surface | URL |
-|---------|-----|
+Exact links for day-to-day tracking of CardOrbit production. Bookmark this section.
+
+### Product surfaces
+
+| What | Exact URL |
+|------|-----------|
 | Landing | https://cardorbit.in |
+| Privacy | https://cardorbit.in/privacy |
+| Terms | https://cardorbit.in/terms |
+| Cookies | https://cardorbit.in/cookies |
+| Sitemap | https://cardorbit.in/sitemap.xml |
+| Robots | https://cardorbit.in/robots.txt |
 | Consumer app | https://app.cardorbit.in |
+| App login | https://app.cardorbit.in/login |
+| App signup | https://app.cardorbit.in/signup |
 | Admin CMS | https://admin.cardorbit.in |
 | API health | https://api.cardorbit.in/health |
-| API (base) | https://api.cardorbit.in/api/v1 |
+| API base | https://api.cardorbit.in/api/v1 |
 
-### Infrastructure links
+### Analytics (PostHog · US · project `519148`)
 
-| System | Link / location | Role |
-|--------|-----------------|------|
-| **GitHub** | https://github.com/Shailesh200/CardOrbit | Source of truth (`main`) |
-| **Vercel — web** | Vercel dashboard → `cardorbit-web` · root `apps/web` | Landing + consumer SPA |
-| **Vercel — admin** | Vercel dashboard → `card-orbit-admin` · root `apps/admin` | Admin CMS SPA |
-| **Coolify** | http://167.233.223.123:8000 | Deploy/manage API stack on VPS |
-| **Coolify app** | Coolify → project → application `hoci5uux0n03wivuoxcj9awv` | Compose: api, worker, scheduler, postgres, redis |
-| **Hetzner VPS** | `167.233.223.123` (SSH: `~/.ssh/cardorbit_hetzner`) | Docker host for Coolify |
-| **Cloudflare** | https://dash.cloudflare.com → `cardorbit.in` | DNS / CDN |
-| **Resend** | https://resend.com/domains · domain `cardorbit.in` | Transactional email (SMTP) |
-| **Google Cloud OAuth** | https://console.cloud.google.com/apis/credentials | Google sign-in + Gmail scopes |
-| **Gemini / AI Studio** | https://aistudio.google.com/apikey | `GEMINI_API_KEY` for API/worker |
-| **GHCR images** | `ghcr.io/shailesh200/cardorbit-{api,worker,scheduler}` | Production container images |
+| What | Exact URL |
+|------|-----------|
+| Project home | https://us.posthog.com/project/519148 |
+| Activity (live events) | https://us.posthog.com/project/519148/activity |
+| Persons | https://us.posthog.com/project/519148/persons |
+| Dashboards | https://us.posthog.com/project/519148/dashboard |
+| Product analytics | https://us.posthog.com/project/519148/insights |
+| Web analytics | https://us.posthog.com/project/519148/web |
+| Session replay | https://us.posthog.com/project/519148/replay/home |
+| Project settings | https://us.posthog.com/project/519148/settings/project |
+
+### Errors (Sentry)
+
+| What | Exact URL |
+|------|-----------|
+| Sentry home | https://sentry.io |
+| Org (example slug) | https://sentry.io/organizations/shailesh-jha/ |
+| Projects to watch | `cardorbit-web`, `cardorbit-admin`, `cardorbit-api`, `cardorbit-worker` |
+
+Open each project from the org home after login (slug may differ if you renamed the org).
+
+### Deploys & source
+
+| What | Exact URL |
+|------|-----------|
+| GitHub repo | https://github.com/Shailesh200/CardOrbit |
+| GitHub Actions | https://github.com/Shailesh200/CardOrbit/actions |
+| Deploy workflow | https://github.com/Shailesh200/CardOrbit/actions/workflows/deploy.yml |
+| GHCR packages | https://github.com/Shailesh200/CardOrbit/pkgs/container/ |
+| Vercel dashboard | https://vercel.com/dashboard |
+| Vercel — web project | https://vercel.com → project **`card-orbit-web`** (root `apps/web`) |
+| Vercel — admin project | https://vercel.com → project **`card-orbit-admin`** (root `apps/admin`) |
+| Coolify UI | http://167.233.223.123:8000 |
+| Coolify app id | `hoci5uux0n03wivuoxcj9awv` (api, worker, scheduler, postgres, redis) |
+| Coolify compose dir | `/data/coolify/applications/hoci5uux0n03wivuoxcj9awv/` |
+
+### Database & Redis (on VPS via Coolify)
+
+Postgres and Redis run as Docker services on the Hetzner VPS (not a public URL).
+
+| What | How to open |
+|------|-------------|
+| Coolify stack | http://167.233.223.123:8000 → application `hoci5uux0n03wivuoxcj9awv` → **postgres** / **redis** |
+| SSH to VPS | `ssh -i ~/.ssh/cardorbit_hetzner root@167.233.223.123` |
+| Postgres CLI | `cd /data/coolify/applications/hoci5uux0n03wivuoxcj9awv && docker compose exec -it postgres psql -U cardorbit -d cardorbit` |
+| Redis CLI | `cd /data/coolify/applications/hoci5uux0n03wivuoxcj9awv && docker compose exec -it redis redis-cli` |
+| DB name / user | database `cardorbit` · user `cardorbit` (password in Coolify env) |
+
+### Infra & vendor consoles
+
+| What | Exact URL |
+|------|-----------|
+| Hetzner Cloud | https://console.hetzner.cloud/ |
+| VPS IP | `167.233.223.123` (server `cardorbit-api`, project `cardorbit-prod`) |
+| Cloudflare dashboard | https://dash.cloudflare.com |
+| Cloudflare DNS (`cardorbit.in`) | https://dash.cloudflare.com → select zone **cardorbit.in** → **DNS** |
+| Cloudflare R2 | https://dash.cloudflare.com → **R2** (bucket `cardorbit-assets`) |
+| Resend domains | https://resend.com/domains |
+| Resend emails / logs | https://resend.com/emails |
+| Google OAuth credentials | https://console.cloud.google.com/apis/credentials |
+| Gemini API keys | https://aistudio.google.com/apikey |
 
 ### Host map
 
@@ -72,9 +131,6 @@ python3 /opt/cardorbit-src/infra/docker/scripts/patch-coolify-traefik.py
 cd /data/coolify/applications/hoci5uux0n03wivuoxcj9awv
 docker compose up -d --force-recreate --no-deps api
 ```
-
-Coolify UI: **http://167.233.223.123:8000**  
-Compose data dir: `/data/coolify/applications/hoci5uux0n03wivuoxcj9awv/`
 
 ---
 
