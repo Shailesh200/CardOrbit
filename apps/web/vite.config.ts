@@ -52,7 +52,13 @@ export default defineConfig({
       injectRegister: false,
       // manifest.webmanifest is hand-authored in public/ (linked from index.html).
       manifest: false,
-      includeAssets: ['favicon.svg', 'icons/*.png'],
+      includeAssets: [
+        'favicon.svg',
+        'favicon-32.png',
+        'favicon-48.png',
+        'apple-touch-icon.png',
+        'icons/*.png',
+      ],
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',

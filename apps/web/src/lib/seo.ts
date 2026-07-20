@@ -16,13 +16,14 @@ export type SeoDefinition = {
   jsonLd?: Record<string, unknown>[];
 };
 
+const HOME_TITLE = 'CardOrbit: Which Credit Card to Use in India';
 const HOME_DESCRIPTION =
-  'CardOrbit helps people in India choose the best credit card for every purchase — portfolio tracking, merchant recommendations, rewards, travel benefits, and optional Gmail spend-alert import.';
+  'Compare and pick the best credit card for every purchase in India. Track your cards, get merchant recommendations, rewards insight, and optional Gmail spend sync.';
 
 export const PUBLIC_SEO_ROUTES: SeoDefinition[] = [
   {
     path: '/',
-    title: 'CardOrbit',
+    title: HOME_TITLE,
     description: HOME_DESCRIPTION,
     jsonLd: [
       {
@@ -129,7 +130,7 @@ export function seoForPath(pathname: string): SeoDefinition {
 
   return {
     path: normalized || '/',
-    title: 'CardOrbit',
+    title: HOME_TITLE,
     description: HOME_DESCRIPTION,
     noindex: normalized === '*' || normalized.includes('404'),
   };
@@ -149,7 +150,7 @@ export function buildJsonLdGraph(seo: SeoDefinition): Record<string, unknown> {
       '@id': `${LANDING_ORIGIN}/#organization`,
       name: SITE_NAME,
       url: `${LANDING_ORIGIN}/`,
-      logo: `${LANDING_ORIGIN}/favicon.svg`,
+      logo: `${LANDING_ORIGIN}/favicon-48.png`,
       sameAs: [],
     },
     {

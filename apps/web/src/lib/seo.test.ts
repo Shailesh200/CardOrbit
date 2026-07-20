@@ -10,7 +10,8 @@ import {
 
 describe('seo', () => {
   it('resolves public route definitions', () => {
-    expect(seoForPath('/').title).toBe('CardOrbit');
+    expect(seoForPath('/').title).toBe('CardOrbit: Which Credit Card to Use in India');
+    expect(seoForPath('/').description.toLowerCase()).toContain('india');
     expect(seoForPath('/privacy').title).toContain('Privacy');
     expect(seoForPath('/terms').noindex).toBeFalsy();
   });
