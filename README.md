@@ -9,90 +9,30 @@ CardOrbit is a milestone-driven platform for Indian credit card optimization —
 
 ---
 
-## Ops bookmarks (check regularly)
+## Ops bookmarks
 
-Exact links for day-to-day tracking of CardOrbit production. Bookmark this section.
-
-### Product surfaces
-
-| What | Exact URL |
-|------|-----------|
+| What | URL |
+|------|-----|
 | Landing | https://cardorbit.in |
-| Privacy | https://cardorbit.in/privacy |
-| Terms | https://cardorbit.in/terms |
-| Cookies | https://cardorbit.in/cookies |
-| Sitemap | https://cardorbit.in/sitemap.xml |
-| Robots | https://cardorbit.in/robots.txt |
-| Consumer app | https://app.cardorbit.in |
-| App login | https://app.cardorbit.in/login |
-| App signup | https://app.cardorbit.in/signup |
-| Admin CMS | https://admin.cardorbit.in |
+| App | https://app.cardorbit.in |
+| Admin | https://admin.cardorbit.in |
 | API health | https://api.cardorbit.in/health |
-| API base | https://api.cardorbit.in/api/v1 |
-
-### Analytics (PostHog · US · project `519148`)
-
-| What | Exact URL |
-|------|-----------|
-| Project home | https://us.posthog.com/project/519148 |
-| Activity (live events) | https://us.posthog.com/project/519148/activity |
-| Persons | https://us.posthog.com/project/519148/persons |
-| Dashboards | https://us.posthog.com/project/519148/dashboard |
-| Product analytics | https://us.posthog.com/project/519148/insights |
-| Web analytics | https://us.posthog.com/project/519148/web |
-| Session replay | https://us.posthog.com/project/519148/replay/home |
-| Project settings | https://us.posthog.com/project/519148/settings/project |
-
-### Errors (Sentry)
-
-| What | Exact URL |
-|------|-----------|
-| Sentry home | https://sentry.io |
-| Org (example slug) | https://sentry.io/organizations/shailesh-jha/ |
-| Projects to watch | `cardorbit-web`, `cardorbit-admin`, `cardorbit-api`, `cardorbit-worker` |
-
-Open each project from the org home after login (slug may differ if you renamed the org).
-
-### Deploys & source
-
-| What | Exact URL |
-|------|-----------|
-| GitHub repo | https://github.com/Shailesh200/CardOrbit |
+| PostHog | https://us.posthog.com/project/519148 |
+| PostHog Activity | https://us.posthog.com/project/519148/activity |
+| PostHog Persons | https://us.posthog.com/project/519148/persons |
+| Sentry | https://sentry.io |
+| GitHub | https://github.com/Shailesh200/CardOrbit |
 | GitHub Actions | https://github.com/Shailesh200/CardOrbit/actions |
-| Deploy workflow | https://github.com/Shailesh200/CardOrbit/actions/workflows/deploy.yml |
-| GHCR packages | https://github.com/Shailesh200/CardOrbit/pkgs/container/ |
-| Vercel dashboard | https://vercel.com/dashboard |
-| Vercel — web project | https://vercel.com → project **`card-orbit-web`** (root `apps/web`) |
-| Vercel — admin project | https://vercel.com → project **`card-orbit-admin`** (root `apps/admin`) |
-| Coolify UI | http://167.233.223.123:8000 |
-| Coolify app id | `hoci5uux0n03wivuoxcj9awv` (api, worker, scheduler, postgres, redis) |
-| Coolify compose dir | `/data/coolify/applications/hoci5uux0n03wivuoxcj9awv/` |
+| Vercel | https://vercel.com/dashboard |
+| Coolify | http://167.233.223.123:8000 |
+| Hetzner | https://console.hetzner.cloud/ |
+| Cloudflare | https://dash.cloudflare.com |
+| Resend | https://resend.com/emails |
+| Google OAuth | https://console.cloud.google.com/apis/credentials |
+| Gemini keys | https://aistudio.google.com/apikey |
 
-### Database & Redis (on VPS via Coolify)
-
-Postgres and Redis run as Docker services on the Hetzner VPS (not a public URL).
-
-| What | How to open |
-|------|-------------|
-| Coolify stack | http://167.233.223.123:8000 → application `hoci5uux0n03wivuoxcj9awv` → **postgres** / **redis** |
-| SSH to VPS | `ssh -i ~/.ssh/cardorbit_hetzner root@167.233.223.123` |
-| Postgres CLI | `cd /data/coolify/applications/hoci5uux0n03wivuoxcj9awv && docker compose exec -it postgres psql -U cardorbit -d cardorbit` |
-| Redis CLI | `cd /data/coolify/applications/hoci5uux0n03wivuoxcj9awv && docker compose exec -it redis redis-cli` |
-| DB name / user | database `cardorbit` · user `cardorbit` (password in Coolify env) |
-
-### Infra & vendor consoles
-
-| What | Exact URL |
-|------|-----------|
-| Hetzner Cloud | https://console.hetzner.cloud/ |
-| VPS IP | `167.233.223.123` (server `cardorbit-api`, project `cardorbit-prod`) |
-| Cloudflare dashboard | https://dash.cloudflare.com |
-| Cloudflare DNS (`cardorbit.in`) | https://dash.cloudflare.com → select zone **cardorbit.in** → **DNS** |
-| Cloudflare R2 | https://dash.cloudflare.com → **R2** (bucket `cardorbit-assets`) |
-| Resend domains | https://resend.com/domains |
-| Resend emails / logs | https://resend.com/emails |
-| Google OAuth credentials | https://console.cloud.google.com/apis/credentials |
-| Gemini API keys | https://aistudio.google.com/apikey |
+**DB / Redis:** Coolify → app `hoci5uux0n03wivuoxcj9awv` → postgres / redis  
+**SSH:** `ssh -i ~/.ssh/cardorbit_hetzner root@167.233.223.123`
 
 ### Host map
 
